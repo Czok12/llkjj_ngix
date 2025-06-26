@@ -22,8 +22,8 @@ urlpatterns = [
     path("belege/", include("belege.urls")),
     path("auswertungen/", include("auswertungen.urls")),
     path("dokumente/", include("dokumente.urls")),
+    path("einstellungen/", include("einstellungen.urls")),
     # path("steuer/", include("steuer.urls")),
-    # path("einstellungen/", include("einstellungen.urls")),
 ]
 
 # Debug Toolbar (nur in Development)

@@ -1,0 +1,216 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}Benutzerprofil Dashboard - llkjj_knut{% endblock %}
+
+{% block extra_css %}
+<style>
+.progress-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 15px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.stats-card {
+    background: white;
+    border-radius: 10px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-left: 4px solid #667eea;
+    margin-bottom: 1rem;
+}
+
+.peter-quote {
+    background: #f8f9fa;
+    border-left: 4px solid #28a745;
+    padding: 1rem;
+    margin: 1rem 0;
+    border-radius: 0 10px 10px 0;
+    font-style: italic;
+}
+
+.action-btn {
+    background: linear-gradient(45deg, #667eea, #764ba2);
+    border: none;
+    border-radius: 25px;
+    padding: 0.75rem 2rem;
+    color: white;
+    font-weight: 600;
+    transition: transform 0.2s;
+}
+
+.action-btn:hover {
+    transform: translateY(-2px);
+    color: white;
+}
+
+.warning-card {
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 10px;
+    padding: 1rem;
+    margin: 1rem 0;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    
+    {% if not hat_profil %}
+    <!-- Kein Profil vorhanden -->
+    <div class="progress-card text-center">
+        <h1 class="display-4 mb-4">🎭 Willkommen bei llkjj_knut!</h1>
+        <p class="lead">Ihre intelligente Buchhaltung für Künstler und Kreative</p>
+    </div>
+    
+    <div class="peter-quote">
+        <i class="fas fa-quote-left"></i>
+        <strong>Peter Zwegat sagt:</strong> "Ohne Ordnung in den Daten gibt es keine Ordnung in den Finanzen! 
+        Lassen Sie uns mit Ihrem Profil beginnen - das ist der Grundstein für alles weitere!"
+        <i class="fas fa-quote-right float-end"></i>
+    </div>
+    
+    <div class="warning-card">
+        <h4><i class="fas fa-exclamation-triangle text-warning"></i> Profil noch nicht erstellt</h4>
+        <p>Um alle Funktionen von llkjj_knut nutzen zu können, benötigen Sie ein vollständiges Benutzerprofil.</p>
+        
+        <h5>Was Sie benötigen:</h5>
+        <ul>
+            <li>📝 Persönliche Daten (Name, Adresse)</li>
+            <li>🆔 Steuer-Identifikationsnummer</li>
+            <li>💼 Berufliche Angaben</li>
+            <li>🏦 Bankdaten (optional)</li>
+        </ul>
+    </div>
+    
+    <div class="text-center">
+        <a href="{% url 'einstellungen:profil_erstellen' %}" class="action-btn btn btn-lg">
+            <i class="fas fa-plus-circle"></i> Profil jetzt erstellen
+        </a>
+    </div>
+    
+    {% else %}
+    <!-- Profil vorhanden -->
+    <div class="row">
+        <div class="col-md-8">
+            <div class="progress-card">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h2>👋 Hallo, {{ profil.vorname }}!</h2>
+                        <p class="lead">Ihr Profil ist zu {{ vollstaendigkeits_prozent }}% vollständig</p>
+                        
+                        <div class="progress mb-3" style="height: 20px;">
+                            <div class="progress-bar bg-success" role="progressbar" 
+                                 style="width: {{ vollstaendigkeits_prozent }}%">
+                                {{ vollstaendigkeits_prozent }}%
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <i class="fas fa-user-check fa-4x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="stats-card text-center">
+                <h5>Steuer-Status</h5>
+                {% if steuer_bereit %}
+                    <i class="fas fa-check-circle fa-3x text-success"></i>
+                    <p class="text-success mt-2">Steuerbereit ✓</p>
+                {% else %}
+                    <i class="fas fa-exclamation-circle fa-3x text-warning"></i>
+                    <p class="text-warning mt-2">Unvollständig</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="stats-card">
+                <h5><i class="fas fa-file-invoice text-primary"></i> EÜR-Status</h5>
+                {% if euer_bereit %}
+                    <span class="badge bg-success">Bereit für EÜR-Erstellung</span>
+                    <p class="mt-2">Alle benötigten Daten sind vorhanden.</p>
+                {% else %}
+                    <span class="badge bg-warning">Noch nicht bereit</span>
+                    <p class="mt-2">Einige Angaben fehlen noch für die EÜR.</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="stats-card">
+                <h5><i class="fas fa-building text-primary"></i> Kleinunternehmer-Status</h5>
+                {% if profil.kleinunternehmer_19_ustg %}
+                    <span class="badge bg-info">§19 UStG Kleinunternehmer</span>
+                    <p class="mt-2">Keine Umsatzsteuer-Pflicht.</p>
+                {% else %}
+                    <span class="badge bg-secondary">Umsatzsteuerpflichtig</span>
+                    <p class="mt-2">Umsatzsteuer muss ausgewiesen werden.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    {% if vollstaendigkeits_prozent < 100 %}
+    <div class="peter-quote">
+        <i class="fas fa-quote-left"></i>
+        <strong>Peter Zwegat rät:</strong> "{{ vollstaendigkeits_prozent }}% sind schon mal ein guter Anfang! 
+        Aber für die perfekte Ordnung sollten wir die restlichen {{ 100|add:vollstaendigkeits_prozent|add:'-100' }}% auch noch schaffen. 
+        Vollständige Daten sind vollständige Sicherheit!"
+        <i class="fas fa-quote-right float-end"></i>
+    </div>
+    {% endif %}
+    
+    <!-- Quick Actions -->
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <h4>Schnellzugriff</h4>
+            <div class="btn-group-vertical d-grid gap-2 d-md-flex">
+                <a href="{% url 'einstellungen:profil_detail' %}" class="btn btn-outline-primary">
+                    <i class="fas fa-eye"></i> Profil anzeigen
+                </a>
+                <a href="{% url 'einstellungen:profil_bearbeiten' %}" class="btn btn-outline-warning">
+                    <i class="fas fa-edit"></i> Profil bearbeiten
+                </a>
+                <a href="{% url 'einstellungen:schnelleinstellungen' %}" class="btn btn-outline-info">
+                    <i class="fas fa-bolt"></i> Schnelleinstellungen
+                </a>
+                {% if euer_bereit %}
+                <a href="{% url 'auswertungen:euer_erstellen' %}" class="btn btn-outline-success">
+                    <i class="fas fa-file-invoice"></i> EÜR erstellen
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+</div>
+
+{% if hat_profil %}
+<script>
+// Regelmäßige Aktualisierung der Vollständigkeit
+setInterval(function() {
+    fetch('{% url "einstellungen:profil_vollstaendigkeit_api" %}')
+        .then(response => response.json())
+        .then(data => {
+            // Update progress bar if needed
+            const progressBar = document.querySelector('.progress-bar');
+            if (progressBar) {
+                progressBar.style.width = data.vollstaendigkeit + '%';
+                progressBar.textContent = data.vollstaendigkeit + '%';
+            }
+        })
+        .catch(error => console.log('Vollständigkeits-Update fehlgeschlagen:', error));
+}, 60000); // Alle 60 Sekunden
+</script>
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,364 @@
+{% extends "base.html" %}
+
+{% block title %}Mein Profil - llkjj_knut{% endblock %}
+
+{% block extra_css %}
+<style>
+.profil-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 15px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.info-card {
+    background: white;
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-left: 4px solid #667eea;
+}
+
+.data-row {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #f1f1f1;
+}
+
+.data-label {
+    font-weight: 600;
+    color: #555;
+    width: 200px;
+    display: inline-block;
+}
+
+.data-value {
+    color: #333;
+}
+
+.empty-value {
+    color: #999;
+    font-style: italic;
+}
+
+.status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.status-complete {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status-incomplete {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.peter-quote {
+    background: #f8f9fa;
+    border-left: 4px solid #28a745;
+    padding: 1rem;
+    margin: 2rem 0;
+    border-radius: 0 10px 10px 0;
+    font-style: italic;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+
+    {% if not profil %}
+    <!-- Kein Profil vorhanden -->
+    <div class="alert alert-warning">
+        <h4><i class="fas fa-exclamation-triangle"></i> Kein Profil vorhanden</h4>
+        <p>Sie haben noch kein Benutzerprofil erstellt.</p>
+        <a href="{% url 'einstellungen:profil_erstellen' %}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Profil jetzt erstellen
+        </a>
+    </div>
+    {% else %}
+
+    <!-- Profil vorhanden -->
+    <div class="profil-header">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1><i class="fas fa-user-circle"></i> {{ profil.vollstaendiger_name }}</h1>
+                <p class="lead mb-0">{{ profil.beruf }}</p>
+                {% if profil.kleinunternehmer_19_ustg %}
+                    <span class="badge bg-info mt-2">Kleinunternehmer nach §19 UStG</span>
+                {% endif %}
+            </div>
+            <div class="col-md-4 text-center">
+                {% if profil.ist_vollstaendig %}
+                    <span class="status-badge status-complete">
+                        <i class="fas fa-check-circle"></i> Profil vollständig
+                    </span>
+                {% else %}
+                    <span class="status-badge status-incomplete">
+                        <i class="fas fa-exclamation-circle"></i> Unvollständig
+                    </span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Persönliche Daten -->
+        <div class="col-md-6">
+            <div class="info-card">
+                <h4><i class="fas fa-user text-primary"></i> Persönliche Daten</h4>
+                
+                <div class="data-row">
+                    <span class="data-label">Vorname:</span>
+                    <span class="data-value">{{ profil.vorname|default_if_none:"—" }}</span>
+                </div>
+                
+                <div class="data-row">
+                    <span class="data-label">Nachname:</span>
+                    <span class="data-value">{{ profil.nachname|default_if_none:"—" }}</span>
+                </div>
+                
+                <div class="data-row">
+                    <span class="data-label">Geburtsdatum:</span>
+                    <span class="data-value">
+                        {% if profil.geburtsdatum %}
+                            {{ profil.geburtsdatum|date:"d.m.Y" }}
+                        {% else %}
+                            <span class="empty-value">Nicht angegeben</span>
+                        {% endif %}
+                    </span>
+                </div>
+                
+                <div class="data-row">
+                    <span class="data-label">E-Mail:</span>
+                    <span class="data-value">{{ profil.email|default_if_none:"—" }}</span>
+                </div>
+                
+                <div class="data-row">
+                    <span class="data-label">Telefon:</span>
+                    <span class="data-value">
+                        {% if profil.telefon %}
+                            {{ profil.telefon }}
+                        {% else %}
+                            <span class="empty-value">Nicht angegeben</span>
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Adresse -->
+        <div class="col-md-6">
+            <div class="info-card">
+                <h4><i class="fas fa-home text-primary"></i> Adresse</h4>
+                
+                <div class="data-row">
+                    <span class="data-label">Straße:</span>
+                    <span class="data-value">{{ profil.strasse|default_if_none:"—" }}</span>
+                </div>
+                
+                <div class="data-row">
+                    <span class="data-label">PLZ:</span>
+                    <span class="data-value">{{ profil.plz|default_if_none:"—" }}</span>
+                </div>
+                
+                <div class="data-row">
+                    <span class="data-label">Ort:</span>
+                    <span class="data-value">{{ profil.ort|default_if_none:"—" }}</span>
+                </div>
+                
+                <div class="data-row">
+                    <span class="data-label">Vollständige Adresse:</span>
+                    <span class="data-value">{{ profil.vollstaendige_adresse }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Steuerliche Daten -->
+        <div class="col-md-6">
+            <div class="info-card">
+                <h4><i class="fas fa-calculator text-primary"></i> Steuerliche Daten</h4>
+                
+                <div class="data-row">
+                    <span class="data-label">Steuer-ID:</span>
+                    <span class="data-value">{{ profil.steuer_id|default_if_none:"—" }}</span>
+                </div>
+                
+                <div class="data-row">
+                    <span class="data-label">Wirtschafts-ID:</span>
+                    <span class="data-value">
+                        {% if profil.wirtschaftsid %}
+                            {{ profil.wirtschaftsid }}
+                        {% else %}
+                            <span class="empty-value">Nicht vorhanden</span>
+                        {% endif %}
+                    </span>
+                </div>
+                
+                <div class="data-row">
+                    <span class="data-label">Steuernummer:</span>
+                    <span class="data-value">
+                        {% if profil.steuernummer %}
+                            {{ profil.steuernummer }}
+                        {% else %}
+                            <span class="empty-value">Nicht angegeben</span>
+                        {% endif %}
+                    </span>
+                </div>
+                
+                <div class="data-row">
+                    <span class="data-label">Finanzamt:</span>
+                    <span class="data-value">
+                        {% if profil.finanzamt %}
+                            {{ profil.finanzamt }}
+                        {% else %}
+                            <span class="empty-value">Nicht angegeben</span>
+                        {% endif %}
+                    </span>
+                </div>
+                
+                <div class="data-row">
+                    <span class="data-label">USt-IdNr.:</span>
+                    <span class="data-value">
+                        {% if profil.umsatzsteuer_id %}
+                            {{ profil.umsatzsteuer_id }}
+                        {% else %}
+                            <span class="empty-value">Nicht vorhanden</span>
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Berufliche Daten -->
+        <div class="col-md-6">
+            <div class="info-card">
+                <h4><i class="fas fa-briefcase text-primary"></i> Berufliche Daten</h4>
+                
+                <div class="data-row">
+                    <span class="data-label">Beruf/Tätigkeit:</span>
+                    <span class="data-value">{{ profil.beruf|default_if_none:"—" }}</span>
+                </div>
+                
+                <div class="data-row">
+                    <span class="data-label">Kleinunternehmer:</span>
+                    <span class="data-value">
+                        {% if profil.kleinunternehmer_19_ustg %}
+                            <span class="text-success"><i class="fas fa-check"></i> Ja (§19 UStG)</span>
+                        {% else %}
+                            <span class="text-warning"><i class="fas fa-times"></i> Nein (Umsatzsteuerpflichtig)</span>
+                        {% endif %}
+                    </span>
+                </div>
+                
+                <div class="data-row">
+                    <span class="data-label">Gewerbe angemeldet:</span>
+                    <span class="data-value">
+                        {% if profil.gewerbe_angemeldet %}
+                            <span class="text-success"><i class="fas fa-check"></i> Ja</span>
+                        {% else %}
+                            <span class="text-info"><i class="fas fa-times"></i> Nein</span>
+                        {% endif %}
+                    </span>
+                </div>
+                
+                {% if profil.gewerbe_angemeldet and profil.gewerbeanmeldung_datum %}
+                <div class="data-row">
+                    <span class="data-label">Anmeldedatum:</span>
+                    <span class="data-value">{{ profil.gewerbeanmeldung_datum|date:"d.m.Y" }}</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Bankdaten -->
+    <div class="row">
+        <div class="col-md-12">
+            <div class="info-card">
+                <h4><i class="fas fa-university text-primary"></i> Bankdaten</h4>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="data-row">
+                            <span class="data-label">IBAN:</span>
+                            <span class="data-value">
+                                {% if profil.iban %}
+                                    {{ profil.iban }}
+                                {% else %}
+                                    <span class="empty-value">Nicht angegeben</span>
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="data-row">
+                            <span class="data-label">Bank:</span>
+                            <span class="data-value">
+                                {% if profil.bank_name %}
+                                    {{ profil.bank_name }}
+                                {% else %}
+                                    <span class="empty-value">Nicht angegeben</span>
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Peter Zwegat Kommentar -->
+    {% if not profil.ist_vollstaendig %}
+    <div class="peter-quote">
+        <i class="fas fa-quote-left"></i>
+        <strong>Peter Zwegat rät:</strong> "Ein unvollständiges Profil ist wie ein Auto ohne TÜV - 
+        funktioniert zwar, ist aber nicht verkehrssicher! Vervollständigen Sie Ihre Daten für optimale Ergebnisse."
+        <i class="fas fa-quote-right float-end"></i>
+    </div>
+    {% else %}
+    <div class="peter-quote">
+        <i class="fas fa-quote-left"></i>
+        <strong>Peter Zwegat gratuliert:</strong> "Perfekt! Mit diesen vollständigen Daten kann nichts mehr schiefgehen. 
+        Ihre Buchhaltung und Steuererklärung werden ein Kinderspiel!"
+        <i class="fas fa-quote-right float-end"></i>
+    </div>
+    {% endif %}
+
+    <!-- Action Buttons -->
+    <div class="d-flex justify-content-between mt-4">
+        <a href="{% url 'einstellungen:dashboard' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Zurück zum Dashboard
+        </a>
+        
+        <div>
+            <a href="{% url 'einstellungen:schnelleinstellungen' %}" class="btn btn-outline-info me-2">
+                <i class="fas fa-bolt"></i> Schnelleinstellungen
+            </a>
+            <a href="{% url 'einstellungen:profil_bearbeiten' %}" class="btn btn-primary">
+                <i class="fas fa-edit"></i> Profil bearbeiten
+            </a>
+        </div>
+    </div>
+
+    <!-- System-Informationen -->
+    <div class="mt-4">
+        <small class="text-muted">
+            <i class="fas fa-info-circle"></i>
+            Profil erstellt: {{ profil.erstellt_am|date:"d.m.Y H:i" }} | 
+            Letzte Änderung: {{ profil.aktualisiert_am|date:"d.m.Y H:i" }}
+        </small>
+    </div>
+
+    {% endif %}
+
+</div>
+{% endblock %}

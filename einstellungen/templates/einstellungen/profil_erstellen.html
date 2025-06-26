@@ -1,0 +1,269 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}Profil erstellen - llkjj_knut{% endblock %}
+
+{% block extra_css %}
+<style>
+.create-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 15px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.form-card {
+    background: white;
+    border-radius: 10px;
+    padding: 2rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.peter-tip {
+    background: #e3f2fd;
+    border-left: 4px solid #2196f3;
+    padding: 1rem;
+    margin: 1rem 0;
+    border-radius: 0 10px 10px 0;
+}
+
+.form-step {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    border: 1px solid #dee2e6;
+}
+
+.step-header {
+    color: #667eea;
+    border-bottom: 2px solid #667eea;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.required-field {
+    color: #dc3545;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    
+    <div class="create-card text-center">
+        <h1 class="display-5">🎭 Willkommen bei llkjj_knut!</h1>
+        <p class="lead">Lassen Sie uns Ihr Profil erstellen</p>
+    </div>
+
+    <div class="peter-tip">
+        <i class="fas fa-lightbulb text-warning"></i>
+        <strong>Peter Zwegat sagt:</strong> "Ein vollständiges Profil ist wie ein gutes Fundament - 
+        darauf baut sich alles andere auf! Nehmen Sie sich die Zeit, alles ordentlich auszufüllen."
+    </div>
+
+    <div class="form-card">
+        <form method="post" novalidate>
+            {% csrf_token %}
+            
+            <!-- Schritt 1: Persönliche Daten -->
+            <div class="form-step">
+                <h3 class="step-header">
+                    <i class="fas fa-user"></i> Schritt 1: Persönliche Daten
+                </h3>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="{{ form.vorname.id_for_label }}" class="form-label">
+                                {{ form.vorname.label }} <span class="required-field">*</span>
+                            </label>
+                            {{ form.vorname|add_class:"form-control form-control-lg" }}
+                            {% if form.vorname.errors %}
+                                <div class="text-danger mt-1">{{ form.vorname.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="{{ form.nachname.id_for_label }}" class="form-label">
+                                {{ form.nachname.label }} <span class="required-field">*</span>
+                            </label>
+                            {{ form.nachname|add_class:"form-control form-control-lg" }}
+                            {% if form.nachname.errors %}
+                                <div class="text-danger mt-1">{{ form.nachname.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="{{ form.email.id_for_label }}" class="form-label">
+                        {{ form.email.label }} <span class="required-field">*</span>
+                    </label>
+                    {{ form.email|add_class:"form-control" }}
+                    <div class="form-text">Diese E-Mail wird auch für Benachrichtigungen verwendet.</div>
+                    {% if form.email.errors %}
+                        <div class="text-danger mt-1">{{ form.email.errors.0 }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Schritt 2: Adresse -->
+            <div class="form-step">
+                <h3 class="step-header">
+                    <i class="fas fa-home"></i> Schritt 2: Adresse
+                </h3>
+                <div class="mb-3">
+                    <label for="{{ form.strasse.id_for_label }}" class="form-label">
+                        {{ form.strasse.label }} <span class="required-field">*</span>
+                    </label>
+                    {{ form.strasse|add_class:"form-control" }}
+                    {% if form.strasse.errors %}
+                        <div class="text-danger mt-1">{{ form.strasse.errors.0 }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label for="{{ form.plz.id_for_label }}" class="form-label">
+                                {{ form.plz.label }} <span class="required-field">*</span>
+                            </label>
+                            {{ form.plz|add_class:"form-control" }}
+                            {% if form.plz.errors %}
+                                <div class="text-danger mt-1">{{ form.plz.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="mb-3">
+                            <label for="{{ form.ort.id_for_label }}" class="form-label">
+                                {{ form.ort.label }} <span class="required-field">*</span>
+                            </label>
+                            {{ form.ort|add_class:"form-control" }}
+                            {% if form.ort.errors %}
+                                <div class="text-danger mt-1">{{ form.ort.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Schritt 3: Steuerliche Daten -->
+            <div class="form-step">
+                <h3 class="step-header">
+                    <i class="fas fa-calculator"></i> Schritt 3: Steuerliche Daten
+                </h3>
+                
+                <div class="peter-tip">
+                    <i class="fas fa-info-circle"></i>
+                    <strong>Wichtig:</strong> Die Steuer-Identifikationsnummer finden Sie auf Ihrem 
+                    letzten Steuerbescheid oder können sie beim Bundeszentralamt für Steuern erfragen.
+                </div>
+                
+                <div class="mb-3">
+                    <label for="{{ form.steuer_id.id_for_label }}" class="form-label">
+                        {{ form.steuer_id.label }} <span class="required-field">*</span>
+                    </label>
+                    {{ form.steuer_id|add_class:"form-control" }}
+                    <div class="form-text">11-stellige Nummer (z.B. 12345678901)</div>
+                    {% if form.steuer_id.errors %}
+                        <div class="text-danger mt-1">{{ form.steuer_id.errors.0 }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Schritt 4: Berufliche Daten -->
+            <div class="form-step">
+                <h3 class="step-header">
+                    <i class="fas fa-briefcase"></i> Schritt 4: Berufliche Daten
+                </h3>
+                
+                <div class="mb-3">
+                    <label for="{{ form.beruf.id_for_label }}" class="form-label">
+                        {{ form.beruf.label }} <span class="required-field">*</span>
+                    </label>
+                    {{ form.beruf|add_class:"form-control" }}
+                    <div class="form-text">z.B. "Freischaffender Künstler", "Grafik-Designer", "Musiker"</div>
+                    {% if form.beruf.errors %}
+                        <div class="text-danger mt-1">{{ form.beruf.errors.0 }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Buttons -->
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                <a href="{% url 'einstellungen:dashboard' %}" class="btn btn-outline-secondary me-md-2">
+                    <i class="fas fa-arrow-left"></i> Zurück
+                </a>
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="fas fa-save"></i> Profil erstellen
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <div class="peter-tip mt-4">
+        <i class="fas fa-shield-alt text-success"></i>
+        <strong>Datenschutz:</strong> Alle Ihre Daten werden verschlüsselt gespeichert und nur für 
+        die Buchhaltung und Steuererklärung verwendet. Peter Zwegat hätte es nicht anders gewollt!
+    </div>
+
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Formular-Validierung in Echtzeit
+    const form = document.querySelector('form');
+    const submitBtn = form.querySelector('button[type="submit"]');
+    
+    // Steuer-ID Formatierung
+    const steuerIdField = document.getElementById('{{ form.steuer_id.id_for_label }}');
+    if (steuerIdField) {
+        steuerIdField.addEventListener('input', function(e) {
+            // Nur Ziffern erlauben
+            this.value = this.value.replace(/\D/g, '');
+            
+            // Maximal 11 Ziffern
+            if (this.value.length > 11) {
+                this.value = this.value.slice(0, 11);
+            }
+            
+            // Visuelles Feedback
+            if (this.value.length === 11) {
+                this.classList.remove('is-invalid');
+                this.classList.add('is-valid');
+            } else if (this.value.length > 0) {
+                this.classList.remove('is-valid');
+                this.classList.add('is-invalid');
+            }
+        });
+    }
+    
+    // PLZ Formatierung
+    const plzField = document.getElementById('{{ form.plz.id_for_label }}');
+    if (plzField) {
+        plzField.addEventListener('input', function(e) {
+            // Nur Ziffern erlauben
+            this.value = this.value.replace(/\D/g, '');
+            
+            // Maximal 5 Ziffern
+            if (this.value.length > 5) {
+                this.value = this.value.slice(0, 5);
+            }
+            
+            // Visuelles Feedback
+            if (this.value.length === 5) {
+                this.classList.remove('is-invalid');
+                this.classList.add('is-valid');
+            } else if (this.value.length > 0) {
+                this.classList.remove('is-valid');
+                this.classList.add('is-invalid');
+            }
+        });
+    }
+});
+</script>
+
+{% endblock %}
