@@ -18,7 +18,9 @@
 ### 🚧 **Aktueller Entwicklungsstand:**
 - **Phase 1**: MVP-Fundament zu 100% fertig ✅
 - **Sprint 1**: COMPLETED! Alle Datenmodelle implementiert ✅
-- **Next Steps**: Sprint 2 - Admin-Interface & Basis-UI
+- **Sprint 2**: COMPLETED! Admin-Interface & UI implementiert ✅
+- **Sprint 3**: COMPLETED! Buchungslogik & CSV-Import implementiert ✅
+- **Current Sprint**: Sprint 4 - Belegmanagement & OCR-Basis 🚧
 
 ---
 
@@ -68,11 +70,13 @@ Vollständige Implementierung aller Kern-Datenmodelle und SKR03-Integration.
 **damit** alle Geschäftspartner zentral erfasst sind.
 
 **Acceptance Criteria:**
-- [ ] `buchungen/models.py`: Geschaeftspartner-Modell
-- [ ] Felder: Name, Ansprechpartner, Adresse, Kontaktdaten
-- [ ] Unterscheidung Kunde/Lieferant/Beides
-- [ ] UUID Primary Key
-- [ ] Django Admin Integration
+- [x] `buchungen/models.py`: Geschaeftspartner-Modell
+- [x] Felder: Name, Ansprechpartner, Adresse, Kontaktdaten
+- [x] Unterscheidung Kunde/Lieferant/Beides
+- [x] UUID Primary Key
+- [x] Django Admin Integration
+
+**Definition of Done:** Geschäftspartner-Modell vollständig implementiert ✅
 
 ---
 
@@ -82,11 +86,13 @@ Vollständige Implementierung aller Kern-Datenmodelle und SKR03-Integration.
 **damit** alle Dokumente zentral gespeichert und verknüpft sind.
 
 **Acceptance Criteria:**
-- [ ] `belege/models.py`: Beleg-Modell
-- [ ] Felder: Datei, Rechnungsdatum, Betrag, Geschäftspartner
-- [ ] Datei-Upload in `/media/belege/`
-- [ ] Metadaten-Extraktion (Dateigröße, Typ)
-- [ ] UUID Primary Key
+- [x] `belege/models.py`: Beleg-Modell
+- [x] Felder: Datei, Rechnungsdatum, Betrag, Geschäftspartner
+- [x] Datei-Upload in `/media/belege/`
+- [x] Metadaten-Extraktion (Dateigröße, Typ)
+- [x] UUID Primary Key
+
+**Definition of Done:** Beleg-Modell vollständig implementiert ✅
 
 ---
 
@@ -96,12 +102,14 @@ Vollständige Implementierung aller Kern-Datenmodelle und SKR03-Integration.
 **damit** alle Geschäftsvorfälle korrekt erfasst werden.
 
 **Acceptance Criteria:**
-- [ ] `buchungen/models.py`: Buchungssatz-Modell
-- [ ] Felder: Datum, Text, Betrag, Soll-Konto, Haben-Konto, Beleg
-- [ ] Foreign Keys zu Konto und Beleg
-- [ ] Validierung: Soll != Haben
-- [ ] `clean()` Methode für Geschäftslogik
-- [ ] UUID Primary Key
+- [x] `buchungen/models.py`: Buchungssatz-Modell
+- [x] Felder: Datum, Text, Betrag, Soll-Konto, Haben-Konto, Beleg
+- [x] Foreign Keys zu Konto und Beleg
+- [x] Validierung: Soll != Haben
+- [x] `clean()` Methode für Geschäftslogik
+- [x] UUID Primary Key
+
+**Definition of Done:** Buchungssatz-Modell vollständig implementiert ✅
 
 ### 🔧 Technische Tasks:
 - [x] Migrations für alle Models erstellen und anwenden

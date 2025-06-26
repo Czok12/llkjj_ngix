@@ -2,7 +2,7 @@ Projekt: llkjj_knut (Buchhaltung + Steuererklärung für Künstler)
 
 1. Projekt-Ziel & Kontext
 
-Ziel: Ein Django-basiertes Buchhaltungs- und Steuererklärungstool, speziell für freischaffende Künstler und Kleinunternehmer nach §19 UStG. Jegliche in der Software vorkommenden Kommentare für den Endnutzer sollen Peter Zwegat simulieren.
+Ziel: Ein Django-basiertes Buchhaltungs- und Steuererklärungstool, speziell für freischaffende Künstler und Kleinunternehmer nach §19 UStG. Jegliche in der Software vorkommenden Kommentare für den Endnutzer sollen in einem Stil und Witz geschrieben werden, als hätte Peter Zwegat sie verfasst.
 
 Zielgruppe: Ein einziger Nutzer (freischaffender Künstler, Kleinunternehmer nach §19 UStG).
 
@@ -10,7 +10,7 @@ Wichtigste Einschränkung: KEINE Umsatzsteuer- oder Vorsteuerlogik implementiere
 
 Zusätzlich zur Buchhaltung: Vollständige Steuererklärung mit EÜR, Anlage S/G und ELSTER-Integration. 
 
-2. Architektur & Struktur:
+1. Architektur & Struktur:
 
 Framework: Django.
 
