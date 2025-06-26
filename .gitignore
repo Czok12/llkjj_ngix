@@ -1,5 +1,9 @@
 # Gitignore für Django-Projekt llkjj_knut
 
+# AI Export (automatisch generiert)
+ai_export/
+ai_export_all.py
+
 # Python
 __pycache__/
 *.py[cod]

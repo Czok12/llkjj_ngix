@@ -2,26 +2,26 @@
 # Peter Zwegat: "Wer intelligent arbeiten will, braucht intelligente Werkzeuge!"
 
 # ===== BASIS MACHINE LEARNING =====
-scikit-learn>=1.5.0          # ML-Algorithmen (Naive Bayes, SVM, etc.)
-pandas>=2.0.0                # Datenmanipulation
-numpy>=1.24.0                # Numerische Operationen
-matplotlib>=3.7.0            # Visualisierung
-seaborn>=0.13.0              # Statistische Plots
+scikit-learn         # ML-Algorithmen (Naive Bayes, SVM, etc.)
+pandas         # Datenmanipulation
+numpy         # Numerische Operationen
+matplotlib         # Visualisierung
+seaborn         # Statistische Plots
 
 # ===== NLP & TEXT PROCESSING =====
-spacy>=3.7.0                 # Deutsche NLP-Pipeline
-sentence-transformers>=3.0.0 # Semantische Text-Ähnlichkeit
-transformers>=4.40.0         # Hugging Face Transformers
-torch>=2.0.0                 # PyTorch für Deep Learning
-fuzzywuzzy[speedup]>=0.18.0  # Fuzzy String Matching
-python-Levenshtein>=0.25.0   # String-Ähnlichkeits-Algorithmen
-textdistance>=4.6.0          # Erweiterte Text-Distanz-Metriken
+spacy         # Deutsche NLP-Pipeline
+sentence-transformers # Semantische Text-Ähnlichkeit
+transformers        # Hugging Face Transformers
+torch                # PyTorch für Deep Learning
+fuzzywuzzy[speedup]   # Fuzzy String Matching
+python-Levenshtein   # String-Ähnlichkeits-Algorithmen
+textdistance        # Erweiterte Text-Distanz-Metriken
 
 # ===== COMPUTER VISION & OCR =====
-easyocr>=1.7.0               # Moderne OCR-Engine
-opencv-python>=4.8.0         # Bildvorverarbeitung
-paddleocr>=2.7.0             # Alternative OCR-Engine
-layoutparser[ocr]>=0.3.4     # Document Layout Analysis
+easyocr               # Moderne OCR-Engine
+opencv-python    # Bildvorverarbeitung
+paddleocr             # Alternative OCR-Engine
+layoutparser[ocr]   # Document Layout Analysis
 
 # ===== SPRACHMODELLE =====
 # Diese müssen separat heruntergeladen werden:
@@ -29,11 +29,11 @@ layoutparser[ocr]>=0.3.4     # Document Layout Analysis
 # python -m spacy download de_core_news_lg  # Für bessere Genauigkeit
 
 # ===== CLOUD APIs (Optional) =====
-# openai>=1.0.0              # OpenAI GPT APIs
+# openai            # OpenAI GPT APIs
 # google-cloud-documentai     # Google Document AI
 # azure-cognitiveservices-vision # Microsoft OCR APIs
 
 # ===== PERFORMANCE & OPTIMIERUNG =====
-joblib>=1.3.0                # Parallele Verarbeitung
-lru-dict>=1.3.0              # LRU-Cache für bessere Performance
-diskcache>=5.6.0             # Persistenter Cache
+joblib                # Parallele Verarbeitung
+lru-dict              # LRU-Cache für bessere Performance
+diskcache            # Persistenter Cache

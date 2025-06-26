@@ -5,6 +5,22 @@
             "path": "."
         },
         {
+            "name": "� AI Export (für Google AI Studio)",
+            "path": "./ai_export"
+        },
+        {
+            "name": "�🧠 Models (Datenmodelle)",
+            "path": "."
+        },
+        {
+            "name": "🔄 Views & Services",
+            "path": "."
+        },
+        {
+            "name": "📋 Forms & Admin",
+            "path": "."
+        },
+        {
             "name": "📚 Dokumentation",
             "path": "./internes"
         },
@@ -48,7 +64,6 @@
             "PATH": "/Users/czok/Skripte/venv_llkjj/bin:${env:PATH}",
             "PYTHONPATH": "${workspaceFolder}"
         },
-        // Django-spezifische Einstellungen
         "files.associations": {
             "*.html": "django-html",
             "*.txt": "log",
@@ -57,7 +72,6 @@
         "emmet.includeLanguages": {
             "django-html": "html"
         },
-        // GitHub Copilot optimiert für Multi-App Struktur
         "github.copilot.enable": {
             "*": true,
             "python": true,
@@ -67,24 +81,24 @@
             "javascript": true
         },
         "github.copilot.chat.localeOverride": "de",
-        // Code-Qualität
         "editor.formatOnSave": true,
         "editor.codeActionsOnSave": {
             "source.organizeImports": "explicit",
             "source.fixAll.ruff": "explicit"
         },
-        // Explorer-Ansicht optimiert
         "explorer.sortOrder": "type",
         "explorer.fileNesting.enabled": true,
+        "explorer.fileNesting.expand": false,
         "explorer.fileNesting.patterns": {
             "*.py": "${capture}.pyc",
-            "models.py": "admin.py,apps.py,forms.py,serializers.py,views.py,urls.py",
-            "settings.py": "wsgi.py,asgi.py,urls.py",
-            "manage.py": "requirements.txt,pyproject.toml,.env.example"
+            "models.py": "admin.py,apps.py,forms.py,serializers.py,views.py,urls.py,services.py,tasks.py",
+            "settings.py": "wsgi.py,asgi.py,urls.py,celery.py",
+            "manage.py": "requirements*.txt,pyproject.toml,.env*,docker-compose.yml",
+            "views.py": "forms.py,serializers.py",
+            "admin.py": "forms.py",
+            "__init__.py": "apps.py"
         },
-        // Terminal - Konfiguration für automatische venv-Aktivierung
         "terminal.integrated.defaultProfile.osx": "zsh",
-        // Dateien-Filter für übersichtlichere Ansicht
         "files.exclude": {
             "**/__pycache__": true,
             "**/*.pyc": true,
@@ -93,10 +107,22 @@
             "**/node_modules": true,
             "**/logs/*.log": true
         },
-        // Workspace-spezifische Git-Einstellungen
+        "search.exclude": {
+            "**/__pycache__": true,
+            "**/*.pyc": true,
+            "**/venv": true,
+            "**/node_modules": true,
+            "**/staticfiles": true
+        },
+        "files.watcherExclude": {
+            "**/__pycache__/**": true,
+            "**/venv/**": true,
+            "**/node_modules/**": true
+        },
+        "workbench.tree.renderIndentGuides": "always",
+        "workbench.tree.indent": 20,
         "git.autofetch": true,
         "git.confirmSync": false,
-        // Debugging
         "python.analysis.autoImportCompletions": true,
         "python.analysis.typeCheckingMode": "basic"
     },
@@ -131,8 +157,7 @@
                 "label": "💰 SKR03: Konten importieren",
                 "type": "shell",
                 "command": "python manage.py import_skr03",
-                "group": "build",
-                "dependsOn": "Django: Migrations anwenden"
+                "group": "build"
             },
             {
                 "label": "🧪 Tests: Alle Apps",
@@ -171,6 +196,39 @@
                 "label": "📄 Logging: .txt-Datei öffnen",
                 "type": "shell",
                 "command": "code logs/llkjj_knut.txt",
+                "group": "build",
+                "presentation": {
+                    "echo": true,
+                    "reveal": "silent",
+                    "panel": "shared"
+                }
+            },
+            {
+                "label": "🤖 AI: Backend-Dateien sammeln",
+                "type": "shell",
+                "command": "mkdir -p ai_export && find . -name 'models.py' -o -name 'views.py' -o -name 'services.py' -o -name 'forms.py' -o -name 'admin.py' -o -name 'urls.py' -o -name 'tasks.py' -o -name 'settings.py' | grep -v __pycache__ | xargs -I {} cp {} ai_export/ && echo '✅ Backend-Dateien in ai_export/ gesammelt'",
+                "group": "build",
+                "presentation": {
+                    "echo": true,
+                    "reveal": "always",
+                    "panel": "shared"
+                }
+            },
+            {
+                "label": "🤖 AI: Backend-Code in eine Datei",
+                "type": "shell",
+                "command": "echo '# === LLKJJ_KNUT BACKEND CODE EXPORT ===' > ai_export_all.py && echo '# Generiert am: $(date)' >> ai_export_all.py && echo '' >> ai_export_all.py && find . -name 'models.py' -o -name 'views.py' -o -name 'services.py' -o -name 'forms.py' -o -name 'admin.py' -o -name 'urls.py' -o -name 'tasks.py' -o -name 'settings.py' | grep -v __pycache__ | while read file; do echo \"# === $file ===\" >> ai_export_all.py; cat \"$file\" >> ai_export_all.py; echo '' >> ai_export_all.py; echo '' >> ai_export_all.py; done && echo '✅ Alle Backend-Dateien in ai_export_all.py zusammengefasst'",
+                "group": "build",
+                "presentation": {
+                    "echo": true,
+                    "reveal": "always",
+                    "panel": "shared"
+                }
+            },
+            {
+                "label": "🤖 AI: Export-Ordner öffnen",
+                "type": "shell",
+                "command": "code ai_export/ && code ai_export_all.py",
                 "group": "build",
                 "presentation": {
                     "echo": true,
