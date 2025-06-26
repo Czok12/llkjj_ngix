@@ -1,0 +1,163 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block peter_zwegat_tip %}
+"Ein aufgeräumtes Dashboard ist wie ein aufgeräumter Schreibtisch - es zeigt einen klaren Geist!"
+{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Page Header -->
+    <div class="border-b border-gray-200 pb-5">
+        <h1 class="text-3xl font-bold leading-6 text-gray-900">Dashboard</h1>
+        <p class="mt-2 max-w-4xl text-sm text-gray-500">
+            Ihr Überblick über die finanzielle Situation - Peter Zwegat wäre stolz auf Sie!
+        </p>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <!-- Einnahmen -->
+        <div class="relative overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:px-6 sm:py-6">
+            <dt class="truncate text-sm font-medium text-gray-500">Einnahmen (aktueller Monat)</dt>
+            <dd class="mt-1 text-3xl font-semibold tracking-tight text-zwegat-green">
+                {{ stats.einnahmen_monat|default:"0,00" }} €
+            </dd>
+            <div class="absolute bottom-2 right-2">
+                <i class="fas fa-arrow-up text-zwegat-green text-2xl opacity-20"></i>
+            </div>
+        </div>
+
+        <!-- Ausgaben -->
+        <div class="relative overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:px-6 sm:py-6">
+            <dt class="truncate text-sm font-medium text-gray-500">Ausgaben (aktueller Monat)</dt>
+            <dd class="mt-1 text-3xl font-semibold tracking-tight text-zwegat-red">
+                {{ stats.ausgaben_monat|default:"0,00" }} €
+            </dd>
+            <div class="absolute bottom-2 right-2">
+                <i class="fas fa-arrow-down text-zwegat-red text-2xl opacity-20"></i>
+            </div>
+        </div>
+
+        <!-- Gewinn/Verlust -->
+        <div class="relative overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:px-6 sm:py-6">
+            <dt class="truncate text-sm font-medium text-gray-500">Gewinn/Verlust</dt>
+            <dd class="mt-1 text-3xl font-semibold tracking-tight text-gray-900">
+                {{ stats.gewinn_verlust|default:"0,00" }} €
+            </dd>
+            <div class="absolute bottom-2 right-2">
+                <i class="fas fa-balance-scale text-zwegat-blue text-2xl opacity-20"></i>
+            </div>
+        </div>
+
+        <!-- Offene Belege -->
+        <div class="relative overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:px-6 sm:py-6">
+            <dt class="truncate text-sm font-medium text-gray-500">Offene Belege</dt>
+            <dd class="mt-1 text-3xl font-semibold tracking-tight text-zwegat-yellow">
+                {{ stats.offene_belege|default:"0" }}
+            </dd>
+            <div class="absolute bottom-2 right-2">
+                <i class="fas fa-file-invoice text-zwegat-yellow text-2xl opacity-20"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="bg-white shadow rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+            <h3 class="text-lg font-medium leading-6 text-gray-900">Schnelle Aktionen</h3>
+            <p class="mt-1 text-sm text-gray-500">
+                Die wichtigsten Funktionen auf einen Blick - Zeit ist Geld, sagt Peter Zwegat!
+            </p>
+            <div class="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <a href="{% url 'buchungen:neue_buchung' %}" 
+                   class="relative group bg-white p-6 focus-within:ring-2 focus-within:ring-inset focus-within:ring-zwegat-blue border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-200">
+                    <div>
+                        <span class="rounded-lg inline-flex p-3 bg-zwegat-blue text-white">
+                            <i class="fas fa-plus w-6 h-6"></i>
+                        </span>
+                    </div>
+                    <div class="mt-4">
+                        <h3 class="text-lg font-medium text-gray-900">
+                            Neue Buchung
+                        </h3>
+                        <p class="mt-2 text-sm text-gray-500">
+                            Einen neuen Geschäftsvorfall erfassen
+                        </p>
+                    </div>
+                </a>
+
+                <a href="{% url 'belege:upload' %}" 
+                   class="relative group bg-white p-6 focus-within:ring-2 focus-within:ring-inset focus-within:ring-zwegat-blue border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-200">
+                    <div>
+                        <span class="rounded-lg inline-flex p-3 bg-zwegat-green text-white">
+                            <i class="fas fa-upload w-6 h-6"></i>
+                        </span>
+                    </div>
+                    <div class="mt-4">
+                        <h3 class="text-lg font-medium text-gray-900">
+                            Beleg hochladen
+                        </h3>
+                        <p class="mt-2 text-sm text-gray-500">
+                            Rechnung oder Quittung scannen
+                        </p>
+                    </div>
+                </a>
+
+                <a href="{% url 'auswertungen:eur' %}" 
+                   class="relative group bg-white p-6 focus-within:ring-2 focus-within:ring-inset focus-within:ring-zwegat-blue border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-200">
+                    <div>
+                        <span class="rounded-lg inline-flex p-3 bg-zwegat-yellow text-white">
+                            <i class="fas fa-chart-line w-6 h-6"></i>
+                        </span>
+                    </div>
+                    <div class="mt-4">
+                        <h3 class="text-lg font-medium text-gray-900">
+                            EÜR erstellen
+                        </h3>
+                        <p class="mt-2 text-sm text-gray-500">
+                            Einnahmen-Überschuss-Rechnung
+                        </p>
+                    </div>
+                </a>
+
+                <a href="{% url 'konten:uebersicht' %}" 
+                   class="relative group bg-white p-6 focus-within:ring-2 focus-within:ring-inset focus-within:ring-zwegat-blue border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-200">
+                    <div>
+                        <span class="rounded-lg inline-flex p-3 bg-zwegat-red text-white">
+                            <i class="fas fa-list w-6 h-6"></i>
+                        </span>
+                    </div>
+                    <div class="mt-4">
+                        <h3 class="text-lg font-medium text-gray-900">
+                            Kontenübersicht
+                        </h3>
+                        <p class="mt-2 text-sm text-gray-500">
+                            SKR03 Kontenrahmen anzeigen
+                        </p>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Peter Zwegat Motivations-Box -->
+    <div class="bg-gradient-to-r from-zwegat-blue to-zwegat-green rounded-lg shadow-lg">
+        <div class="px-6 py-5 sm:px-8 sm:py-6">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-quote-left text-white text-3xl opacity-75"></i>
+                </div>
+                <div class="ml-4">
+                    <h4 class="text-lg font-semibold text-white">Peter Zwegat sagt:</h4>
+                    <p class="mt-1 text-white/90">
+                        "Jeder Tag ohne Buchführung ist ein verlorener Tag! Aber keine Sorge - mit diesem System 
+                        bringen wir Ordnung in Ihr finanzielles Chaos. Schritt für Schritt zur perfekten Buchführung!"
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

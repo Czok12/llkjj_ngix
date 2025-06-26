@@ -1,0 +1,214 @@
+{
+    "folders": [
+        {
+            "name": "🎨 llkjj_knut (Root)",
+            "path": "."
+        },
+        {
+            "name": "📚 Dokumentation",
+            "path": "./internes"
+        },
+        {
+            "name": "⚙️ Core (Django Settings)",
+            "path": "./llkjj_knut"
+        },
+        {
+            "name": "💰 Konten (SKR03)",
+            "path": "./konten"
+        },
+        {
+            "name": "📝 Buchungen",
+            "path": "./buchungen"
+        },
+        {
+            "name": "📄 Belege",
+            "path": "./belege"
+        },
+        {
+            "name": "📊 Auswertungen",
+            "path": "./auswertungen"
+        },
+        {
+            "name": "🧾 Steuer",
+            "path": "./steuer"
+        },
+        {
+            "name": "🔧 Einstellungen",
+            "path": "./einstellungen"
+        }
+    ],
+    "settings": {
+        "python.defaultInterpreterPath": "./venv/bin/python",
+        "python.terminal.activateEnvironment": true,
+        // Django-spezifische Einstellungen
+        "files.associations": {
+            "*.html": "django-html"
+        },
+        "emmet.includeLanguages": {
+            "django-html": "html"
+        },
+        // GitHub Copilot optimiert für Multi-App Struktur
+        "github.copilot.enable": {
+            "*": true,
+            "python": true,
+            "django-html": true,
+            "html": true,
+            "css": true,
+            "javascript": true
+        },
+        "github.copilot.chat.localeOverride": "de",
+        // Code-Qualität
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+            "source.organizeImports": "explicit",
+            "source.fixAll.ruff": "explicit"
+        },
+        // Explorer-Ansicht optimiert
+        "explorer.sortOrder": "type",
+        "explorer.fileNesting.enabled": true,
+        "explorer.fileNesting.patterns": {
+            "*.py": "${capture}.pyc",
+            "models.py": "admin.py,apps.py,forms.py,serializers.py,views.py,urls.py",
+            "settings.py": "wsgi.py,asgi.py,urls.py",
+            "manage.py": "requirements.txt,pyproject.toml,.env.example"
+        },
+        // Terminal
+        "terminal.integrated.defaultProfile.osx": "zsh",
+        "terminal.integrated.cwd": "${workspaceFolder}",
+        // Dateien-Filter für übersichtlichere Ansicht
+        "files.exclude": {
+            "**/__pycache__": true,
+            "**/*.pyc": true,
+            "**/venv": true,
+            "**/.pytest_cache": true,
+            "**/node_modules": true
+        },
+        // Workspace-spezifische Git-Einstellungen
+        "git.autofetch": true,
+        "git.confirmSync": false,
+        // Debugging
+        "python.analysis.autoImportCompletions": true,
+        "python.analysis.typeCheckingMode": "basic"
+    },
+    "tasks": {
+        "version": "2.0.0",
+        "tasks": [
+            {
+                "label": "🚀 Django: Vollstart (Migration + Server)",
+                "type": "shell",
+                "command": "python manage.py migrate && python manage.py runserver 8000",
+                "group": "build",
+                "presentation": {
+                    "echo": true,
+                    "reveal": "always",
+                    "panel": "new"
+                },
+                "isBackground": true,
+                "problemMatcher": []
+            },
+            {
+                "label": "📦 Setup: Projekt initialisieren",
+                "type": "shell",
+                "command": "python3 -m venv venv && source venv/bin/activate && pip install -r requirements.txt && python manage.py migrate && python manage.py import_skr03",
+                "group": "build",
+                "presentation": {
+                    "echo": true,
+                    "reveal": "always",
+                    "panel": "new"
+                }
+            },
+            {
+                "label": "💰 SKR03: Konten importieren",
+                "type": "shell",
+                "command": "python manage.py import_skr03",
+                "group": "build",
+                "dependsOn": "Django: Migrations anwenden"
+            },
+            {
+                "label": "🧪 Tests: Alle Apps",
+                "type": "shell",
+                "command": "python manage.py test --verbosity=2",
+                "group": "test",
+                "presentation": {
+                    "echo": true,
+                    "reveal": "always",
+                    "panel": "shared"
+                }
+            },
+            {
+                "label": "🔍 Code-Qualität: Vollcheck",
+                "type": "shell",
+                "command": "ruff check . && mypy . && black --check .",
+                "group": "test",
+                "presentation": {
+                    "echo": true,
+                    "reveal": "always",
+                    "panel": "shared"
+                }
+            }
+        ]
+    },
+    "launch": {
+        "version": "0.2.0",
+        "configurations": [
+            {
+                "name": "🐍 Django: Debug Server",
+                "type": "debugpy",
+                "request": "launch",
+                "program": "${workspaceFolder}/manage.py",
+                "args": [
+                    "runserver",
+                    "8000",
+                    "--noreload"
+                ],
+                "django": true,
+                "console": "integratedTerminal",
+                "env": {
+                    "DJANGO_DEBUG": "True"
+                }
+            },
+            {
+                "name": "🧪 Django: Debug Tests",
+                "type": "debugpy",
+                "request": "launch",
+                "program": "${workspaceFolder}/manage.py",
+                "args": [
+                    "test",
+                    "${input:testApp}"
+                ],
+                "django": true,
+                "console": "integratedTerminal"
+            }
+        ],
+        "inputs": [
+            {
+                "id": "testApp",
+                "description": "Django App zum Testen",
+                "type": "pickString",
+                "options": [
+                    "konten",
+                    "buchungen",
+                    "belege",
+                    "auswertungen",
+                    "steuer",
+                    "einstellungen"
+                ]
+            }
+        ]
+    },
+    "extensions": {
+        "recommendations": [
+            "ms-python.python",
+            "ms-python.debugpy",
+            "ms-python.black-formatter",
+            "charliermarsh.ruff",
+            "ms-python.mypy-type-checker",
+            "batisteo.vscode-django",
+            "github.copilot",
+            "github.copilot-chat",
+            "bradlc.vscode-tailwindcss",
+            "ms-ossdata.vscode-postgresql",
+            "yzhang.markdown-all-in-one"
+        ]
+    }
+}
