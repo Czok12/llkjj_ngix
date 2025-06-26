@@ -1,0 +1,421 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Beleg Details - {{ beleg }}{% endblock %}
+
+{% block extra_css %}
+<style>
+.beleg-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 15px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.pdf-viewer {
+    border: 1px solid #dee2e6;
+    border-radius: 10px;
+    overflow: hidden;
+    background: white;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.pdf-toolbar {
+    background: #f8f9fa;
+    padding: 10px 15px;
+    border-bottom: 1px solid #dee2e6;
+    display: flex;
+    justify-content: between;
+    align-items: center;
+}
+
+.pdf-content {
+    height: 600px;
+    position: relative;
+}
+
+.pdf-frame {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+.beleg-info-card {
+    background: white;
+    border-radius: 10px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    margin-bottom: 1.5rem;
+}
+
+.status-badge {
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.status-neu { background: #e3f2fd; color: #1976d2; }
+.status-geprueft { background: #e8f5e8; color: #2e7d32; }
+.status-verbucht { background: #f3e5f5; color: #7b1fa2; }
+.status-archiviert { background: #f5f5f5; color: #616161; }
+.status-fehler { background: #ffebee; color: #c62828; }
+
+.buchungen-link {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+    text-decoration: none;
+    padding: 10px 20px;
+    border-radius: 25px;
+    display: inline-flex;
+    align-items: center;
+    transition: all 0.3s ease;
+}
+
+.buchungen-link:hover {
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(40,167,69,0.3);
+}
+
+.zwegat-quote {
+    background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+    border-left: 4px solid #ffc107;
+    border-radius: 0 10px 10px 0;
+    padding: 20px;
+    margin: 20px 0;
+    position: relative;
+}
+
+.zwegat-quote::before {
+    content: "💬";
+    position: absolute;
+    top: -10px;
+    left: 15px;
+    background: #ffc107;
+    padding: 5px 10px;
+    border-radius: 50%;
+    font-size: 1.2rem;
+}
+
+.zwegat-quote::before {
+    content: '"';
+    font-size: 4em;
+    position: absolute;
+    top: -10px;
+    left: 15px;
+    opacity: 0.3;
+}
+
+.action-buttons .btn {
+    margin-right: 10px;
+    margin-bottom: 10px;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>📄 Beleg Details</h1>
+                <div class="action-buttons">
+                    <a href="{% url 'belege:bearbeiten' beleg.id %}" class="btn btn-primary">
+                        <i class="fas fa-edit"></i> Bearbeiten
+                    </a>
+                    {% if beleg.datei %}
+                    <a href="{% url 'belege:pdf_viewer' beleg.id %}" class="btn btn-info" target="_blank">
+                        <i class="fas fa-file-pdf"></i> PDF öffnen
+                    </a>
+                    {% endif %}
+                    <a href="{% url 'belege:liste' %}" class="btn btn-secondary">
+                        <i class="fas fa-list"></i> Zur Liste
+                    </a>
+                    <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                        <i class="fas fa-trash"></i> Löschen
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Hauptinformationen -->
+        <div class="col-md-6">
+            <div class="card detail-card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle"></i> Grundinformationen
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <table class="table metadata-table">
+                        <tr>
+                            <th>Typ:</th>
+                            <td>
+                                <span class="badge bg-secondary">{{ beleg.get_beleg_typ_display }}</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Status:</th>
+                            <td>
+                                <span class="badge status-badge 
+                                    {% if beleg.status == 'NEU' %}bg-info
+                                    {% elif beleg.status == 'GEPRUEFT' %}bg-success
+                                    {% elif beleg.status == 'VERBUCHT' %}bg-secondary
+                                    {% elif beleg.status == 'FEHLER' %}bg-danger
+                                    {% else %}bg-warning{% endif %}">
+                                    {{ beleg.get_status_display }}
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Rechnungsdatum:</th>
+                            <td>
+                                {% if beleg.rechnungsdatum %}
+                                    {{ beleg.rechnungsdatum|date:"d.m.Y" }}
+                                    {% if beleg.ocr_verarbeitet %}
+                                        <span class="ocr-badge">
+                                            <i class="fas fa-robot"></i> OCR
+                                        </span>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="text-muted">Nicht angegeben</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Betrag:</th>
+                            <td>
+                                {% if beleg.betrag %}
+                                    <strong class="text-success">{{ beleg.betrag_formatiert }}</strong>
+                                    {% if beleg.ocr_verarbeitet %}
+                                        <span class="ocr-badge">
+                                            <i class="fas fa-robot"></i> OCR
+                                        </span>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="text-muted">Nicht angegeben</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Geschäftspartner:</th>
+                            <td>
+                                {% if beleg.geschaeftspartner %}
+                                    <strong>{{ beleg.geschaeftspartner.name }}</strong>
+                                    <br>
+                                    <small class="text-muted">{{ beleg.geschaeftspartner.get_partner_typ_display }}</small>
+                                    {% if beleg.ocr_verarbeitet %}
+                                        <br>
+                                        <span class="ocr-badge">
+                                            <i class="fas fa-robot"></i> Automatisch erkannt
+                                        </span>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="text-muted">Nicht zugeordnet</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Beschreibung und Notizen -->
+            {% if beleg.beschreibung or beleg.notizen %}
+            <div class="card detail-card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-comment"></i> Beschreibung & Notizen
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if beleg.beschreibung %}
+                        <h6>Beschreibung:</h6>
+                        <p>{{ beleg.beschreibung }}</p>
+                    {% endif %}
+                    
+                    {% if beleg.notizen %}
+                        <h6>Notizen:</h6>
+                        <p style="white-space: pre-wrap;">{{ beleg.notizen }}</p>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Datei-Informationen -->
+            <div class="card detail-card">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-file"></i> Datei-Informationen
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <table class="table metadata-table">
+                        <tr>
+                            <th>Original-Datei:</th>
+                            <td>{{ beleg.original_dateiname }}</td>
+                        </tr>
+                        <tr>
+                            <th>Dateigröße:</th>
+                            <td>{{ beleg.dateigröße_formatiert }}</td>
+                        </tr>
+                        <tr>
+                            <th>Hochgeladen:</th>
+                            <td>{{ beleg.hochgeladen_am|date:"d.m.Y H:i" }} Uhr</td>
+                        </tr>
+                        <tr>
+                            <th>Zuletzt geändert:</th>
+                            <td>{{ beleg.geaendert_am|date:"d.m.Y H:i" }} Uhr</td>
+                        </tr>
+                        <tr>
+                            <th>OCR verarbeitet:</th>
+                            <td>
+                                {% if beleg.ocr_verarbeitet %}
+                                    <span class="badge bg-success">
+                                        <i class="fas fa-check"></i> Ja
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-warning">
+                                        <i class="fas fa-times"></i> Nein
+                                    </span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- PDF-Vorschau oder OCR-Text -->
+        <div class="col-md-6">
+            {% if beleg.datei %}
+            <div class="card detail-card mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-file-pdf"></i> PDF-Vorschau
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <iframe src="{% url 'belege:pdf_viewer' beleg.id %}" 
+                            class="pdf-viewer w-100" 
+                            title="PDF Vorschau">
+                    </iframe>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- OCR-Text (falls vorhanden) -->
+            {% if beleg.ocr_text %}
+            <div class="card detail-card">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">
+                        <i class="fas fa-robot"></i> Extrahierter Text (OCR)
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <details>
+                        <summary class="btn btn-outline-secondary btn-sm">
+                            Text anzeigen/verbergen
+                        </summary>
+                        <pre class="mt-3" style="max-height: 400px; overflow-y: auto; font-size: 0.8em; background-color: #f8f9fa; padding: 15px; border-radius: 5px;">{{ beleg.ocr_text }}</pre>
+                    </details>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Peter Zwegat Kommentar -->
+    {% if beleg.ocr_verarbeitet %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="zwegat-quote">
+                <p class="mb-2">
+                    <strong>Peter Zwegat sagt:</strong>
+                </p>
+                <p class="mb-0">
+                    {% if beleg.status == 'VERBUCHT' %}
+                        "Perfekt! Dieser Beleg ist ordnungsgemäß verarbeitet und verbucht. 
+                        So mag ich das - alles an seinem Platz!"
+                    {% elif beleg.status == 'GEPRUEFT' %}
+                        "Sehr gut! Der Beleg wurde geprüft und ist bereit für die Verbuchung. 
+                        Sie sind auf dem richtigen Weg!"
+                    {% elif beleg.status == 'NEU' %}
+                        "Ein neuer Beleg! Ich habe bereits die wichtigsten Daten extrahiert. 
+                        Schauen Sie einmal drüber und dann kann er verbucht werden."
+                    {% else %}
+                        "Hier ist noch etwas Arbeit zu tun. Aber keine Sorge - 
+                        Schritt für Schritt kommen wir zum Ziel!"
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Beleg löschen</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Möchten Sie den Beleg <strong>{{ beleg }}</strong> wirklich löschen?</p>
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>Achtung:</strong> Diese Aktion kann nicht rückgängig gemacht werden!
+                    Auch die Datei wird von der Festplatte gelöscht.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    Abbrechen
+                </button>
+                <button type="button" class="btn btn-danger" id="confirm-delete">
+                    <i class="fas fa-trash"></i> Endgültig löschen
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Delete functionality
+    const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    const confirmDeleteBtn = document.getElementById('confirm-delete');
+    
+    confirmDeleteBtn.addEventListener('click', function() {
+        fetch('{% url "belege:loeschen" beleg.id %}', {
+            method: 'DELETE',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                window.location.href = '{% url "belege:liste" %}';
+            } else {
+                alert('Fehler beim Löschen: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Ein Fehler ist aufgetreten.');
+        });
+        
+        deleteModal.hide();
+    });
+});
+</script>
+{% endblock %}

@@ -22,11 +22,6 @@ ignore = [
 "*/settings/*" = ["F401", "F403", "F405"]
 "manage.py" = ["F401"]
 
-[tool.ruff.isort]
-known-first-party = ["llkjj_knut", "core", "konten", "buchungen", "belege", "auswertungen"]
-known-third-party = ["django"]
-section-order = ["future", "standard-library", "third-party", "first-party", "local-folder"]
-
 [tool.black]
 line-length = 88
 target-version = ['py311']

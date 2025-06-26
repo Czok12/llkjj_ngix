@@ -1,0 +1,559 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Belege-Upload - PDF-Verarbeitung{% endblock %}
+
+{% block extra_css %}
+<style>
+.upload-zone {
+    border: 3px dashed #ddd;
+    border-radius: 15px;
+    padding: 60px 40px;
+    text-align: center;
+    transition: all 0.3s ease;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+
+.upload-zone:hover {
+    border-color: #007bff;
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0,123,255,0.15);
+}
+
+.upload-zone.dragover {
+    border-color: #28a745;
+    background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+    transform: scale(1.02);
+}
+
+.upload-zone.processing {
+    border-color: #ffc107;
+    background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+}
+
+.upload-icon {
+    font-size: 4rem;
+    color: #6c757d;
+    margin-bottom: 1rem;
+    transition: all 0.3s ease;
+}
+
+.upload-zone:hover .upload-icon {
+    color: #007bff;
+    transform: scale(1.1);
+}
+
+.upload-progress {
+    display: none;
+    margin-top: 20px;
+}
+
+.file-preview {
+    display: none;
+    margin-top: 20px;
+    padding: 20px;
+    border: 1px solid #dee2e6;
+    border-radius: 10px;
+    background: white;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.file-list {
+    display: none;
+    margin-top: 20px;
+}
+
+.file-item {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    background: white;
+    transition: all 0.3s ease;
+}
+
+.file-item:hover {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.file-icon {
+    font-size: 2rem;
+    margin-right: 15px;
+    color: #dc3545;
+}
+
+.file-info {
+    flex-grow: 1;
+}
+
+.file-name {
+    font-weight: 600;
+    color: #495057;
+}
+
+.file-size {
+    font-size: 0.9rem;
+    color: #6c757d;
+}
+
+.file-status {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.status-processing {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.status-success {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status-error {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.zwegat-tip {
+    background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+    border: 2px solid #ffc107;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 30px;
+    position: relative;
+}
+
+.zwegat-tip::before {
+    content: "💡";
+    position: absolute;
+    top: -10px;
+    left: 20px;
+    background: #ffc107;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 1.2rem;
+}
+
+.zwegat-tip .icon {
+    font-size: 1.3em;
+    margin-right: 10px;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>📄 Beleg hochladen</h1>
+                <a href="{% url 'belege:liste' %}" class="btn btn-secondary">
+                    <i class="fas fa-list"></i> Zur Liste
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Peter Zwegat Tipp -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="zwegat-tip">
+                <span class="icon">💡</span>
+                <strong>Peter Zwegat sagt:</strong> 
+                "Einfach das PDF reinziehen oder auswählen - ich erkenne automatisch alle wichtigen Daten! 
+                Datum, Betrag, Lieferant - alles wird für Sie extrahiert. Das ist Effizienz!"
+            </div>
+        </div>
+    </div>
+
+    <!-- Neue Beleg-Typ-Erkennung Info -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="alert alert-info">
+                <h6><i class="fas fa-robot"></i> 🤖 Neue Funktion: Automatische Beleg-Erkennung!</h6>
+                <p class="mb-2">
+                    Das System erkennt jetzt automatisch, ob es sich um eine 
+                    <strong>Eingangsrechnung</strong> (Sie bezahlen) oder 
+                    <strong>Ausgangsrechnung</strong> (Kunde bezahlt Sie) handelt.
+                </p>
+                <div class="row small">
+                    <div class="col-md-6">
+                        <strong>📥 Eingangsrechnungen erkannt bei:</strong>
+                        <ul class="mb-0">
+                            <li>Bekannten Shops (Amazon, Google, etc.)</li>
+                            <li>"Ihre Bestellung", "Kundennummer"</li>
+                            <li>Lieferadressen</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>📤 Ausgangsrechnungen erkannt bei:</strong>
+                        <ul class="mb-0">
+                            <li>Ihren eigenen Firmendaten</li>
+                            <li>"Kleinunternehmer §19 UStG"</li>
+                            <li>"Honorar für", "Vergütung"</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">📁 Datei auswählen</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data" id="upload-form">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <div class="upload-zone" id="upload-zone">
+                                <div class="upload-icon">📄</div>
+                                <h4>PDF-Datei hier ablegen</h4>
+                                <p class="text-muted">oder klicken zum Auswählen</p>
+                                <p class="small text-muted">Unterstützte Formate: PDF, JPG, PNG (max. 10MB)</p>
+                                {{ form.datei }}
+                            </div>
+                            {% if form.datei.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.datei.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Multi-File Liste -->
+                        <div class="file-list" id="file-list">
+                            <h6>📋 Ausgewählte Dateien:</h6>
+                            <div id="file-items"></div>
+                        </div>
+
+                        <!-- Upload Progress -->
+                        <div class="upload-progress" id="upload-progress">
+                            <div class="d-flex align-items-center">
+                                <div class="spinner-border spinner-border-sm me-2" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <span>Peter Zwegat analysiert Ihre Datei...</span>
+                            </div>
+                            <div class="progress mt-2">
+                                <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                                     role="progressbar" style="width: 0%" id="progress-bar"></div>
+                            </div>
+                        </div>
+                        </div>
+
+                        <div class="upload-progress">
+                            <div class="d-flex align-items-center">
+                                <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+                                <span>Datei wird hochgeladen und verarbeitet...</span>
+                            </div>
+                            <div class="progress mt-2">
+                                <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                                     role="progressbar" style="width: 0%"></div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.beleg_typ.id_for_label }}" class="form-label">
+                                    Beleg-Typ
+                                </label>
+                                {{ form.beleg_typ }}
+                                {% if form.beleg_typ.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.beleg_typ.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.beschreibung.id_for_label }}" class="form-label">
+                                Beschreibung
+                            </label>
+                            {{ form.beschreibung }}
+                            {% if form.beschreibung.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.beschreibung.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.notizen.id_for_label }}" class="form-label">
+                                Notizen
+                            </label>
+                            {{ form.notizen }}
+                            {% if form.notizen.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.notizen.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg" id="submit-btn">
+                                <i class="fas fa-magic"></i> PDF verarbeiten
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">ℹ️ Automatische Extraktion</h5>
+                </div>
+                <div class="card-body">
+                    <p>Das System erkennt automatisch:</p>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-check text-success"></i> Rechnungsdatum</li>
+                        <li><i class="fas fa-check text-success"></i> Gesamtbetrag</li>
+                        <li><i class="fas fa-check text-success"></i> Lieferant/Firma</li>
+                        <li><i class="fas fa-check text-success"></i> Rechnungsnummer</li>
+                        <li><i class="fas fa-check text-success"></i> USt-ID</li>
+                        <li><i class="fas fa-check text-success"></i> 🤖 Beleg-Typ (Eingang/Ausgang)</li>
+                    </ul>
+                    
+                    <div class="mt-3">
+                        <h6>Unterstützte Formate:</h6>
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-file-pdf text-danger"></i> PDF-Dateien</li>
+                        </ul>
+                    </div>
+
+                    <div class="mt-3">
+                        <h6>Maximale Dateigröße:</h6>
+                        <span class="badge bg-info">10 MB</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5 class="mb-0">🚀 Schnellstart</h5>
+                </div>
+                <div class="card-body">
+                    <ol>
+                        <li>PDF-Datei auswählen</li>
+                        <li>Beleg-Typ wählen</li>
+                        <li>Optional: Beschreibung hinzufügen</li>
+                        <li>Auf "PDF verarbeiten" klicken</li>
+                        <li>Extrahierte Daten prüfen</li>
+                        <li>Fertig! 🎉</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const uploadZone = document.getElementById('upload-zone');
+    const fileInput = document.getElementById('id_datei');
+    const form = document.getElementById('upload-form');
+    const submitBtn = document.getElementById('submit-btn');
+    const uploadProgress = document.getElementById('upload-progress');
+    const fileList = document.getElementById('file-list');
+    const fileItems = document.getElementById('file-items');
+    const progressBar = document.getElementById('progress-bar');
+    
+    let selectedFiles = [];
+    
+    // Drag & Drop Funktionalität
+    uploadZone.addEventListener('click', function() {
+        fileInput.click();
+    });
+    
+    uploadZone.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        uploadZone.classList.add('dragover');
+    });
+    
+    uploadZone.addEventListener('dragleave', function(e) {
+        e.preventDefault();
+        uploadZone.classList.remove('dragover');
+    });
+    
+    uploadZone.addEventListener('drop', function(e) {
+        e.preventDefault();
+        uploadZone.classList.remove('dragover');
+        
+        const files = e.dataTransfer.files;
+        handleFiles(files);
+    });
+    
+    fileInput.addEventListener('change', function(e) {
+        const files = e.target.files;
+        handleFiles(files);
+    });
+    
+    function handleFiles(files) {
+        selectedFiles = Array.from(files);
+        displayFiles();
+        
+        if (selectedFiles.length > 0) {
+            submitBtn.disabled = false;
+            submitBtn.classList.remove('btn-secondary');
+            submitBtn.classList.add('btn-success');
+        }
+    }
+    
+    function displayFiles() {
+        if (selectedFiles.length === 0) {
+            fileList.style.display = 'none';
+            return;
+        }
+        
+        fileList.style.display = 'block';
+        fileItems.innerHTML = '';
+        
+        selectedFiles.forEach((file, index) => {
+            const fileItem = document.createElement('div');
+            fileItem.className = 'file-item';
+            
+            const fileIcon = getFileIcon(file.name);
+            const fileSize = formatFileSize(file.size);
+            
+            fileItem.innerHTML = `
+                <div class="file-icon">${fileIcon}</div>
+                <div class="file-info">
+                    <div class="file-name">${file.name}</div>
+                    <div class="file-size">${fileSize}</div>
+                </div>
+                <div class="file-status status-processing">Bereit</div>
+                <button type="button" class="btn btn-sm btn-outline-danger ms-2" onclick="removeFile(${index})">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            
+            fileItems.appendChild(fileItem);
+        });
+    }
+    
+    function getFileIcon(filename) {
+        const ext = filename.split('.').pop().toLowerCase();
+        switch(ext) {
+            case 'pdf': return '📄';
+            case 'jpg':
+            case 'jpeg':
+            case 'png':
+            case 'gif': return '🖼️';
+            default: return '📎';
+        }
+    }
+    
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+    
+    window.removeFile = function(index) {
+        selectedFiles.splice(index, 1);
+        displayFiles();
+        
+        if (selectedFiles.length === 0) {
+            submitBtn.disabled = true;
+            submitBtn.classList.remove('btn-success');
+            submitBtn.classList.add('btn-secondary');
+        }
+    };
+    
+    // Form-Submission mit Progress
+    form.addEventListener('submit', function(e) {
+        if (selectedFiles.length === 0) {
+            e.preventDefault();
+            alert('Peter Zwegat sagt: "Ohne Datei geht nichts! Bitte wählen Sie zuerst eine Datei aus."');
+            return;
+        }
+        
+        // Progress anzeigen
+        uploadProgress.style.display = 'block';
+        uploadZone.classList.add('processing');
+        submitBtn.disabled = true;
+        
+        // Simulated progress (da wir noch kein AJAX haben)
+        let progress = 0;
+        const interval = setInterval(() => {
+            progress += Math.random() * 20;
+            if (progress >= 90) {
+                progress = 90;
+                clearInterval(interval);
+            }
+            progressBar.style.width = progress + '%';
+        }, 200);
+    });
+    
+    // File Input verstecken (wird durch Upload Zone ersetzt)
+    fileInput.style.display = 'none';
+});
+    
+    uploadZone.addEventListener('dragleave', function() {
+        uploadZone.classList.remove('dragover');
+    });
+    
+    uploadZone.addEventListener('drop', function(e) {
+        e.preventDefault();
+        uploadZone.classList.remove('dragover');
+        
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            fileInput.files = files;
+            updateFileName(files[0].name);
+        }
+    });
+    
+    fileInput.addEventListener('change', function() {
+        if (this.files.length > 0) {
+            updateFileName(this.files[0].name);
+        }
+    });
+    
+    function updateFileName(filename) {
+        const uploadText = uploadZone.querySelector('h4');
+        uploadText.textContent = `📄 ${filename}`;
+        uploadZone.style.borderColor = '#28a745';
+        uploadZone.style.backgroundColor = '#d4edda';
+    }
+    
+    // Form Submit mit Progress
+    form.addEventListener('submit', function() {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<div class="spinner-border spinner-border-sm me-2"></div>Verarbeitung läuft...';
+        uploadProgress.style.display = 'block';
+        
+        // Fake Progress Animation
+        let progress = 0;
+        const progressBar = document.querySelector('.progress-bar');
+        const interval = setInterval(function() {
+            progress += Math.random() * 15;
+            if (progress >= 90) {
+                progress = 90;
+                clearInterval(interval);
+            }
+            progressBar.style.width = progress + '%';
+        }, 200);
+    });
+});
+</script>
+{% endblock %}

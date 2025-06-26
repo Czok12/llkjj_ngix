@@ -10,8 +10,8 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
 
-# Import unserer Dashboard-View aus konten app
-from konten.views import dashboard_view
+# Import unserer Dashboard-View aus auswertungen app
+from auswertungen.views import dashboard_view
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -19,8 +19,8 @@ urlpatterns = [
     # App URLs
     path("konten/", include("konten.urls")),
     path("buchungen/", include("buchungen.urls")),
-    # path("belege/", include("belege.urls")),
-    # path("auswertungen/", include("auswertungen.urls")),
+    path("belege/", include("belege.urls")),
+    path("auswertungen/", include("auswertungen.urls")),
     # path("steuer/", include("steuer.urls")),
     # path("einstellungen/", include("einstellungen.urls")),
 ]

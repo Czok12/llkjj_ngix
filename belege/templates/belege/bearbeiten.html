@@ -1,0 +1,362 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Beleg bearbeiten - {{ beleg }}{% endblock %}
+
+{% block extra_css %}
+<style>
+.extracted-data {
+    background-color: #e8f5e8;
+    border-left: 4px solid #28a745;
+    padding: 15px;
+    margin-bottom: 20px;
+}
+
+.confidence-badge {
+    font-size: 0.8em;
+}
+
+.confidence-high { background-color: #28a745; }
+.confidence-medium { background-color: #ffc107; }
+.confidence-low { background-color: #dc3545; }
+
+.pdf-preview {
+    height: 600px;
+    border: 1px solid #dee2e6;
+    border-radius: 5px;
+}
+
+.zwegat-comment {
+    background-color: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 5px;
+    padding: 10px;
+    margin-top: 10px;
+    font-style: italic;
+}
+
+.field-confidence {
+    font-size: 0.8em;
+    margin-left: 10px;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>✏️ Beleg bearbeiten</h1>
+                <div>
+                    <a href="{% url 'belege:detail' beleg.id %}" class="btn btn-info">
+                        <i class="fas fa-eye"></i> Ansicht
+                    </a>
+                    <a href="{% url 'belege:liste' %}" class="btn btn-secondary">
+                        <i class="fas fa-list"></i> Zur Liste
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if beleg.ocr_verarbeitet %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="extracted-data">
+                <h5><i class="fas fa-robot"></i> Automatisch extrahierte Daten</h5>
+                <p class="mb-2">
+                    <strong>Peter Zwegat sagt:</strong> 
+                    "Ich habe die Daten für Sie extrahiert - bitte prüfen Sie alles genau!"
+                </p>
+                {% if beleg.ocr_text %}
+                    <details>
+                        <summary>Extrahierter Text anzeigen</summary>
+                        <pre class="mt-2" style="max-height: 200px; overflow-y: auto; font-size: 0.8em;">{{ beleg.ocr_text }}</pre>
+                    </details>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">📝 Beleg-Daten</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" id="beleg-form">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.beleg_typ.id_for_label }}" class="form-label">
+                                    Beleg-Typ *
+                                </label>
+                                {{ form.beleg_typ }}
+                                {% if form.beleg_typ.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.beleg_typ.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.status.id_for_label }}" class="form-label">
+                                    Status
+                                </label>
+                                {{ form.status }}
+                                {% if form.status.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.status.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.rechnungsdatum.id_for_label }}" class="form-label">
+                                    Rechnungsdatum
+                                    {% if beleg.ocr_verarbeitet %}
+                                        <span class="field-confidence">
+                                            <i class="fas fa-robot text-success"></i>
+                                        </span>
+                                    {% endif %}
+                                </label>
+                                {{ form.rechnungsdatum }}
+                                {% if form.rechnungsdatum.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.rechnungsdatum.errors.0 }}
+                                    </div>
+                                {% endif %}
+                                {% if beleg.ocr_verarbeitet and beleg.rechnungsdatum %}
+                                    <div class="zwegat-comment">
+                                        "Datum automatisch erkannt - sieht gut aus!"
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.betrag.id_for_label }}" class="form-label">
+                                    Betrag (€)
+                                    {% if beleg.ocr_verarbeitet %}
+                                        <span class="field-confidence">
+                                            <i class="fas fa-robot text-success"></i>
+                                        </span>
+                                    {% endif %}
+                                </label>
+                                {{ form.betrag }}
+                                {% if form.betrag.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.betrag.errors.0 }}
+                                    </div>
+                                {% endif %}
+                                {% if beleg.ocr_verarbeitet and beleg.betrag %}
+                                    <div class="zwegat-comment">
+                                        "Betrag {{ beleg.betrag }}€ extrahiert - das passt!"
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.geschaeftspartner.id_for_label }}" class="form-label">
+                                Geschäftspartner
+                                {% if beleg.ocr_verarbeitet %}
+                                    <span class="field-confidence">
+                                        <i class="fas fa-robot text-success"></i>
+                                    </span>
+                                {% endif %}
+                            </label>
+                            <div class="input-group">
+                                {{ form.geschaeftspartner }}
+                                <button type="button" class="btn btn-outline-secondary" 
+                                        id="neue-firma-btn" data-bs-toggle="modal" 
+                                        data-bs-target="#neuerPartnerModal">
+                                    <i class="fas fa-plus"></i> Neu
+                                </button>
+                            </div>
+                            {% if form.geschaeftspartner.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.geschaeftspartner.errors.0 }}
+                                </div>
+                            {% endif %}
+                            {% if beleg.ocr_verarbeitet and beleg.geschaeftspartner %}
+                                <div class="zwegat-comment">
+                                    "Geschäftspartner '{{ beleg.geschaeftspartner.name }}' automatisch zugeordnet!"
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.beschreibung.id_for_label }}" class="form-label">
+                                Beschreibung
+                            </label>
+                            {{ form.beschreibung }}
+                            {% if form.beschreibung.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.beschreibung.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.notizen.id_for_label }}" class="form-label">
+                                Notizen
+                            </label>
+                            {{ form.notizen }}
+                            {% if form.notizen.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.notizen.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-save"></i> Beleg speichern
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <!-- PDF-Vorschau -->
+            {% if beleg.datei %}
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h5 class="mb-0">📄 PDF-Vorschau</h5>
+                </div>
+                <div class="card-body p-0">
+                    <iframe src="{% url 'belege:pdf_viewer' beleg.id %}" 
+                            class="pdf-preview w-100" 
+                            title="PDF Vorschau">
+                    </iframe>
+                </div>
+                <div class="card-footer">
+                    <small class="text-muted">
+                        📁 {{ beleg.dateiname }} ({{ beleg.dateigröße_formatiert }})
+                    </small>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Metadaten -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">ℹ️ Metadaten</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled">
+                        <li><strong>Hochgeladen:</strong> {{ beleg.hochgeladen_am|date:"d.m.Y H:i" }}</li>
+                        <li><strong>Geändert:</strong> {{ beleg.geaendert_am|date:"d.m.Y H:i" }}</li>
+                        <li><strong>Original-Datei:</strong> {{ beleg.original_dateiname }}</li>
+                        <li><strong>Dateigröße:</strong> {{ beleg.dateigröße_formatiert }}</li>
+                        {% if beleg.ocr_verarbeitet %}
+                            <li><strong>OCR verarbeitet:</strong> 
+                                <span class="badge bg-success">Ja</span>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal für neuen Geschäftspartner -->
+<div class="modal fade" id="neuerPartnerModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Neuen Geschäftspartner anlegen</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="neuer-partner-form">
+                    <div class="mb-3">
+                        <label class="form-label">Name/Firma *</label>
+                        <input type="text" class="form-control" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Typ</label>
+                        <select class="form-select" name="partner_typ">
+                            <option value="KUNDE">Kunde</option>
+                            <option value="LIEFERANT" selected>Lieferant</option>
+                            <option value="BEIDES">Kunde & Lieferant</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">E-Mail</label>
+                        <input type="email" class="form-control" name="email">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Telefon</label>
+                        <input type="text" class="form-control" name="telefon">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    Abbrechen
+                </button>
+                <button type="button" class="btn btn-primary" id="partner-speichern">
+                    Anlegen
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Neuer Geschäftspartner Modal
+    const partnerForm = document.getElementById('neuer-partner-form');
+    const partnerSpeichernBtn = document.getElementById('partner-speichern');
+    const geschaeftspartnerSelect = document.getElementById('id_geschaeftspartner');
+    
+    partnerSpeichernBtn.addEventListener('click', function() {
+        const formData = new FormData(partnerForm);
+        
+        fetch('{% url "belege:neuer_geschaeftspartner" %}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Neue Option zum Select hinzufügen
+                const option = new Option(data.name, data.id, true, true);
+                geschaeftspartnerSelect.add(option);
+                
+                // Modal schließen
+                const modal = bootstrap.Modal.getInstance(document.getElementById('neuerPartnerModal'));
+                modal.hide();
+                
+                // Formular zurücksetzen
+                partnerForm.reset();
+                
+                // Erfolg anzeigen
+                alert('Geschäftspartner erfolgreich angelegt!');
+            } else {
+                alert('Fehler beim Anlegen des Geschäftspartners: ' + JSON.stringify(data.errors));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Ein Fehler ist aufgetreten.');
+        });
+    });
+});
+</script>
+{% endblock %}

@@ -1,7 +1,99 @@
+import logging
+import re
 import uuid
+from datetime import datetime
 
 from django.core.validators import FileExtensionValidator
 from django.db import models
+
+logger = logging.getLogger(__name__)
+
+
+def generiere_intelligenten_dateinamen(instance, filename):
+    """
+    Generiert einen intelligenten Dateinamen nach dem Schema:
+    "Händler_dd_mm_yy_Rechnungsnummer.pdf"
+
+    Peter Zwegat: "Ordnung im Dateinamen ist Ordnung im Leben!"
+    """
+    try:
+        # Dateiendung extrahieren
+        dateiendung = filename.split(".")[-1].lower()
+
+        # Basis-Informationen sammeln
+        haendler = "Unbekannt"
+        datum_str = "01_01_00"
+        rechnungsnr = "000"
+
+        # Geschäftspartner verwenden falls vorhanden
+        if instance.geschaeftspartner and instance.geschaeftspartner.name:
+            haendler = bereinige_dateinamen(instance.geschaeftspartner.name)
+
+        # Rechnungsdatum formatieren
+        if instance.rechnungsdatum:
+            datum_str = instance.rechnungsdatum.strftime("%d_%m_%y")
+
+        # Rechnungsnummer aus OCR-Text extrahieren falls vorhanden
+        if hasattr(instance, "rechnungsnummer") and instance.rechnungsnummer:
+            rechnungsnr = bereinige_dateinamen(instance.rechnungsnummer)
+        elif instance.ocr_text:
+            # Rechnungsnummer aus OCR-Text extrahieren
+            rechnungsnummer_patterns = [
+                r"Rechnung[s-]?[Nn]r\.?\s*:?\s*([A-Z0-9-]+)",
+                r"Invoice[- ]?[Nn]o\.?\s*:?\s*([A-Z0-9-]+)",
+                r"Rg\.?[- ]?[Nn]r\.?\s*:?\s*([A-Z0-9-]+)",
+                r"Belegnr\.?\s*:?\s*([A-Z0-9-]+)",
+                r"Dok\.?[- ]?[Nn]r\.?\s*:?\s*([A-Z0-9-]+)",
+            ]
+
+            for pattern in rechnungsnummer_patterns:
+                match = re.search(pattern, instance.ocr_text, re.IGNORECASE)
+                if match:
+                    rechnungsnr = bereinige_dateinamen(match.group(1))
+                    break
+
+        # Intelligenten Dateinamen zusammensetzen
+        neuer_name = f"{haendler}_{datum_str}_{rechnungsnr}.{dateiendung}"
+
+        # Pfad mit Jahr/Monat erstellen
+        jahr = (
+            instance.rechnungsdatum.year
+            if instance.rechnungsdatum
+            else datetime.now().year
+        )
+        monat = (
+            instance.rechnungsdatum.month
+            if instance.rechnungsdatum
+            else datetime.now().month
+        )
+
+        return f"belege/{jahr}/{monat:02d}/{neuer_name}"
+
+    except Exception as e:
+        # Fallback zum ursprünglichen Namen
+        logger.warning(f"Fehler bei Dateinamen-Generierung: {e}")
+        return beleg_upload_path(instance, filename)
+
+
+def bereinige_dateinamen(text):
+    """
+    Bereinigt Text für Verwendung in Dateinamen.
+    Peter Zwegat: "Keine Sonderzeichen - nur pure Ordnung!"
+    """
+    if not text:
+        return "Unbekannt"
+
+    # Nur Buchstaben, Zahlen und Bindestriche erlauben
+    bereinigt = re.sub(r"[^a-zA-Z0-9\-_]", "_", str(text))
+
+    # Mehrfache Unterstriche entfernen
+    bereinigt = re.sub(r"_{2,}", "_", bereinigt)
+
+    # Führende/abschließende Unterstriche entfernen
+    bereinigt = bereinigt.strip("_")
+
+    # Auf maximal 20 Zeichen kürzen
+    return bereinigt[:20] if bereinigt else "Unbekannt"
 
 
 def beleg_upload_path(instance, filename):
@@ -47,9 +139,9 @@ class Beleg(models.Model):
         help_text="Eindeutige ID des Belegs",
     )
 
-    # Datei-Upload
+    # Datei-Upload mit intelligenter Umbenennung
     datei = models.FileField(
-        upload_to=beleg_upload_path,
+        upload_to=generiere_intelligenten_dateinamen,
         validators=[
             FileExtensionValidator(
                 allowed_extensions=["pdf", "jpg", "jpeg", "png", "gif"]
@@ -93,6 +185,14 @@ class Beleg(models.Model):
         blank=True,
         help_text="Bruttobetrag des Belegs in Euro",
         verbose_name="Betrag",
+    )
+
+    # Rechnungsnummer für intelligente Dateinamen
+    rechnungsnummer = models.CharField(
+        max_length=50,
+        blank=True,
+        help_text="Rechnungsnummer aus dem Beleg extrahiert",
+        verbose_name="Rechnungsnummer",
     )
 
     # Beziehungen

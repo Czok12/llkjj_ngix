@@ -1,50 +1,51 @@
 # Django Core
-Django>=5.0,<5.1
-django-environ>=0.11.0
+Django
+django-environ
 
 # Database
-psycopg2-binary>=2.9.7  # PostgreSQL
+psycopg2-binary  # PostgreSQL
   
 # Admin & Extensions
-django-extensions>=3.2.0
-django-debug-toolbar>=4.2.0
+django-extensions
+django-debug-toolbar
 
 # Forms & UI
-django-crispy-forms>=2.0
-crispy-tailwind>=0.5.0
+django-crispy-forms
+crispy-tailwind
 
 # File Handling
-Pillow>=10.0.0  # Bildverarbeitung
-python-magic>=0.4.27  # Dateityp-Erkennung
+Pillow  # Bildverarbeitung
+python-magic  # Dateityp-Erkennung
 
 # API & Export
-djangorestframework>=3.14.0
-openpyxl>=3.1.0  # Excel-Export
-reportlab>=4.0.0  # PDF-Generierung
+djangorestframework
+openpyxl  # Excel-Export
+reportlab  # PDF-Generierung
 
 # Async Tasks (für OCR)
-celery[redis]>=5.3.0
-redis>=4.6.0
+celery[redis]
+redis
 
 # OCR & Text Processing
-pytesseract>=0.3.10
-pdf2image>=1.16.0
+pytesseract
+pdf2image
+PyMuPDF  # PDF Text-Extraktion
 
 # Code Quality
-ruff>=0.1.0
-mypy>=1.5.0
-black>=23.7.0
-django-stubs>=4.2.0
+ruff
+mypy
+black
+django-stubs
 
 # Development
-python-dotenv>=1.0.0
+python-dotenv
 
 # Testing
-pytest>=7.4.0
-pytest-django>=4.5.0
-pytest-cov>=4.1.0
-factory-boy>=3.3.0
+pytest
+pytest-django
+pytest-cov
+factory-boy
 
 # Production (optional)
-gunicorn>=21.2.0
-whitenoise>=6.5.0
+gunicorn
+whitenoise

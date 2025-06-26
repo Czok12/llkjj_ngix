@@ -1,0 +1,528 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ page_title }} - llkjj_knut{% endblock %}
+
+{% block extra_css %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+.dashboard-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 15px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.stats-card {
+    background: white;
+    border-radius: 15px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    border: none;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.stats-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.stats-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+}
+
+.stats-icon {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+}
+
+.stats-value {
+    font-size: 2rem;
+    font-weight: bold;
+    margin: 0;
+}
+
+.stats-label {
+    color: #6c757d;
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+.trend-positive {
+    color: #28a745;
+}
+
+.trend-negative {
+    color: #dc3545;
+}
+
+.trend-neutral {
+    color: #6c757d;
+}
+
+.zwegat-card {
+    background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+    border: 2px solid #ffc107;
+    border-radius: 15px;
+    padding: 1.5rem;
+    position: relative;
+    margin-bottom: 2rem;
+}
+
+.zwegat-card::before {
+    content: "💭";
+    position: absolute;
+    top: -15px;
+    left: 20px;
+    background: #ffc107;
+    padding: 5px 10px;
+    border-radius: 50%;
+    font-size: 1.5rem;
+}
+
+.chart-container {
+    background: white;
+    border-radius: 15px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    margin-bottom: 2rem;
+}
+
+.activity-item {
+    padding: 0.75rem;
+    border-left: 3px solid #e9ecef;
+    margin-bottom: 0.5rem;
+    background: white;
+    border-radius: 0 8px 8px 0;
+    transition: all 0.3s ease;
+}
+
+.activity-item:hover {
+    border-left-color: #667eea;
+    background: #f8f9fa;
+}
+
+.activity-item.einnahme {
+    border-left-color: #28a745;
+}
+
+.activity-item.ausgabe {
+    border-left-color: #dc3545;
+}
+
+.beleg-item {
+    background: white;
+    border-radius: 8px;
+    padding: 1rem;
+    border: 1px solid #e9ecef;
+    margin-bottom: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.beleg-item:hover {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.status-badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.status-neu { background: #e3f2fd; color: #1976d2; }
+.status-geprueft { background: #e8f5e8; color: #2e7d32; }
+
+.quick-actions {
+    background: white;
+    border-radius: 15px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.quick-action-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 1rem;
+    text-decoration: none;
+    display: block;
+    text-align: center;
+    transition: all 0.3s ease;
+    margin-bottom: 1rem;
+}
+
+.quick-action-btn:hover {
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102,126,234,0.3);
+}
+
+.ausgaben-chart {
+    max-height: 300px;
+}
+
+@media (max-width: 768px) {
+    .dashboard-header {
+        padding: 1rem;
+    }
+    
+    .stats-card {
+        margin-bottom: 1rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Dashboard Header -->
+    <div class="dashboard-header">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="mb-2">🏠 {{ page_title }}</h1>
+                <p class="mb-0 opacity-75">{{ page_subtitle }}</p>
+            </div>
+            <div class="col-md-4 text-end">
+                <div class="h4 mb-0" id="live-time"></div>
+                <small class="opacity-75">Live-Daten</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Peter Zwegat Spruch -->
+    <div class="zwegat-card">
+        <h5 class="mb-2">💡 Peter Zwegat sagt heute:</h5>
+        <p class="mb-0 fst-italic">"{{ zwegat_spruch }}"</p>
+    </div>
+
+    <!-- Kennzahlen Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-3 col-md-6">
+            <div class="stats-card">
+                <div class="stats-icon">💰</div>
+                <h3 class="stats-value text-success">{{ einnahmen_monat|floatformat:0 }}€</h3>
+                <p class="stats-label">Einnahmen {{ aktueller_monat }}</p>
+                {% if einnahmen_trend != 0 %}
+                <small class="{% if einnahmen_trend > 0 %}trend-positive{% else %}trend-negative{% endif %}">
+                    {% if einnahmen_trend > 0 %}↗{% else %}↘{% endif %} {{ einnahmen_trend|floatformat:1 }}% vs. Vormonat
+                </small>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6">
+            <div class="stats-card">
+                <div class="stats-icon">💸</div>
+                <h3 class="stats-value text-danger">{{ ausgaben_monat|floatformat:0 }}€</h3>
+                <p class="stats-label">Ausgaben {{ aktueller_monat }}</p>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6">
+            <div class="stats-card">
+                <div class="stats-icon">{% if gewinn_monat >= 0 %}📈{% else %}📉{% endif %}</div>
+                <h3 class="stats-value {% if gewinn_monat >= 0 %}text-success{% else %}text-danger{% endif %}">
+                    {{ gewinn_monat|floatformat:0 }}€
+                </h3>
+                <p class="stats-label">Gewinn {{ aktueller_monat }}</p>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6">
+            <div class="stats-card">
+                <div class="stats-icon">📊</div>
+                <h3 class="stats-value text-primary">{{ einnahmen_jahr|floatformat:0 }}€</h3>
+                <p class="stats-label">Einnahmen {{ aktuelles_jahr }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Weitere Statistiken -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-3 col-md-6">
+            <div class="stats-card">
+                <div class="stats-icon">📝</div>
+                <h3 class="stats-value">{{ stats.buchungen_monat }}</h3>
+                <p class="stats-label">Buchungen diesen Monat</p>
+                <small class="text-muted">Gesamt: {{ stats.buchungen_gesamt }}</small>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6">
+            <div class="stats-card">
+                <div class="stats-icon">📄</div>
+                <h3 class="stats-value {% if stats.belege_unbearbeitet > 0 %}text-warning{% else %}text-success{% endif %}">
+                    {{ stats.belege_unbearbeitet }}
+                </h3>
+                <p class="stats-label">Offene Belege</p>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6">
+            <div class="stats-card">
+                <div class="stats-icon">🤝</div>
+                <h3 class="stats-value">{{ stats.geschaeftspartner_aktiv }}</h3>
+                <p class="stats-label">Geschäftspartner</p>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6">
+            <div class="stats-card">
+                <div class="stats-icon">{% if gewinn_jahr >= 0 %}🎯{% else %}⚠️{% endif %}</div>
+                <h3 class="stats-value {% if gewinn_jahr >= 0 %}text-success{% else %}text-danger{% endif %}">
+                    {{ gewinn_jahr|floatformat:0 }}€
+                </h3>
+                <p class="stats-label">Jahresgewinn {{ aktuelles_jahr }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts und Aktivitäten -->
+    <div class="row g-4">
+        <!-- Einnahmen/Ausgaben Chart -->
+        <div class="col-lg-8">
+            <div class="chart-container">
+                <h5 class="mb-3">📊 Einnahmen vs. Ausgaben (12 Monate)</h5>
+                <canvas id="einnahmenChart" height="100"></canvas>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="col-lg-4">
+            <div class="quick-actions">
+                <h5 class="mb-3">⚡ Schnellaktionen</h5>
+                
+                <a href="{% url 'buchungen:schnellbuchung' %}" class="quick-action-btn">
+                    <i class="fas fa-bolt fa-lg mb-2"></i><br>
+                    Schnellbuchung
+                </a>
+                
+                <a href="{% url 'belege:upload' %}" class="quick-action-btn">
+                    <i class="fas fa-upload fa-lg mb-2"></i><br>
+                    Beleg hochladen
+                </a>
+                
+                <a href="{% url 'buchungen:csv_import' %}" class="quick-action-btn">
+                    <i class="fas fa-file-csv fa-lg mb-2"></i><br>
+                    CSV importieren
+                </a>
+                
+                <a href="/admin/" class="quick-action-btn">
+                    <i class="fas fa-cog fa-lg mb-2"></i><br>
+                    Admin-Bereich
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Aktivitäten und Belege -->
+    <div class="row g-4 mt-2">
+        <!-- Letzte Buchungen -->
+        <div class="col-lg-6">
+            <div class="chart-container">
+                <h5 class="mb-3">🕒 Letzte Buchungen</h5>
+                {% if letzte_buchungen %}
+                    {% for buchung in letzte_buchungen %}
+                    <div class="activity-item {% if buchung.haben_konto.nummer|slice:':1' == '8' %}einnahme{% else %}ausgabe{% endif %}">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                                <strong>{{ buchung.buchungstext }}</strong>
+                                <div class="small text-muted">
+                                    {{ buchung.buchungsdatum|date:"d.m.Y" }} • 
+                                    {{ buchung.soll_konto.nummer }} → {{ buchung.haben_konto.nummer }}
+                                </div>
+                            </div>
+                            <div class="text-end">
+                                <div class="fw-bold {% if buchung.haben_konto.nummer|slice:':1' == '8' %}text-success{% else %}text-danger{% endif %}">
+                                    {{ buchung.betrag }}€
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    <div class="text-center mt-3">
+                        <a href="{% url 'buchungen:liste' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-list"></i> Alle Buchungen anzeigen
+                        </a>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <div class="text-muted mb-3">Noch keine Buchungen vorhanden</div>
+                        <a href="{% url 'buchungen:erstellen' %}" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Erste Buchung erstellen
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Offene Belege -->
+        <div class="col-lg-6">
+            <div class="chart-container">
+                <h5 class="mb-3">📄 Offene Belege</h5>
+                {% if offene_belege %}
+                    {% for beleg in offene_belege %}
+                    <div class="beleg-item">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                                <strong>{{ beleg.original_dateiname|truncatechars:30 }}</strong>
+                                <div class="small text-muted">
+                                    {% if beleg.rechnungsdatum %}{{ beleg.rechnungsdatum|date:"d.m.Y" }}{% endif %}
+                                    {% if beleg.geschaeftspartner %} • {{ beleg.geschaeftspartner.name }}{% endif %}
+                                </div>
+                            </div>
+                            <div class="text-end">
+                                {% if beleg.betrag %}
+                                <div class="fw-bold">{{ beleg.betrag }}€</div>
+                                {% endif %}
+                                <div class="status-badge status-{{ beleg.status|lower }}">
+                                    {{ beleg.get_status_display }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    <div class="text-center mt-3">
+                        <a href="{% url 'belege:liste' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-folder"></i> Alle Belege anzeigen
+                        </a>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <div class="text-muted mb-3">Keine offenen Belege</div>
+                        <div class="text-success">
+                            <i class="fas fa-check-circle fa-2x"></i><br>
+                            Alles erledigt!
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Ausgaben -->
+    {% if top_ausgaben %}
+    <div class="row g-4 mt-2">
+        <div class="col-12">
+            <div class="chart-container">
+                <h5 class="mb-3">🏆 Top Ausgaben-Kategorien (letzte 30 Tage)</h5>
+                <div class="row">
+                    {% for ausgabe in top_ausgaben %}
+                    <div class="col-lg-4 col-md-6 mb-3">
+                        <div class="p-3 border rounded">
+                            <h6 class="mb-1">{{ ausgabe.soll_konto__name|truncatechars:25 }}</h6>
+                            <div class="d-flex justify-content-between">
+                                <span class="fw-bold text-danger">{{ ausgabe.summe }}€</span>
+                                <small class="text-muted">{{ ausgabe.anzahl }} Buchungen</small>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Live-Zeit anzeigen
+    function updateTime() {
+        const now = new Date();
+        const timeString = now.toLocaleTimeString('de-DE');
+        document.getElementById('live-time').textContent = timeString;
+    }
+    
+    updateTime();
+    setInterval(updateTime, 1000);
+    
+    // Chart.js Konfiguration
+    const ctx = document.getElementById('einnahmenChart').getContext('2d');
+    const chartData = {{ chart_data|safe }};
+    
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: chartData.map(d => d.monat),
+            datasets: [{
+                label: 'Einnahmen',
+                data: chartData.map(d => d.einnahmen),
+                borderColor: '#28a745',
+                backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                tension: 0.4,
+                fill: true
+            }, {
+                label: 'Ausgaben',
+                data: chartData.map(d => d.ausgaben),
+                borderColor: '#dc3545',
+                backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                tension: 0.4,
+                fill: true
+            }, {
+                label: 'Gewinn',
+                data: chartData.map(d => d.gewinn),
+                borderColor: '#667eea',
+                backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                tension: 0.4,
+                fill: false,
+                borderWidth: 3
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return value + '€';
+                        }
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.dataset.label + ': ' + context.parsed.y + '€';
+                        }
+                    }
+                }
+            }
+        }
+    });
+    
+    // AJAX für Live-Updates (optional)
+    function updateLiveData() {
+        fetch('/auswertungen/kennzahlen-ajax/')
+            .then(response => response.json())
+            .then(data => {
+                // Live-Daten können hier aktualisiert werden
+                console.log('Live-Daten aktualisiert:', data);
+            })
+            .catch(error => console.log('Fehler beim Laden der Live-Daten:', error));
+    }
+    
+    // Live-Updates alle 5 Minuten
+    setInterval(updateLiveData, 300000);
+});
+</script>
+{% endblock %}

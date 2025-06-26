@@ -1,0 +1,335 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Belege-Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+.stats-card {
+    transition: transform 0.2s;
+    border: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.stats-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.stats-number {
+    font-size: 2.5rem;
+    font-weight: bold;
+}
+
+.stats-icon {
+    font-size: 3rem;
+    opacity: 0.8;
+}
+
+.zwegat-greeting {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 10px;
+    padding: 30px;
+    margin-bottom: 30px;
+}
+
+.status-neu { color: #17a2b8; }
+.status-geprueft { color: #28a745; }
+.status-verbucht { color: #6c757d; }
+.status-fehler { color: #dc3545; }
+
+.beleg-item {
+    border-left: 4px solid #dee2e6;
+    transition: all 0.3s ease;
+}
+
+.beleg-item:hover {
+    border-left-color: #007bff;
+    background-color: #f8f9fa;
+}
+
+.quick-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.quick-action-btn {
+    flex: 1;
+    min-width: 200px;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Peter Zwegat Begrüßung -->
+    <div class="row">
+        <div class="col-12">
+            <div class="zwegat-greeting">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h1>👋 Willkommen im Belege-Dashboard!</h1>
+                        <p class="mb-0">
+                            <strong>Peter Zwegat sagt:</strong> 
+                            "Hier behalten Sie den Überblick über alle Ihre Belege! 
+                            Ordnung ist das halbe Leben - und das andere halbe auch!"
+                        </p>
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <i class="fas fa-file-invoice-dollar" style="font-size: 4rem; opacity: 0.3;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Schnellzugriff Buttons -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="quick-actions">
+                <a href="{% url 'belege:upload' %}" class="btn btn-primary btn-lg quick-action-btn">
+                    <i class="fas fa-plus"></i> Neuen Beleg hochladen
+                </a>
+                <a href="{% url 'belege:liste' %}" class="btn btn-info btn-lg quick-action-btn">
+                    <i class="fas fa-list"></i> Alle Belege anzeigen
+                </a>
+                <a href="{% url 'belege:liste' %}?status=NEU" class="btn btn-warning btn-lg quick-action-btn">
+                    <i class="fas fa-exclamation-triangle"></i> Neue Belege prüfen
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistiken -->
+    <div class="row mb-4">
+        <div class="col-md-2 col-sm-6 mb-3">
+            <div class="card stats-card text-center">
+                <div class="card-body">
+                    <i class="fas fa-file-alt stats-icon text-primary"></i>
+                    <div class="stats-number text-primary">{{ stats.gesamt }}</div>
+                    <div class="text-muted">Gesamt</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 col-sm-6 mb-3">
+            <div class="card stats-card text-center">
+                <div class="card-body">
+                    <i class="fas fa-exclamation-circle stats-icon status-neu"></i>
+                    <div class="stats-number status-neu">{{ stats.neu }}</div>
+                    <div class="text-muted">Neu</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 col-sm-6 mb-3">
+            <div class="card stats-card text-center">
+                <div class="card-body">
+                    <i class="fas fa-check-circle stats-icon status-geprueft"></i>
+                    <div class="stats-number status-geprueft">{{ stats.geprueft }}</div>
+                    <div class="text-muted">Geprüft</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 col-sm-6 mb-3">
+            <div class="card stats-card text-center">
+                <div class="card-body">
+                    <i class="fas fa-archive stats-icon status-verbucht"></i>
+                    <div class="stats-number status-verbucht">{{ stats.verbucht }}</div>
+                    <div class="text-muted">Verbucht</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 col-sm-6 mb-3">
+            <div class="card stats-card text-center">
+                <div class="card-body">
+                    <i class="fas fa-times-circle stats-icon status-fehler"></i>
+                    <div class="stats-number status-fehler">{{ stats.fehler }}</div>
+                    <div class="text-muted">Fehler</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 col-sm-6 mb-3">
+            <div class="card stats-card text-center">
+                <div class="card-body">
+                    <i class="fas fa-percentage stats-icon text-success"></i>
+                    <div class="stats-number text-success">
+                        {% widthratio stats.verbucht stats.gesamt 100 %}%
+                    </div>
+                    <div class="text-muted">Verbucht</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Belege die Aufmerksamkeit brauchen -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">
+                        <i class="fas fa-exclamation-triangle"></i> 
+                        Brauchen Aufmerksamkeit
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    {% if aufmerksamkeit %}
+                        {% for beleg in aufmerksamkeit %}
+                        <div class="beleg-item p-3 border-bottom">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="mb-1">
+                                        {% if beleg.geschaeftspartner %}
+                                            {{ beleg.geschaeftspartner.name }}
+                                        {% else %}
+                                            {{ beleg.original_dateiname }}
+                                        {% endif %}
+                                    </h6>
+                                    <p class="mb-1 text-muted">
+                                        {% if beleg.rechnungsdatum %}
+                                            {{ beleg.rechnungsdatum|date:"d.m.Y" }}
+                                        {% endif %}
+                                        {% if beleg.betrag %}
+                                            - {{ beleg.betrag_formatiert }}
+                                        {% endif %}
+                                    </p>
+                                    <small class="text-muted">
+                                        {{ beleg.get_beleg_typ_display }} - 
+                                        <span class="badge bg-{% if beleg.status == 'NEU' %}info{% else %}danger{% endif %}">
+                                            {{ beleg.get_status_display }}
+                                        </span>
+                                    </small>
+                                </div>
+                                <div>
+                                    <a href="{% url 'belege:bearbeiten' beleg.id %}" 
+                                       class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                        <div class="p-3 text-center">
+                            <a href="{% url 'belege:liste' %}?status=NEU,FEHLER" 
+                               class="btn btn-warning">
+                                Alle anzeigen ({{ aufmerksamkeit|length }})
+                            </a>
+                        </div>
+                    {% else %}
+                        <div class="p-4 text-center text-muted">
+                            <i class="fas fa-check-circle fa-3x mb-3"></i>
+                            <p><strong>Alles erledigt!</strong><br>
+                            Peter Zwegat ist stolz auf Sie!</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Neueste Belege -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-clock"></i> 
+                        Neueste Belege
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    {% if neueste_belege %}
+                        {% for beleg in neueste_belege %}
+                        <div class="beleg-item p-3 border-bottom">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="mb-1">
+                                        {% if beleg.geschaeftspartner %}
+                                            {{ beleg.geschaeftspartner.name }}
+                                        {% else %}
+                                            {{ beleg.original_dateiname }}
+                                        {% endif %}
+                                    </h6>
+                                    <p class="mb-1 text-muted">
+                                        {% if beleg.rechnungsdatum %}
+                                            {{ beleg.rechnungsdatum|date:"d.m.Y" }}
+                                        {% endif %}
+                                        {% if beleg.betrag %}
+                                            - {{ beleg.betrag_formatiert }}
+                                        {% endif %}
+                                    </p>
+                                    <small class="text-muted">
+                                        {{ beleg.hochgeladen_am|date:"d.m.Y H:i" }} - 
+                                        <span class="badge bg-{% if beleg.status == 'NEU' %}info{% elif beleg.status == 'GEPRUEFT' %}success{% elif beleg.status == 'VERBUCHT' %}secondary{% else %}danger{% endif %}">
+                                            {{ beleg.get_status_display }}
+                                        </span>
+                                    </small>
+                                </div>
+                                <div>
+                                    <a href="{% url 'belege:detail' beleg.id %}" 
+                                       class="btn btn-sm btn-outline-info">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                        <div class="p-3 text-center">
+                            <a href="{% url 'belege:liste' %}" class="btn btn-info">
+                                Alle anzeigen
+                            </a>
+                        </div>
+                    {% else %}
+                        <div class="p-4 text-center text-muted">
+                            <i class="fas fa-file-plus fa-3x mb-3"></i>
+                            <p><strong>Noch keine Belege vorhanden</strong><br>
+                            Laden Sie Ihren ersten Beleg hoch!</p>
+                            <a href="{% url 'belege:upload' %}" class="btn btn-primary">
+                                <i class="fas fa-plus"></i> Ersten Beleg hochladen
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Peter Zwegat Motivationsspruch -->
+    <div class="row">
+        <div class="col-12">
+            <div class="alert alert-info">
+                <i class="fas fa-lightbulb"></i>
+                <strong>Peter Zwegat's Tipp des Tages:</strong>
+                {% cycle 
+                    "Belege sofort nach Erhalt hochladen - dann vergessen Sie sie nicht!"
+                    "Prüfen Sie regelmäßig die automatisch extrahierten Daten - Vertrauen ist gut, Kontrolle ist besser!"
+                    "Ein ordentlicher Beleg ist wie ein guter Freund - immer da, wenn man ihn braucht!"
+                    "Digitale Belege sind die Zukunft - papierlos und trotzdem rechtssicher!"
+                    "Wer seine Belege im Griff hat, hat sein Leben im Griff!"
+                %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Automatisches Aktualisieren der Statistiken alle 30 Sekunden
+    setInterval(function() {
+        // Hier könnte AJAX-Code für Live-Updates stehen
+    }, 30000);
+    
+    // Hover-Effekte für Statistik-Karten
+    const statsCards = document.querySelectorAll('.stats-card');
+    statsCards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-5px)';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+        });
+    });
+});
+</script>
+{% endblock %}
