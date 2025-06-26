@@ -1,0 +1,289 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ konto.nummer }} - {{ konto.name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Breadcrumb -->
+    <nav class="flex mb-6" aria-label="Breadcrumb">
+        <ol class="inline-flex items-center space-x-1 md:space-x-3">
+            <li class="inline-flex items-center">
+                <a href="/" class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-peter-blue">
+                    <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M10.707 2.293a1 1 0 00-1.414 0l-9 9a1 1 0 001.414 1.414L2 12.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-4.586l.293.293a1 1 0 001.414-1.414l-9-9z"/>
+                    </svg>
+                    Dashboard
+                </a>
+            </li>
+            <li>
+                <div class="flex items-center">
+                    <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+                    </svg>
+                    <a href="{% url 'konten:liste' %}" class="ml-1 text-sm font-medium text-gray-700 hover:text-peter-blue md:ml-2">
+                        Konten
+                    </a>
+                </div>
+            </li>
+            <li aria-current="page">
+                <div class="flex items-center">
+                    <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+                    </svg>
+                    <span class="ml-1 text-sm font-medium text-gray-500 md:ml-2">{{ konto.nummer }}</span>
+                </div>
+            </li>
+        </ol>
+    </nav>
+
+    <!-- Konto Header -->
+    <div class="bg-white shadow rounded-lg p-6 mb-6">
+        <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center">
+                <div class="flex-shrink-0 mr-4">
+                    <div class="w-12 h-12 bg-peter-blue rounded-lg flex items-center justify-center">
+                        <span class="text-white text-xl font-bold">💰</span>
+                    </div>
+                </div>
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">
+                        {{ konto.nummer }} - {{ konto.name }}
+                    </h1>
+                    <p class="text-sm text-gray-600 mt-1">
+                        {{ konto.get_kategorie_display }} • {{ konto.get_typ_display }}
+                    </p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-3">
+                {% if konto.aktiv %}
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                    ✓ Aktiv
+                </span>
+                {% else %}
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
+                    ✗ Inaktiv
+                </span>
+                {% endif %}
+                <a href="/admin/konten/konto/{{ konto.pk }}/change/" 
+                   class="bg-peter-blue text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors inline-flex items-center">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                    </svg>
+                    Bearbeiten
+                </a>
+            </div>
+        </div>
+
+        {% if konto.beschreibung %}
+        <div class="bg-gray-50 rounded-lg p-4">
+            <h3 class="text-sm font-medium text-gray-900 mb-2">Beschreibung</h3>
+            <p class="text-gray-700">{{ konto.beschreibung }}</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Statistiken -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <div class="bg-white overflow-hidden shadow rounded-lg">
+            <div class="p-5">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="text-2xl">📝</div>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">Soll-Buchungen</dt>
+                            <dd class="text-lg font-medium text-gray-900">{{ konto_stats.soll_anzahl }}</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white overflow-hidden shadow rounded-lg">
+            <div class="p-5">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="text-2xl">📋</div>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">Haben-Buchungen</dt>
+                            <dd class="text-lg font-medium text-gray-900">{{ konto_stats.haben_anzahl }}</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white overflow-hidden shadow rounded-lg">
+            <div class="p-5">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="text-2xl">📊</div>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">Buchungen gesamt</dt>
+                            <dd class="text-lg font-medium text-peter-blue">{{ konto_stats.soll_anzahl|add:konto_stats.haben_anzahl }}</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Buchungshistorie -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Soll-Buchungen -->
+        <div class="bg-white shadow rounded-lg">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h3 class="text-lg font-medium text-gray-900">
+                    Soll-Buchungen ({{ soll_buchungen|length }})
+                </h3>
+                <p class="text-sm text-gray-600">Buchungen, wo dieses Konto im Soll steht</p>
+            </div>
+            <div class="divide-y divide-gray-200">
+                {% for buchung in soll_buchungen %}
+                <div class="px-6 py-4 hover:bg-gray-50">
+                    <div class="flex items-center justify-between">
+                        <div class="flex-1">
+                            <div class="flex items-center justify-between">
+                                <p class="text-sm font-medium text-gray-900">
+                                    {{ buchung.buchungstext|truncatechars:50 }}
+                                </p>
+                                <p class="text-sm font-medium text-green-600">
+                                    {{ buchung.betrag|floatformat:2 }} €
+                                </p>
+                            </div>
+                            <div class="mt-1 flex items-center text-sm text-gray-500">
+                                <span>{{ buchung.buchungsdatum }}</span>
+                                <span class="mx-2">•</span>
+                                <span>an {{ buchung.haben_konto.nummer }}</span>
+                                {% if buchung.geschaeftspartner %}
+                                <span class="mx-2">•</span>
+                                <span>{{ buchung.geschaeftspartner.name }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="px-6 py-8 text-center">
+                    <div class="text-4xl mb-2">📭</div>
+                    <p class="text-gray-500">Keine Soll-Buchungen vorhanden</p>
+                </div>
+                {% endfor %}
+            </div>
+            {% if soll_buchungen|length >= 10 %}
+            <div class="px-6 py-3 bg-gray-50 text-center">
+                <a href="/admin/buchungen/buchungssatz/?soll_konto__id__exact={{ konto.pk }}" 
+                   class="text-peter-blue hover:text-peter-green text-sm font-medium">
+                    Alle {{ konto_stats.soll_anzahl }} Soll-Buchungen anzeigen →
+                </a>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Haben-Buchungen -->
+        <div class="bg-white shadow rounded-lg">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h3 class="text-lg font-medium text-gray-900">
+                    Haben-Buchungen ({{ haben_buchungen|length }})
+                </h3>
+                <p class="text-sm text-gray-600">Buchungen, wo dieses Konto im Haben steht</p>
+            </div>
+            <div class="divide-y divide-gray-200">
+                {% for buchung in haben_buchungen %}
+                <div class="px-6 py-4 hover:bg-gray-50">
+                    <div class="flex items-center justify-between">
+                        <div class="flex-1">
+                            <div class="flex items-center justify-between">
+                                <p class="text-sm font-medium text-gray-900">
+                                    {{ buchung.buchungstext|truncatechars:50 }}
+                                </p>
+                                <p class="text-sm font-medium text-red-600">
+                                    {{ buchung.betrag|floatformat:2 }} €
+                                </p>
+                            </div>
+                            <div class="mt-1 flex items-center text-sm text-gray-500">
+                                <span>{{ buchung.buchungsdatum }}</span>
+                                <span class="mx-2">•</span>
+                                <span>von {{ buchung.soll_konto.nummer }}</span>
+                                {% if buchung.geschaeftspartner %}
+                                <span class="mx-2">•</span>
+                                <span>{{ buchung.geschaeftspartner.name }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="px-6 py-8 text-center">
+                    <div class="text-4xl mb-2">📭</div>
+                    <p class="text-gray-500">Keine Haben-Buchungen vorhanden</p>
+                </div>
+                {% endfor %}
+            </div>
+            {% if haben_buchungen|length >= 10 %}
+            <div class="px-6 py-3 bg-gray-50 text-center">
+                <a href="/admin/buchungen/buchungssatz/?haben_konto__id__exact={{ konto.pk }}" 
+                   class="text-peter-blue hover:text-peter-green text-sm font-medium">
+                    Alle {{ konto_stats.haben_anzahl }} Haben-Buchungen anzeigen →
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Zusatz-Informationen -->
+    <div class="mt-6 bg-white shadow rounded-lg p-6">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Konto-Details</h3>
+        <dl class="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
+            <div>
+                <dt class="text-sm font-medium text-gray-500">Kontonummer</dt>
+                <dd class="mt-1 text-sm text-gray-900 font-mono">{{ konto.nummer }}</dd>
+            </div>
+            <div>
+                <dt class="text-sm font-medium text-gray-500">Kontoname</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ konto.name }}</dd>
+            </div>
+            <div>
+                <dt class="text-sm font-medium text-gray-500">Kategorie</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ konto.get_kategorie_display }}</dd>
+            </div>
+            <div>
+                <dt class="text-sm font-medium text-gray-500">Typ</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ konto.get_typ_display }}</dd>
+            </div>
+            <div>
+                <dt class="text-sm font-medium text-gray-500">Erstellt am</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ konto.erstellt_am|date:"d.m.Y H:i" }}</dd>
+            </div>
+            <div>
+                <dt class="text-sm font-medium text-gray-500">Letzte Änderung</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ konto.geaendert_am|date:"d.m.Y H:i" }}</dd>
+            </div>
+        </dl>
+    </div>
+
+    <!-- Peter Zwegat Humor -->
+    <div class="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div class="flex">
+            <div class="flex-shrink-0">
+                <span class="text-2xl">🧔</span>
+            </div>
+            <div class="ml-3">
+                <h3 class="text-sm font-medium text-blue-800">Peter Zwegat sagt:</h3>
+                <div class="mt-2 text-sm text-blue-700">
+                    {% if konto_stats.soll_anzahl > 0 or konto_stats.haben_anzahl > 0 %}
+                    "Dieses Konto ist gut in Schwung! {{ konto_stats.soll_anzahl|add:konto_stats.haben_anzahl }} Buchungen zeigen: Hier wird gearbeitet!"
+                    {% else %}
+                    "Ein ruhiges Konto ist wie ein aufgeräumter Schreibtisch - entweder perfekt organisiert oder noch nicht genutzt!"
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -9,30 +9,15 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
-from django.views.generic import TemplateView
 
-
-# Dashboard View
-class DashboardView(TemplateView):
-    template_name = "dashboard.html"
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        # TODO: Hier kommen später echte Statistiken rein
-        context["stats"] = {
-            "einnahmen_monat": "2.450,00",
-            "ausgaben_monat": "1.200,00",
-            "gewinn_verlust": "1.250,00",
-            "offene_belege": "3",
-        }
-        return context
-
+# Import unserer Dashboard-View aus konten app
+from konten.views import dashboard_view
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("", DashboardView.as_view(), name="dashboard"),
-    # App URLs (werden später hinzugefügt)
-    # path("konten/", include("konten.urls")),
+    path("", dashboard_view, name="dashboard"),
+    # App URLs
+    path("konten/", include("konten.urls")),
     # path("buchungen/", include("buchungen.urls")),
     # path("belege/", include("belege.urls")),
     # path("auswertungen/", include("auswertungen.urls")),
@@ -47,6 +32,10 @@ if settings.DEBUG:
     urlpatterns = [
         path("__debug__/", include(debug_toolbar.urls)),
     ] + urlpatterns
+
+# Media Files (für Uploads in Development)
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 # Static/Media Files (nur in Development)
 if settings.DEBUG:
