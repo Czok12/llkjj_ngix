@@ -26,7 +26,7 @@ def dashboard_view(request):
 
     # Zeiträume für Vergleiche
     letzter_monat = (monat_start - timedelta(days=1)).replace(day=1)
-    letztes_jahr = jahr_start.replace(year=jahr_start.year - 1)
+    jahr_start.replace(year=jahr_start.year - 1)
 
     # Einnahmen und Ausgaben aktueller Monat
     einnahmen_monat = Buchungssatz.objects.filter(
@@ -192,7 +192,7 @@ def kennzahlen_ajax(request):
     AJAX-Endpoint für Live-Kennzahlen.
     """
     heute = timezone.now().date()
-    monat_start = heute.replace(day=1)
+    heute.replace(day=1)
 
     # Aktuelle Zahlen
     einnahmen_heute = Buchungssatz.objects.filter(

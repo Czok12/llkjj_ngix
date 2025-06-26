@@ -204,7 +204,7 @@ class BuchungsService:
                     )
 
                     # Buchung erstellen
-                    buchung = BuchungsService.erstelle_buchung(
+                    BuchungsService.erstelle_buchung(
                         buchungsdatum=buchung_data.get("datum", timezone.now().date()),
                         buchungstext=buchung_data.get("text", "CSV-Import"),
                         betrag=buchung_data["betrag"],
@@ -271,7 +271,7 @@ class BuchungsService:
         TODO: Hier kann später ML/AI integriert werden.
         """
 
-        betrag = buchung_data["betrag"]
+        buchung_data["betrag"]
         text = buchung_data.get("text", "").lower()
 
         # Einfache Regel-basierte Logik

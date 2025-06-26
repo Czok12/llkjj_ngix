@@ -115,12 +115,37 @@ class Beleg(models.Model):
     """
 
     BELEG_TYP_CHOICES = [
-        ("RECHNUNG_EINGANG", "Eingangsrechnung"),
-        ("RECHNUNG_AUSGANG", "Ausgangsrechnung"),
-        ("QUITTUNG", "Quittung"),
+        # Einnahmen
+        ("RECHNUNG_AUSGANG", "Ausgangsrechnung (Einnahme)"),
+        ("SONSTIGE_EINNAHME", "Sonstige Einnahme"),
+
+        # Ausgaben
+        ("RECHNUNG_EINGANG", "Eingangsrechnung (Ausgabe)"),
+        ("QUITTUNG", "Quittung (Ausgabe)"),
         ("BANKBELEG", "Bankbeleg"),
+        ("BETRIEBSAUSGABE", "Betriebsausgabe"),
+        ("REISEKOSTEN", "Reisekosten"),
+        ("BÜROMATERIAL", "Büromaterial"),
+        ("MARKETING", "Marketing/Werbung"),
+        ("WEITERBILDUNG", "Weiterbildung"),
+        ("VERSICHERUNG", "Versicherung"),
+        ("MIETE", "Miete/Nebenkosten"),
+
+        # Neutral
         ("VERTRAG", "Vertrag"),
         ("SONSTIGES", "Sonstiger Beleg"),
+    ]
+
+    # Kategorisierung für KI-Training
+    EINNAHME_KATEGORIEN = [
+        "RECHNUNG_AUSGANG",
+        "SONSTIGE_EINNAHME"
+    ]
+
+    AUSGABE_KATEGORIEN = [
+        "RECHNUNG_EINGANG", "QUITTUNG", "BETRIEBSAUSGABE",
+        "REISEKOSTEN", "BÜROMATERIAL", "MARKETING",
+        "WEITERBILDUNG", "VERSICHERUNG", "MIETE"
     ]
 
     STATUS_CHOICES = [
@@ -215,7 +240,35 @@ class Beleg(models.Model):
         verbose_name="Status",
     )
 
-    # OCR und automatische Extraktion (für später)
+    # KI und automatische Kategorisierung
+    ki_vertrauen = models.FloatField(
+        default=0.0,
+        help_text="Vertrauen der automatischen Kategorisierung (0-1)",
+        verbose_name="KI-Vertrauen"
+    )
+
+    ki_vorschlag = models.CharField(
+        max_length=20,
+        blank=True,
+        help_text="KI-Vorschlag für Beleg-Typ",
+        verbose_name="KI-Vorschlag"
+    )
+
+    benutzer_bestaetigt = models.BooleanField(
+        default=False,
+        help_text="Hat der Benutzer die Kategorisierung bestätigt?",
+        verbose_name="Benutzer bestätigt"
+    )
+
+    # Vorklassifizierung beim Upload
+    ist_einnahme = models.BooleanField(
+        null=True,
+        blank=True,
+        help_text="Vom Benutzer beim Upload als Einnahme/Ausgabe markiert",
+        verbose_name="Ist Einnahme"
+    )
+
+    # OCR und automatische Extraktion
     ocr_text = models.TextField(
         blank=True, help_text="Extrahierter Text durch OCR", verbose_name="OCR-Text"
     )
@@ -316,3 +369,170 @@ class Beleg(models.Model):
         if self.betrag is not None:
             return f"{self.betrag:.2f}€"
         return "Kein Betrag"
+
+    @property
+    def ist_einnahme_typ(self):
+        """Prüft ob der Beleg-Typ eine Einnahme ist"""
+        return self.beleg_typ in self.EINNAHME_KATEGORIEN
+
+    @property
+    def ist_ausgabe_typ(self):
+        """Prüft ob der Beleg-Typ eine Ausgabe ist"""
+        return self.beleg_typ in self.AUSGABE_KATEGORIEN
+
+    @property
+    def ki_kategorisierung_sicher(self):
+        """Ist die KI-Kategorisierung sicher genug? (>= 0.8)"""
+        return self.ki_vertrauen >= 0.8
+
+    @property
+    def braucht_manuelle_pruefung(self):
+        """Braucht der Beleg manuelle Prüfung?"""
+        return (
+            self.status in ["NEU", "FEHLER"] or
+            (self.ki_vertrauen > 0 and self.ki_vertrauen < 0.8) or
+            not self.benutzer_bestaetigt
+        )
+
+    def aktualisiere_ki_daten(self, vertrauen: float, vorschlag: str):
+        """
+        Aktualisiert die KI-Daten für den Beleg.
+
+        Peter Zwegat: "Lernen macht klug - auch Computer!"
+        """
+        self.ki_vertrauen = vertrauen
+        self.ki_vorschlag = vorschlag
+
+        # Bei hohem Vertrauen automatisch übernehmen
+        if vertrauen >= 0.9 and not self.benutzer_bestaetigt:
+            self.beleg_typ = vorschlag
+
+        self.save()
+
+    def bestatige_kategorisierung(self):
+        """
+        Bestätigt die aktuelle Kategorisierung für KI-Training.
+
+        Peter Zwegat: "Bestätigt ist bestätigt - so lernt der Computer!"
+        """
+        self.benutzer_bestaetigt = True
+
+        # Trainingsdaten für ML-Modell erstellen
+        if self.ocr_text:
+            BelegKategorieML.objects.create(
+                schluesselwoerter=self._extrahiere_schluesselwoerter(),
+                lieferant_name=self.geschaeftspartner.name if self.geschaeftspartner else "Unbekannt",
+                betrag_bereich=self._bestimme_betrag_bereich(),
+                korrekte_kategorie=self.beleg_typ,
+                ist_einnahme=self.ist_einnahme_typ,
+                vertrauen=self.ki_vertrauen,
+                benutzer_korrektur=True
+            )
+
+        self.save()
+
+    def _extrahiere_schluesselwoerter(self) -> str:
+        """Extrahiert Schlüsselwörter aus dem OCR-Text für ML-Training"""
+        import json
+
+        if not self.ocr_text:
+            return json.dumps([])
+
+        # Einfache Schlüsselwort-Extraktion
+        schluesselwoerter = []
+        text_lower = self.ocr_text.lower()
+
+        # Kategorien-spezifische Wörter
+        kategorien_woerter = {
+            'büromaterial': ['papier', 'stift', 'ordner', 'toner', 'drucker'],
+            'reisekosten': ['hotel', 'bahn', 'flug', 'taxi', 'übernachtung'],
+            'marketing': ['werbung', 'anzeige', 'google', 'facebook', 'instagram'],
+            'miete': ['miete', 'nebenkosten', 'strom', 'gas', 'wasser'],
+            'versicherung': ['versicherung', 'prämie', 'police', 'schutz'],
+        }
+
+        for woerter in kategorien_woerter.values():
+            for wort in woerter:
+                if wort in text_lower:
+                    schluesselwoerter.append(wort)
+
+        return json.dumps(schluesselwoerter)
+
+    def _bestimme_betrag_bereich(self) -> str:
+        """Bestimmt den Betragsbereich für ML-Training"""
+        if not self.betrag:
+            return "unbekannt"
+
+        betrag = float(self.betrag)
+        if betrag <= 50:
+            return "0-50"
+        elif betrag <= 200:
+            return "50-200"
+        elif betrag <= 1000:
+            return "200-1000"
+        else:
+            return "1000+"
+
+
+class BelegKategorieML(models.Model):
+    """
+    Machine Learning Modell für die automatische Kategorisierung von Belegen.
+
+    Peter Zwegat: "Ein Computer der lernt? Das ist besser als jeder Azubi!"
+    """
+
+    # Erkannte Features aus dem OCR-Text
+    schluesselwoerter = models.TextField(
+        help_text="Erkannte Schlüsselwörter aus dem Beleg (JSON)",
+        verbose_name="Schlüsselwörter",
+    )
+
+    lieferant_name = models.CharField(
+        max_length=200,
+        help_text="Erkannter Lieferantenname",
+        verbose_name="Lieferant",
+    )
+
+    betrag_bereich = models.CharField(
+        max_length=20,
+        help_text="Betragsbereich (0-50, 50-200, 200-1000, 1000+)",
+        verbose_name="Betragsbereich",
+    )
+
+    # Korrekte Kategorisierung (vom Benutzer bestätigt)
+    korrekte_kategorie = models.CharField(
+        max_length=50,
+        help_text="Korrekte Kategorie für das Training",
+        verbose_name="Korrekte Kategorie",
+    )
+
+    ist_einnahme = models.BooleanField(
+        help_text="Ist es eine Einnahme (True) oder Ausgabe (False)?",
+        verbose_name="Ist Einnahme",
+    )
+
+    # Vertrauen des ML-Modells (0.0 - 1.0)
+    vertrauen = models.FloatField(
+        default=0.0,
+        help_text="Vertrauen der automatischen Kategorisierung (0-1)",
+        verbose_name="Vertrauen",
+    )
+
+    # Trainings-Metadaten
+    trainiert_am = models.DateTimeField(auto_now_add=True, verbose_name="Trainiert am")
+
+    benutzer_korrektur = models.BooleanField(
+        default=False,
+        help_text="Wurde von Benutzer korrigiert?",
+        verbose_name="Benutzer-Korrektur",
+    )
+
+    class Meta:
+        verbose_name = "ML-Kategorisierung"
+        verbose_name_plural = "ML-Kategorisierungen"
+        ordering = ["-trainiert_am"]
+
+    def __str__(self):
+        return (
+            f"{self.lieferant_name} -> {self.korrekte_kategorie} ({self.vertrauen:.2f})"
+        )

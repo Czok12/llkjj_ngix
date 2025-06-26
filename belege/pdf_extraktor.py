@@ -1,7 +1,7 @@
 """
 Service für die automatische Extraktion von Daten aus PDF-Belegen.
 
-Peter Zwegat würde sagen: "Ein Computer, der Rechnungen lesen kann? 
+Peter Zwegat würde sagen: "Ein Computer, der Rechnungen lesen kann?
 Das ist ja besser als jeder Steuerberater!"
 """
 import logging
@@ -29,8 +29,8 @@ logger = logging.getLogger(__name__)
 class PDFDatenExtraktor:
     """
     Peter Zwegat's intelligenter PDF-Datenextraktor.
-    
-    "Früher musste man jede Rechnung von Hand eintippen - 
+
+    "Früher musste man jede Rechnung von Hand eintippen -
     heute macht das der Computer und wir können Kaffee trinken!"
     """
 
@@ -41,7 +41,7 @@ class PDFDatenExtraktor:
     def _lade_patterns(self) -> dict[str, list[str]]:
         """
         Lädt alle Regex-Patterns für die Datenextraktion.
-        
+
         Peter Zwegat: "Jeder Krümel wird gefunden - das ist Gründlichkeit!"
         """
         return {
@@ -86,13 +86,13 @@ class PDFDatenExtraktor:
     def extrahiere_daten(self, pdf_pfad: str) -> dict[str, str | None]:
         """
         Hauptmethode zur Datenextraktion aus PDF.
-        
+
         Args:
             pdf_pfad: Pfad zur PDF-Datei
-            
+
         Returns:
             Dictionary mit extrahierten Daten
-            
+
         Peter Zwegat: "Ran an die Buletten - äh, Daten!"
         """
         try:
@@ -120,7 +120,7 @@ class PDFDatenExtraktor:
     def _extrahiere_text_direkt(self, pdf_pfad: str) -> str:
         """
         Extrahiert Text direkt aus PDF mit PyMuPDF.
-        
+
         Peter Zwegat: "Manchmal ist der direkte Weg der beste!"
         """
         text = ""
@@ -137,8 +137,8 @@ class PDFDatenExtraktor:
     def _extrahiere_text_ocr(self, pdf_pfad: str) -> str:
         """
         Extrahiert Text per OCR aus PDF.
-        
-        Peter Zwegat: "Wenn's hart auf hart kommt, 
+
+        Peter Zwegat: "Wenn's hart auf hart kommt,
         muss der Computer das PDF mit den Augen lesen!"
         """
         if not OCR_AVAILABLE:
@@ -168,13 +168,13 @@ class PDFDatenExtraktor:
     def _analysiere_text(self, text: str) -> dict[str, str | None]:
         """
         Analysiert den extrahierten Text und sucht nach relevanten Daten.
-        
+
         Peter Zwegat: "Jetzt wird's spannend - was versteckt sich in dem Text?"
         """
         daten = self._leere_daten_struktur()
 
         # Zeilen für bessere Analyse aufteilen
-        zeilen = text.split('\n')
+        text.split('\n')
 
         for feld, patterns in self.patterns.items():
             for pattern in patterns:
@@ -193,7 +193,7 @@ class PDFDatenExtraktor:
     def _bereinige_wert(self, feld: str, wert: str) -> str:
         """
         Bereinigt und standardisiert gefundene Werte.
-        
+
         Peter Zwegat: "Ordnung muss sein - auch bei den Daten!"
         """
         wert = wert.strip()
@@ -218,8 +218,8 @@ class PDFDatenExtraktor:
     def _normalisiere_datum(self, datum_str: str) -> str:
         """
         Normalisiert Datumsangaben zu ISO-Format (YYYY-MM-DD).
-        
-        Peter Zwegat: "Ein Datum ist ein Datum - 
+
+        Peter Zwegat: "Ein Datum ist ein Datum -
         aber es sollte schon verständlich sein!"
         """
         # Verschiedene Datumsformate probieren
@@ -243,7 +243,7 @@ class PDFDatenExtraktor:
     def _erweiterte_analyse(self, text: str, daten: dict) -> dict:
         """
         Erweiterte Analyse für spezielle Fälle.
-        
+
         Peter Zwegat: "Manchmal muss man um die Ecke denken!"
         """
         zeilen = text.split('\n')
@@ -282,7 +282,7 @@ class PDFDatenExtraktor:
     def _erkenne_beleg_typ(self, text: str) -> str:
         """
         Erkennt automatisch, ob es sich um eine Eingangs- oder Ausgangsrechnung handelt.
-        
+
         Peter Zwegat: "Ein guter Detective erkennt den Täter sofort!"
         """
         # Eindeutige Indikatoren für AUSGANGSRECHNUNGEN (eigene Rechnungen)
@@ -358,7 +358,7 @@ class PDFDatenExtraktor:
     def _validiere_daten(self, daten: dict) -> dict:
         """
         Validiert und korrigiert die extrahierten Daten.
-        
+
         Peter Zwegat: "Vertrauen ist gut, Kontrolle ist besser!"
         """
         # Datum validieren
@@ -393,7 +393,7 @@ class PDFDatenExtraktor:
     def _leere_daten_struktur(self) -> dict[str, str | None]:
         """
         Gibt eine leere Datenstruktur zurück.
-        
+
         Peter Zwegat: "Auch nichts ist etwas!"
         """
         return {
@@ -411,8 +411,8 @@ class PDFDatenExtraktor:
     def berechne_vertrauen(self, daten: dict) -> float:
         """
         Berechnet einen Vertrauenswert für die Extraktion.
-        
-        Peter Zwegat: "Man sollte schon wissen, 
+
+        Peter Zwegat: "Man sollte schon wissen,
         wie sicher man sich sein kann!"
         """
         gefundene_felder = sum(1 for v in daten.values() if v)
@@ -434,7 +434,7 @@ class PDFDatenExtraktor:
 def extrahiere_pdf_daten(datei_pfad: str) -> dict[str, str | None]:
     """
     Convenience-Funktion für PDF-Datenextraktion.
-    
+
     Peter Zwegat: "Einfach zu benutzen - das ist der Schlüssel zum Erfolg!"
     """
     extraktor = PDFDatenExtraktor()

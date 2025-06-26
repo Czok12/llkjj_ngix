@@ -1,7 +1,7 @@
 """
 Django Management Command zum Testen der PDF-Datenextraktion.
 
-Peter Zwegat würde sagen: "Testen ist wichtig - 
+Peter Zwegat würde sagen: "Testen ist wichtig -
 nur so wissen wir, ob der Computer auch richtig rechnet!"
 """
 import os
@@ -14,10 +14,10 @@ from belege.pdf_extraktor import extrahiere_pdf_daten
 class Command(BaseCommand):
     """
     Management Command zum Testen der PDF-Extraktion.
-    
+
     Verwendung:
     python manage.py test_pdf_extraktion /pfad/zur/datei.pdf
-    
+
     Peter Zwegat: "Probieren geht über studieren!"
     """
 

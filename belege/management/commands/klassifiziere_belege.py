@@ -1,7 +1,7 @@
 """
 Management Command für die automatische Beleg-Typ-Erkennung.
 
-Peter Zwegat würde sagen: "Ordnung in die Bude bringen - 
+Peter Zwegat würde sagen: "Ordnung in die Bude bringen -
 auch nachträglich geht das!"
 """
 
