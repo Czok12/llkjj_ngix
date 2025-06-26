@@ -42,7 +42,9 @@
         "python.terminal.activateEnvironment": true,
         // Django-spezifische Einstellungen
         "files.associations": {
-            "*.html": "django-html"
+            "*.html": "django-html",
+            "*.txt": "log",
+            "logs/*.txt": "log"
         },
         "emmet.includeLanguages": {
             "django-html": "html"
@@ -81,7 +83,8 @@
             "**/*.pyc": true,
             "**/venv": true,
             "**/.pytest_cache": true,
-            "**/node_modules": true
+            "**/node_modules": true,
+            "**/logs/*.log": true
         },
         // Workspace-spezifische Git-Einstellungen
         "git.autofetch": true,
@@ -145,6 +148,28 @@
                     "reveal": "always",
                     "panel": "shared"
                 }
+            },
+            {
+                "label": "📝 Logging: Test durchführen",
+                "type": "shell",
+                "command": "python manage.py shell -c \"import logging; logger=logging.getLogger('llkjj_knut'); logger.info('🎯 Peter Zwegat Logging-Test'); logger.warning('⚠️ Test-Warnung'); logger.error('❌ Test-Fehler'); print('✅ Logging-Test abgeschlossen - prüfen Sie logs/llkjj_knut.txt')\"",
+                "group": "test",
+                "presentation": {
+                    "echo": true,
+                    "reveal": "always",
+                    "panel": "shared"
+                }
+            },
+            {
+                "label": "📄 Logging: .txt-Datei öffnen",
+                "type": "shell",
+                "command": "code logs/llkjj_knut.txt",
+                "group": "build",
+                "presentation": {
+                    "echo": true,
+                    "reveal": "silent",
+                    "panel": "shared"
+                }
             }
         ]
     },
@@ -178,6 +203,24 @@
                 ],
                 "django": true,
                 "console": "integratedTerminal"
+            },
+            {
+                "name": "📝 Django: Debug mit Logging",
+                "type": "debugpy",
+                "request": "launch",
+                "program": "${workspaceFolder}/manage.py",
+                "args": [
+                    "runserver",
+                    "8000",
+                    "--noreload"
+                ],
+                "django": true,
+                "console": "integratedTerminal",
+                "env": {
+                    "DJANGO_DEBUG": "True",
+                    "LOG_LEVEL": "DEBUG",
+                    "ENABLE_FILE_LOGGING": "True"
+                }
             }
         ],
         "inputs": [
@@ -208,7 +251,8 @@
             "github.copilot-chat",
             "bradlc.vscode-tailwindcss",
             "ms-ossdata.vscode-postgresql",
-            "yzhang.markdown-all-in-one"
+            "yzhang.markdown-all-in-one",
+            "emilast.logfilehighlighter"
         ]
     }
 }

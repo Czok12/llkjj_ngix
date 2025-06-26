@@ -1,10 +1,10 @@
 #!/bin/bash
 # 
-# 🎨 LLKJJ Knut - Vollständiges Startskript
-# =========================================
+# 🎨 LLKJJ Knut - Startskript OHNE Docker
+# ======================================
 # 
-# Startet alle Services: PostgreSQL, Tailwind, Django, Celery
-# Peter Zwegat würde sagen: "Ein Knopfdruck und alles läuft!"
+# Für Nutzer, die PostgreSQL lokal installiert haben
+# Peter Zwegat würde sagen: "Auch ohne Docker geht's!"
 
 # Farben für schöne Ausgabe
 RED='\033[0;31m'
@@ -13,8 +13,8 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-echo -e "${BLUE}🎨 LLKJJ Knut - Service Startup${NC}"
-echo "==============================="
+echo -e "${BLUE}🎨 LLKJJ Knut - Service Startup (OHNE Docker)${NC}"
+echo "============================================"
 
 echo -e "${BLUE}🔍 Checking environment...${NC}"
 
@@ -24,19 +24,30 @@ if [ -d "venv" ]; then
     source venv/bin/activate
 fi
 
-# PostgreSQL starten (Docker)
-echo -e "${BLUE}🐳 Starte PostgreSQL...${NC}"
-docker-compose up -d postgres
-if [ $? -eq 0 ]; then
-    echo -e "${GREEN}✅ PostgreSQL gestartet${NC}"
-else
-    echo -e "${RED}❌ PostgreSQL Start fehlgeschlagen${NC}"
+# Prüfe ob PostgreSQL lokal läuft
+echo -e "${BLUE}🐘 Prüfe lokale PostgreSQL Installation...${NC}"
+if ! command -v psql &> /dev/null; then
+    echo -e "${RED}❌ PostgreSQL ist nicht installiert${NC}"
+    echo -e "${YELLOW}💡 Installiere PostgreSQL mit: brew install postgresql@15${NC}"
     exit 1
 fi
 
+# PostgreSQL Service starten (macOS Homebrew)
+echo -e "${BLUE}🚀 Starte PostgreSQL Service...${NC}"
+brew services start postgresql@15 2>/dev/null || true
+
 # Warten bis PostgreSQL bereit ist
 echo -e "${YELLOW}⏳ Warte auf PostgreSQL...${NC}"
-sleep 3
+sleep 2
+
+# Teste Datenbankverbindung
+echo -e "${BLUE}🔍 Teste Datenbankverbindung...${NC}"
+python test_postgresql.py
+if [ $? -ne 0 ]; then
+    echo -e "${RED}❌ Datenbankverbindung fehlgeschlagen${NC}"
+    echo -e "${YELLOW}💡 Führen Sie setup_postgresql.sh aus${NC}"
+    exit 1
+fi
 
 # Django Migrations
 echo -e "${BLUE}🔧 Django Migrations...${NC}"
@@ -65,7 +76,6 @@ echo -e "${GREEN}🎉 Alle Services gestartet!${NC}"
 echo ""
 echo -e "${BLUE}🌐 Anwendung verfügbar unter:${NC}"
 echo "   • Django:    http://localhost:8000"
-echo "   • pgAdmin:   http://localhost:5050"
 echo ""
 echo -e "${YELLOW}⚠️  Drücken Sie Ctrl+C um alle Services zu stoppen${NC}"
 echo "=================================================="
@@ -85,9 +95,6 @@ cleanup() {
         echo -e "${GREEN}✅ Celery gestoppt${NC}"
     fi
     
-    echo -e "${BLUE}🐳 Stoppe Docker Services...${NC}"
-    docker-compose down
-    
     echo -e "${GREEN}✅ Alle Services gestoppt${NC}"
     exit 0
 }
@@ -98,18 +105,3 @@ trap cleanup SIGINT SIGTERM
 # Django Development Server starten (Hauptprozess)
 echo -e "${BLUE}🚀 Starte Django Development Server...${NC}"
 python manage.py runserver 8000
-
-# Gehe ins Projektverzeichnis
-cd "$(dirname "$0")"
-
-# Aktiviere venv falls vorhanden
-if [ -f "/Users/czok/Skripte/venv/bin/activate" ]; then
-    echo "📦 Aktiviere Virtual Environment..."
-    source /Users/czok/Skripte/venv/bin/activate
-else
-    echo "⚠️  Kein Virtual Environment gefunden - nutze System-Python"
-fi
-
-# Starte mit Python-Skript
-echo "🚀 Starte mit Python-Startskript..."
-python3 start.py "$@"

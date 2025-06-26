@@ -14,7 +14,16 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Environment Variables (django-environ)
 env = environ.Env(
-    DEBUG=(bool, False), PETER_ZWEGAT_MODE=(bool, True), HUMOR_LEVEL=(str, "medium")
+    DEBUG=(bool, False),
+    PETER_ZWEGAT_MODE=(bool, True),
+    HUMOR_LEVEL=(str, "medium"),
+    # Logging-Konfiguration
+    ENABLE_FILE_LOGGING=(bool, True),
+    LOG_LEVEL=(str, "INFO"),
+    LOG_TO_CONSOLE=(bool, True),
+    LOG_MAX_FILE_SIZE=(int, 5242880),  # 5MB default
+    LOG_BACKUP_COUNT=(int, 5),
+    LOG_ROTATE_DAILY=(bool, False),
 )
 
 # Lade .env-Datei falls vorhanden
@@ -221,106 +230,153 @@ CELERY_RESULT_SERIALIZER = "json"
 CELERY_TIMEZONE = TIME_ZONE
 
 # =============================================================================
-# LOGGING KONFIGURATION
+# LOGGING KONFIGURATION - Peter Zwegat Edition
 # =============================================================================
+# "Ordnung im Logging ist Ordnung im System!"
+
+# Log-Verzeichnis erstellen falls nicht vorhanden
+LOG_DIR = BASE_DIR / "logs"
+LOG_DIR.mkdir(exist_ok=True)
+
+# Dynamische Handler-Konfiguration basierend auf .env
+handlers_config = {}
+loggers_handlers = []
+
+# Console-Handler (optional via .env)
+if env("LOG_TO_CONSOLE"):
+    handlers_config["console"] = {
+        "level": "INFO",
+        "class": "logging.StreamHandler",
+        "formatter": "simple",
+    }
+    loggers_handlers.append("console")
+
+# File-Handler (optional via .env)
+if env("ENABLE_FILE_LOGGING"):
+    # Haupt-Log-Datei (alle Logs in einer .txt-Datei)
+    handlers_config["file"] = {
+        "level": env("LOG_LEVEL"),
+        "class": "logging.handlers.RotatingFileHandler",
+        "filename": LOG_DIR / "llkjj_knut.txt",
+        "maxBytes": env.int("LOG_MAX_FILE_SIZE"),
+        "backupCount": env.int("LOG_BACKUP_COUNT"),
+        "formatter": "detailed",
+        "encoding": "utf-8",
+    }
+    loggers_handlers.append("file")
+
+# Tägliche Rotation (optional)
+if env("LOG_ROTATE_DAILY") and env("ENABLE_FILE_LOGGING"):
+    # Überschreibt Standard-File-Handler mit zeitbasierter Rotation
+    handlers_config["file"] = {
+        "level": env("LOG_LEVEL"),
+        "class": "logging.handlers.TimedRotatingFileHandler",
+        "filename": LOG_DIR / "llkjj_knut.log",
+        "when": "midnight",
+        "interval": 1,
+        "backupCount": env.int("LOG_BACKUP_COUNT"),
+        "formatter": "detailed",
+        "encoding": "utf-8",
+    }
 
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
     "formatters": {
-        "verbose": {
-            "format": "{levelname} {asctime} {module} {process:d} {thread:d} {message}",
+        "detailed": {
+            "format": "{levelname} | {asctime} | {name} | {module}:{funcName}:{lineno} | {message}",
             "style": "{",
+            "datefmt": "%Y-%m-%d %H:%M:%S",
         },
         "simple": {
-            "format": "{levelname} {message}",
+            "format": "{levelname} | {asctime} | {message}",
             "style": "{",
+            "datefmt": "%Y-%m-%d %H:%M:%S",
+        },
+        "peter_style": {
+            "format": "🎯 {levelname} | {asctime} | {name} | {message}",
+            "style": "{",
+            "datefmt": "%d.%m.%Y %H:%M:%S",
         },
     },
-    "handlers": {
-        "file": {
-            "level": "INFO",
-            "class": "logging.FileHandler",
-            "filename": BASE_DIR / "logs" / "django.log",
-            "formatter": "verbose",
-        },
-        "console": {
-            "level": "DEBUG",
-            "class": "logging.StreamHandler",
-            "formatter": "simple",
-        },
-    },
+    "handlers": handlers_config,
     "root": {
-        "handlers": ["console"],
-        "level": "WARNING",
+        "handlers": loggers_handlers,
+        "level": env("LOG_LEVEL"),
     },
     "loggers": {
+        # Django Core
         "django": {
-            "handlers": ["file"],
-            "level": env("LOG_LEVEL", default="INFO"),
+            "handlers": loggers_handlers,
+            "level": "INFO",
             "propagate": False,
         },
+        "django.request": {
+            "handlers": loggers_handlers,
+            "level": "ERROR",
+            "propagate": False,
+        },
+        "django.security": {
+            "handlers": loggers_handlers,
+            "level": "WARNING",
+            "propagate": False,
+        },
+        # llkjj_knut Apps
         "llkjj_knut": {
-            "handlers": ["file", "console"],
-            "level": env("LOG_LEVEL", default="DEBUG"),
+            "handlers": loggers_handlers,
+            "level": env("LOG_LEVEL"),
             "propagate": False,
         },
-    },
-}
-
-
-# In: llkjj_ngix/settings.py (oder wo auch immer Ihre Haupteinstellungsdatei ist)
-
-# ... am Ende der Datei einfügen
-
-# LOGGING KONFIGURATION
-# ------------------------------------------------------------------------------
-LOGGING = {
-    "version": 1,
-    "disable_existing_loggers": False,
-    "formatters": {
-        "verbose": {
-            "format": "%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s",
-        },
-        "simple": {
-            "format": "%(levelname)s %(asctime)s %(message)s",
-        },
-    },
-    "handlers": {
-        "console": {
-            "level": "INFO",  # Im Terminal nur INFO und höher anzeigen
-            "class": "logging.StreamHandler",
-            "formatter": "simple",
-        },
-        "file_debug": {
-            "level": "DEBUG",  # In die Datei alles ab DEBUG-Level schreiben
-            "class": "logging.handlers.RotatingFileHandler",
-            "filename": BASE_DIR
-            / "logs/debug.log",  # Speichert die Log-Datei im Hauptverzeichnis/logs/
-            "maxBytes": 1024 * 1024 * 5,  # 5 MB pro Datei
-            "backupCount": 5,  # Behält die letzten 5 Log-Dateien
-            "formatter": "verbose",
-        },
-    },
-    "root": {
-        "handlers": ["console", "file_debug"],
-        "level": "DEBUG",  # Der Root-Logger fängt alles ab DEBUG-Level ab
-    },
-    "loggers": {
-        "django": {
-            "handlers": ["console", "file_debug"],
-            "level": "INFO",  # Django's eigenes Logging etwas reduzieren
+        "konten": {
+            "handlers": loggers_handlers,
+            "level": env("LOG_LEVEL"),
             "propagate": False,
         },
+        "buchungen": {
+            "handlers": loggers_handlers,
+            "level": env("LOG_LEVEL"),
+            "propagate": False,
+        },
+        "belege": {
+            "handlers": loggers_handlers,
+            "level": env("LOG_LEVEL"),
+            "propagate": False,
+        },
+        "auswertungen": {
+            "handlers": loggers_handlers,
+            "level": env("LOG_LEVEL"),
+            "propagate": False,
+        },
+        "steuer": {
+            "handlers": loggers_handlers,
+            "level": env("LOG_LEVEL"),
+            "propagate": False,
+        },
+        "einstellungen": {
+            "handlers": loggers_handlers,
+            "level": env("LOG_LEVEL"),
+            "propagate": False,
+        },
+        "authentifizierung": {
+            "handlers": loggers_handlers,
+            "level": env("LOG_LEVEL"),
+            "propagate": False,
+        },
+        # Celery
         "celery": {
-            "handlers": ["console", "file_debug"],
+            "handlers": loggers_handlers,
             "level": "INFO",
             "propagate": False,
         },
-        # Hier können wir Log-Level für spezifische Apps definieren
-        "belege": {
-            "handlers": ["console", "file_debug"],
-            "level": "DEBUG",  # Unsere 'belege' App soll sehr gesprächig sein
+        # PDF/OCR Processing
+        "pdf_extraktor": {
+            "handlers": loggers_handlers,
+            "level": "DEBUG" if DEBUG else "INFO",
+            "propagate": False,
+        },
+        "ki_service": {
+            "handlers": loggers_handlers,
+            "level": "DEBUG" if DEBUG else "INFO",
             "propagate": False,
         },
     },

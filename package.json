@@ -1,0 +1,26 @@
+{
+  "name": "llkjj_art",
+  "version": "1.0.0",
+  "description": "[![Django](https://img.shields.io/badge/Django-5.x-green.svg)](https://djangoproject.com/) [![Python](https://img.shields.io/badge/Python-3.13+-blue.svg)](https://python.org/) [![License](https://img.shields.io/badge/License-Private-red.svg)]() [![GitHub repo](https://img.shields.io/badge/GitHub-llkjj__ngix-black.svg)](https://github.com/Czok12/llkjj_ngix)",
+  "main": "postcss.config.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Czok12/llkjj_ngix.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Czok12/llkjj_ngix/issues"
+  },
+  "homepage": "https://github.com/Czok12/llkjj_ngix#readme",
+  "devDependencies": {
+    "autoprefixer": "^10.4.21",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^3.4.17"
+  }
+}
