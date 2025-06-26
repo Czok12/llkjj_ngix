@@ -62,7 +62,6 @@ INSTALLED_APPS = [
     "buchungen",
     "belege",
     "auswertungen",
-    "steuer",
     "einstellungen",
     "dokumente",
 ]
