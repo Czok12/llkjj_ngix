@@ -1,6 +1,13 @@
-# llkjj_knut - Buchhaltungsbutler für Künstler
+# 🎨 llkjj_knut - Buchhaltungsbutler für Künstler
+
+[![Django](https://img.shields.io/badge/Django-5.x-green.svg)](https://djangoproject.com/)
+[![Python](https://img.shields.io/badge/Python-3.13+-blue.svg)](https://python.org/)
+[![License](https://img.shields.io/badge/License-Private-red.svg)]()
+[![GitHub repo](https://img.shields.io/badge/GitHub-llkjj__ngix-black.svg)](https://github.com/Czok12/llkjj_ngix)
 
 Ein Django-basiertes Buchhaltungs- und Steuertool, speziell entwickelt für freischaffende Künstler und Kleinunternehmer nach §19 UStG.
+
+> *"Wie Peter Zwegat sagen würde: Ordnung ist das halbe Leben - die andere Hälfte ist systematische Buchhaltung!"* 💪
 
 ## 🎯 Projektvision
 
