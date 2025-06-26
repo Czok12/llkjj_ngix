@@ -98,18 +98,3 @@ trap cleanup SIGINT SIGTERM
 # Django Development Server starten (Hauptprozess)
 echo -e "${BLUE}🚀 Starte Django Development Server...${NC}"
 python manage.py runserver 8000
-
-# Gehe ins Projektverzeichnis
-cd "$(dirname "$0")"
-
-# Aktiviere venv falls vorhanden
-if [ -f "/Users/czok/Skripte/venv/bin/activate" ]; then
-    echo "📦 Aktiviere Virtual Environment..."
-    source /Users/czok/Skripte/venv/bin/activate
-else
-    echo "⚠️  Kein Virtual Environment gefunden - nutze System-Python"
-fi
-
-# Starte mit Python-Skript
-echo "🚀 Starte mit Python-Startskript..."
-python3 start.py "$@"
