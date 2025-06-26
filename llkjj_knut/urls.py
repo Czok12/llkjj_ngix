@@ -5,12 +5,12 @@ Buchhaltungsbutler für Künstler - Peter Zwegat Edition 🎨
 "Ordnung muss sein - auch bei den URLs!"
 """
 
+# Import unserer Dashboard-View aus auswertungen app
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
 
-# Import unserer Dashboard-View aus auswertungen app
 from auswertungen.views import dashboard_view
 
 urlpatterns = [
@@ -21,6 +21,7 @@ urlpatterns = [
     path("buchungen/", include("buchungen.urls")),
     path("belege/", include("belege.urls")),
     path("auswertungen/", include("auswertungen.urls")),
+    path("dokumente/", include("dokumente.urls")),
     # path("steuer/", include("steuer.urls")),
     # path("einstellungen/", include("einstellungen.urls")),
 ]

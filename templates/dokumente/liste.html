@@ -1,0 +1,411 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}📁 Dokumentenverwaltung{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    <!-- Header -->
+    <div class="bg-white shadow">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-6">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">📁 Dokumentenverwaltung</h1>
+                    <p class="mt-2 text-gray-600">
+                        <em>Peter Zwegat: "Ordnung in den Unterlagen bedeutet Ordnung im Kopf!"</em>
+                    </p>
+                </div>
+                <div class="flex space-x-4">
+                    <a href="{% url 'dokumente:neu' %}" 
+                       class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                        </svg>
+                        Neues Dokument
+                    </a>
+                    <a href="{% url 'dokumente:upload' %}" 
+                       class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                        </svg>
+                        Upload
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistiken -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                                📄
+                            </div>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">
+                                    Gesamt
+                                </dt>
+                                <dd class="text-lg font-medium text-gray-900">
+                                    {{ statistiken.gesamt }}
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
+                                🆕
+                            </div>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">
+                                    Neu
+                                </dt>
+                                <dd class="text-lg font-medium text-gray-900">
+                                    {{ statistiken.neu }}
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
+                                ⚠️
+                            </div>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">
+                                    Wichtig
+                                </dt>
+                                <dd class="text-lg font-medium text-gray-900">
+                                    {{ statistiken.wichtig }}
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
+                                ⏰
+                            </div>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">
+                                    Fällig bald
+                                </dt>
+                                <dd class="text-lg font-medium text-gray-900">
+                                    {{ statistiken.fällig_bald }}
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
+                                🚨
+                            </div>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">
+                                    Überfällig
+                                </dt>
+                                <dd class="text-lg font-medium text-gray-900">
+                                    {{ statistiken.überfällig }}
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter -->
+        <div class="bg-white shadow rounded-lg mb-6">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h3 class="text-lg font-medium text-gray-900">🔍 Filter & Suche</h3>
+            </div>
+            <div class="p-6">
+                <form method="get" class="grid grid-cols-1 md:grid-cols-6 gap-4">
+                    <div>
+                        <label for="suche" class="block text-sm font-medium text-gray-700">Suche</label>
+                        <input type="text" id="suche" name="suche" value="{{ aktuelle_filter.suche }}"
+                               placeholder="Titel, Beschreibung..."
+                               class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                    </div>
+                    
+                    <div>
+                        <label for="kategorie" class="block text-sm font-medium text-gray-700">Kategorie</label>
+                        <select id="kategorie" name="kategorie" 
+                                class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                            <option value="">Alle Kategorien</option>
+                            {% for key, value in kategorien %}
+                                <option value="{{ key }}" {% if aktuelle_filter.kategorie == key %}selected{% endif %}>
+                                    {{ value }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label for="status" class="block text-sm font-medium text-gray-700">Status</label>
+                        <select id="status" name="status" 
+                                class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                            <option value="">Alle Status</option>
+                            {% for key, value in status_choices %}
+                                <option value="{{ key }}" {% if aktuelle_filter.status == key %}selected{% endif %}>
+                                    {{ value }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label for="organisation" class="block text-sm font-medium text-gray-700">Organisation</label>
+                        <input type="text" id="organisation" name="organisation" value="{{ aktuelle_filter.organisation }}"
+                               placeholder="z.B. Finanzamt"
+                               class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                    </div>
+                    
+                    <div>
+                        <label for="fällig" class="block text-sm font-medium text-gray-700">Fälligkeit</label>
+                        <select id="fällig" name="fällig" 
+                                class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                            <option value="">Alle</option>
+                            <option value="bald" {% if aktuelle_filter.fällig == "bald" %}selected{% endif %}>Fällig bald</option>
+                            <option value="überfällig" {% if aktuelle_filter.fällig == "überfällig" %}selected{% endif %}>Überfällig</option>
+                        </select>
+                    </div>
+                    
+                    <div class="flex items-end">
+                        <button type="submit" 
+                                class="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium">
+                            Filtern
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Dokumentenliste -->
+        <div class="bg-white shadow overflow-hidden sm:rounded-md">
+            <ul class="divide-y divide-gray-200">
+                {% for dokument in dokumente %}
+                <li>
+                    <a href="{% url 'dokumente:detail' dokument.pk %}" class="block hover:bg-gray-50">
+                        <div class="px-4 py-4 sm:px-6">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0">
+                                        {% if dokument.kategorie == "FINANZAMT" %}
+                                            <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">💼</div>
+                                        {% elif dokument.kategorie == "KSK" %}
+                                            <div class="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">🎨</div>
+                                        {% elif dokument.kategorie == "VERTRAG" %}
+                                            <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">📋</div>
+                                        {% else %}
+                                            <div class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">📄</div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="ml-4">
+                                        <div class="flex items-center">
+                                            <p class="text-sm font-medium text-gray-900 truncate">
+                                                {{ dokument.titel }}
+                                            </p>
+                                            {% if dokument.ist_überfällig %}
+                                                <span class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                                    🚨 Überfällig
+                                                </span>
+                                            {% elif dokument.ist_fällig_bald %}
+                                                <span class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                                    ⏰ Fällig bald
+                                                </span>
+                                            {% endif %}
+                                        </div>
+                                        <div class="flex items-center text-sm text-gray-500">
+                                            <span>{{ dokument.get_kategorie_display }}</span>
+                                            {% if dokument.organisation %}
+                                                <span class="mx-2">•</span>
+                                                <span>{{ dokument.organisation }}</span>
+                                            {% endif %}
+                                            {% if dokument.datum %}
+                                                <span class="mx-2">•</span>
+                                                <span>{{ dokument.datum|date:"d.m.Y" }}</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <!-- Status Badge -->
+                                    {% if dokument.status == "NEU" %}
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                            🆕 Neu
+                                        </span>
+                                    {% elif dokument.status == "WICHTIG" %}
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                            ⚠️ Wichtig
+                                        </span>
+                                    {% elif dokument.status == "ERLEDIGT" %}
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                            ✅ Erledigt
+                                        </span>
+                                    {% elif dokument.status == "ARCHIVIERT" %}
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                            📦 Archiviert
+                                        </span>
+                                    {% endif %}
+                                    
+                                    <!-- Pfeil -->
+                                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </li>
+                {% empty %}
+                <li class="px-4 py-8 text-center">
+                    <div class="flex flex-col items-center">
+                        <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        <h3 class="mt-2 text-sm font-medium text-gray-900">Keine Dokumente gefunden</h3>
+                        <p class="mt-1 text-sm text-gray-500">
+                            {% if aktuelle_filter.suche or aktuelle_filter.kategorie or aktuelle_filter.status %}
+                                Versuchen Sie andere Filterkriterien.
+                            {% else %}
+                                Erstellen Sie Ihr erstes Dokument.
+                            {% endif %}
+                        </p>
+                        {% if not aktuelle_filter.suche and not aktuelle_filter.kategorie and not aktuelle_filter.status %}
+                        <div class="mt-6">
+                            <a href="{% url 'dokumente:neu' %}" 
+                               class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                </svg>
+                                Erstes Dokument erstellen
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <!-- Pagination -->
+        {% if is_paginated %}
+        <div class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6 mt-6">
+            <div class="flex-1 flex justify-between sm:hidden">
+                {% if page_obj.has_previous %}
+                    <a href="?page={{ page_obj.previous_page_number }}" 
+                       class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                        Vorherige
+                    </a>
+                {% endif %}
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}" 
+                       class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                        Nächste
+                    </a>
+                {% endif %}
+            </div>
+            <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                <div>
+                    <p class="text-sm text-gray-700">
+                        Zeige
+                        <span class="font-medium">{{ page_obj.start_index }}</span>
+                        bis
+                        <span class="font-medium">{{ page_obj.end_index }}</span>
+                        von
+                        <span class="font-medium">{{ page_obj.paginator.count }}</span>
+                        Dokumenten
+                    </p>
+                </div>
+                <div>
+                    <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                        {% if page_obj.has_previous %}
+                            <a href="?page={{ page_obj.previous_page_number }}" 
+                               class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                <span class="sr-only">Vorherige</span>
+                                <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                </svg>
+                            </a>
+                        {% endif %}
+                        
+                        {% for page_num in page_obj.paginator.page_range %}
+                            {% if page_num == page_obj.number %}
+                                <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-blue-50 text-sm font-medium text-blue-600">
+                                    {{ page_num }}
+                                </span>
+                            {% else %}
+                                <a href="?page={{ page_num }}" 
+                                   class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
+                                    {{ page_num }}
+                                </a>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if page_obj.has_next %}
+                            <a href="?page={{ page_obj.next_page_number }}" 
+                               class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                <span class="sr-only">Nächste</span>
+                                <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+                                </svg>
+                            </a>
+                        {% endif %}
+                    </nav>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+// Auto-Submit bei Filter-Änderung
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const selects = form.querySelectorAll('select');
+    
+    selects.forEach(select => {
+        select.addEventListener('change', function() {
+            form.submit();
+        });
+    });
+});
+</script>
+{% endblock %}

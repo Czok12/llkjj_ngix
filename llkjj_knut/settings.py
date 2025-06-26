@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     "auswertungen",
     "steuer",
     "einstellungen",
+    "dokumente",
 ]
 
 MIDDLEWARE = [
