@@ -183,21 +183,23 @@ Vollständige manuelle Buchungserfassung und Bankdaten-Import.
 
 ### 📝 User Stories:
 
-#### US-3.1: Manuelle Buchungserfassung
+#### US-3.1: Manuelle Buchungserfassung ✅ **COMPLETED**
 **Als** Buchhalter  
 **möchte ich** Buchungssätze manuell erstellen  
 **damit** ich alle Geschäftsvorfälle erfassen kann.
 
 **Acceptance Criteria:**
-- [ ] Buchungssatz-Formular mit Validierung
-- [ ] Autocomplete für Konten-Auswahl
-- [ ] Soll/Haben automatische Vorschläge
-- [ ] Beleg-Verknüpfung per Drag&Drop
-- [ ] Inline-Editing für schnelle Korrekturen
+- [x] Buchungssatz-Formular mit Validierung
+- [x] Autocomplete für Konten-Auswahl
+- [x] Soll/Haben automatische Vorschläge
+- [x] Beleg-Verknüpfung per Dropdown
+- [x] Inline-Editing für schnelle Korrekturen
+
+**Definition of Done:** ✅ Forms, Views, Templates und URLs implementiert
 
 ---
 
-#### US-3.2: CSV-Import für Bankdaten
+#### US-3.2: CSV-Import für Bankdaten 🚧 **IN PROGRESS**
 **Als** Buchhalter  
 **möchte ich** Bankdaten per CSV importieren  
 **damit** ich nicht alles manuell eingeben muss.

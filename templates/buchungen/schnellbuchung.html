@@ -1,0 +1,295 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ page_title }} - {{ block.super }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .schnellbuchung-container {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+        border-radius: 1rem;
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+    .buchungstyp-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
+        margin: 2rem 0;
+    }
+    .buchungstyp-card {
+        background: white;
+        border-radius: 0.5rem;
+        padding: 1.5rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+    }
+    .buchungstyp-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .buchungstyp-card.selected {
+        border-color: #007bff;
+        background: #f8f9fa;
+    }
+    .buchungstyp-card .icon {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+    }
+    .schnell-form {
+        background: white;
+        border-radius: 1rem;
+        padding: 2rem;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'buchungen:liste' %}">Buchungen</a></li>
+                    <li class="breadcrumb-item active">{{ page_title }}</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-xl-6">
+            <!-- Header Card -->
+            <div class="schnellbuchung-container text-center">
+                <h1 class="h2 mb-2">⚡ {{ page_title }}</h1>
+                <p class="mb-0">{{ page_subtitle }}</p>
+                <small>Peter Zwegat: "Effizienz ist der Schlüssel zum Erfolg!"</small>
+            </div>
+
+            <!-- Formular -->
+            <div class="schnell-form">
+                <form method="post" class="schnellbuchung-form">
+                    {% csrf_token %}
+                    
+                    <!-- Buchungstyp Auswahl -->
+                    <div class="mb-4">
+                        <h5 class="mb-3">1. Buchungstyp wählen</h5>
+                        <div class="buchungstyp-cards">
+                            <div class="buchungstyp-card" data-type="einnahme">
+                                <div class="icon text-success">💰</div>
+                                <h6>Einnahme</h6>
+                                <small class="text-muted">Kunde zahlt Rechnung</small>
+                            </div>
+                            <div class="buchungstyp-card" data-type="ausgabe">
+                                <div class="icon text-danger">💸</div>
+                                <h6>Ausgabe</h6>
+                                <small class="text-muted">Rechnung bezahlen</small>
+                            </div>
+                            <div class="buchungstyp-card" data-type="privatentnahme">
+                                <div class="icon text-warning">🏠</div>
+                                <h6>Privatentnahme</h6>
+                                <small class="text-muted">Geld für privat</small>
+                            </div>
+                            <div class="buchungstyp-card" data-type="privateinlage">
+                                <div class="icon text-info">📈</div>
+                                <h6>Privateinlage</h6>
+                                <small class="text-muted">Geld ins Geschäft</small>
+                            </div>
+                        </div>
+                        
+                        <!-- Hidden Radio Buttons -->
+                        <div style="display: none;">
+                            {{ form.buchungstyp }}
+                        </div>
+                    </div>
+
+                    <!-- Buchungsdaten -->
+                    <div class="mb-4">
+                        <h5 class="mb-3">2. Buchungsdaten eingeben</h5>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="{{ form.buchungsdatum.id_for_label }}" class="form-label">
+                                    📅 {{ form.buchungsdatum.label }}
+                                </label>
+                                {{ form.buchungsdatum }}
+                            </div>
+                            <div class="col-md-6">
+                                <label for="{{ form.betrag.id_for_label }}" class="form-label">
+                                    💶 {{ form.betrag.label }}
+                                </label>
+                                <div class="input-group">
+                                    {{ form.betrag }}
+                                    <span class="input-group-text">€</span>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <label for="{{ form.buchungstext.id_for_label }}" class="form-label">
+                                    📝 {{ form.buchungstext.label }}
+                                </label>
+                                {{ form.buchungstext }}
+                            </div>
+                            <div class="col-12">
+                                <label for="{{ form.referenz.id_for_label }}" class="form-label">
+                                    🔖 {{ form.referenz.label }}
+                                </label>
+                                {{ form.referenz }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Automatische Kontierung Info -->
+                    <div class="alert alert-info" id="kontierung-info" style="display: none;">
+                        <h6><i class="fas fa-robot"></i> Automatische Kontierung</h6>
+                        <p class="mb-0" id="kontierung-text"></p>
+                    </div>
+
+                    <!-- Submit Buttons -->
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{% url 'buchungen:liste' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left"></i> Zurück
+                        </a>
+                        <a href="{% url 'buchungen:erstellen' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-cog"></i> Erweiterte Buchung
+                        </a>
+                        <button type="submit" class="btn btn-success btn-lg" id="submit-btn" disabled>
+                            <i class="fas fa-bolt"></i> Schnell buchen
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Hilfe -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-lightbulb"></i> Peter Zwegats Schnellbuchungs-Guide
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="text-success">💰 Einnahmen</h6>
+                            <p class="small">Kunde überweist Geld für Ihre Leistung</p>
+                            <small class="text-muted">Automatik: Bank → Erlöse</small>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-danger">💸 Ausgaben</h6>
+                            <p class="small">Sie bezahlen eine Rechnung</p>
+                            <small class="text-muted">Automatik: Aufwand → Bank</small>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-warning">🏠 Privatentnahme</h6>
+                            <p class="small">Geld für private Zwecke entnehmen</p>
+                            <small class="text-muted">Automatik: Privatentnahme → Bank</small>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-info">📈 Privateinlage</h6>
+                            <p class="small">Privates Geld ins Geschäft einlegen</p>
+                            <small class="text-muted">Automatik: Bank → Eigenkapital</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('.schnellbuchung-form');
+    const cards = document.querySelectorAll('.buchungstyp-card');
+    const radioButtons = document.querySelectorAll('input[name="buchungstyp"]');
+    const submitBtn = document.getElementById('submit-btn');
+    const kontierungInfo = document.getElementById('kontierung-info');
+    const kontierungText = document.getElementById('kontierung-text');
+    
+    // Buchungstyp Karten
+    cards.forEach(card => {
+        card.addEventListener('click', function() {
+            const type = this.dataset.type;
+            
+            // Alle Karten deselektieren
+            cards.forEach(c => c.classList.remove('selected'));
+            
+            // Diese Karte selektieren
+            this.classList.add('selected');
+            
+            // Radio Button setzen
+            const radioBtn = document.querySelector(`input[value="${type}"]`);
+            if (radioBtn) {
+                radioBtn.checked = true;
+                updateKontierungInfo(type);
+                validateForm();
+            }
+        });
+    });
+    
+    function updateKontierungInfo(type) {
+        const kontierungen = {
+            'einnahme': 'Bank (1200) → Erlöse (8400)',
+            'ausgabe': 'Aufwand (4980) → Bank (1200)', 
+            'privatentnahme': 'Privatentnahme (1800) → Bank (1200)',
+            'privateinlage': 'Bank (1200) → Eigenkapital (1800)'
+        };
+        
+        kontierungText.textContent = `Automatische Buchung: ${kontierungen[type]}`;
+        kontierungInfo.style.display = 'block';
+    }
+    
+    function validateForm() {
+        const buchungstyp = document.querySelector('input[name="buchungstyp"]:checked');
+        const betrag = document.querySelector('input[name="betrag"]').value;
+        const buchungstext = document.querySelector('input[name="buchungstext"]').value;
+        
+        const isValid = buchungstyp && betrag && parseFloat(betrag) > 0 && buchungstext.trim();
+        
+        submitBtn.disabled = !isValid;
+        submitBtn.classList.toggle('btn-success', isValid);
+        submitBtn.classList.toggle('btn-secondary', !isValid);
+    }
+    
+    // Form Validation
+    form.addEventListener('input', validateForm);
+    form.addEventListener('change', validateForm);
+    
+    // Betrag formatieren
+    const betragInput = document.querySelector('input[name="betrag"]');
+    betragInput.addEventListener('blur', function() {
+        const value = parseFloat(this.value);
+        if (!isNaN(value)) {
+            this.value = value.toFixed(2);
+        }
+        validateForm();
+    });
+    
+    // Datum auf heute setzen
+    const datumInput = document.querySelector('input[name="buchungsdatum"]');
+    if (!datumInput.value) {
+        const heute = new Date().toISOString().split('T')[0];
+        datumInput.value = heute;
+    }
+    
+    // Buchungstext Vorschläge
+    const buchungstextInput = document.querySelector('input[name="buchungstext"]');
+    
+    document.addEventListener('change', function(e) {
+        if (e.target.name === 'buchungstyp' && !buchungstextInput.value) {
+            const vorschlaege = {
+                'einnahme': 'Einnahme von Kunde',
+                'ausgabe': 'Betriebsausgabe',
+                'privatentnahme': 'Privatentnahme',
+                'privateinlage': 'Privateinlage'
+            };
+            
+            buchungstextInput.placeholder = vorschlaege[e.target.value] || 'Buchungstext eingeben...';
+        }
+    });
+});
+</script>
+{% endblock %}

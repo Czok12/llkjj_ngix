@@ -1,0 +1,344 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ page_title }} - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h2 mb-1">📝 {{ page_title }}</h1>
+                    <p class="text-muted">{{ page_subtitle }}</p>
+                </div>
+                <div class="btn-group" role="group">
+                    <a href="{% url 'buchungen:erstellen' %}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Neue Buchung
+                    </a>
+                    <a href="{% url 'buchungen:schnellbuchung' %}" class="btn btn-success">
+                        <i class="fas fa-bolt"></i> Schnellbuchung
+                    </a>
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+                            <i class="fas fa-download"></i> Export
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{% url 'buchungen:export_csv' %}">
+                                <i class="fas fa-file-csv"></i> CSV-Export
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{% url 'buchungen:csv_import' %}">
+                                <i class="fas fa-upload"></i> CSV-Import
+                            </a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistiken -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-grow-1">
+                            <h5 class="card-title mb-0">{{ stats.gesamt_buchungen }}</h5>
+                            <small>Gesamt Buchungen</small>
+                        </div>
+                        <i class="fas fa-calculator fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-grow-1">
+                            <h5 class="card-title mb-0">{{ stats.gesamt_betrag|floatformat:2 }}€</h5>
+                            <small>Gesamt Betrag</small>
+                        </div>
+                        <i class="fas fa-euro-sign fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-grow-1">
+                            <h5 class="card-title mb-0">{{ stats.validierte_buchungen }}</h5>
+                            <small>Validiert</small>
+                        </div>
+                        <i class="fas fa-check-circle fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-grow-1">
+                            <h5 class="card-title mb-0">{{ stats.offene_buchungen }}</h5>
+                            <small>Zu prüfen</small>
+                        </div>
+                        <i class="fas fa-exclamation-triangle fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">🔍 Filter & Suche</h5>
+        </div>
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label for="search" class="form-label">Suche</label>
+                    <input type="text" class="form-control" id="search" name="search" 
+                           value="{{ current_filters.search }}" 
+                           placeholder="Buchungstext, Referenz, Konto...">
+                </div>
+                <div class="col-md-2">
+                    <label for="datum_von" class="form-label">Datum von</label>
+                    <input type="date" class="form-control" id="datum_von" name="datum_von" 
+                           value="{{ current_filters.datum_von }}">
+                </div>
+                <div class="col-md-2">
+                    <label for="datum_bis" class="form-label">Datum bis</label>
+                    <input type="date" class="form-control" id="datum_bis" name="datum_bis" 
+                           value="{{ current_filters.datum_bis }}">
+                </div>
+                <div class="col-md-2">
+                    <label for="konto" class="form-label">Konto</label>
+                    <select class="form-select" id="konto" name="konto">
+                        <option value="">Alle Konten</option>
+                        {% for konto in konten %}
+                            <option value="{{ konto.id }}" 
+                                {% if current_filters.konto == konto.id|stringformat:"s" %}selected{% endif %}>
+                                {{ konto.nummer }} - {{ konto.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label for="validiert" class="form-label">Status</label>
+                    <select class="form-select" id="validiert" name="validiert">
+                        <option value="">Alle</option>
+                        <option value="true" {% if current_filters.validiert == "true" %}selected{% endif %}>
+                            Validiert
+                        </option>
+                        <option value="false" {% if current_filters.validiert == "false" %}selected{% endif %}>
+                            Zu prüfen
+                        </option>
+                    </select>
+                </div>
+                <div class="col-md-1">
+                    <label class="form-label">&nbsp;</label>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Buchungsliste -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">📋 Buchungen</h5>
+        </div>
+        <div class="card-body p-0">
+            {% if buchungen %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Datum</th>
+                                <th>Buchungstext</th>
+                                <th>Soll → Haben</th>
+                                <th class="text-end">Betrag</th>
+                                <th>Partner</th>
+                                <th>Status</th>
+                                <th class="text-center">Aktionen</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for buchung in buchungen %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ buchung.buchungsdatum|date:"d.m.Y" }}</strong>
+                                        {% if buchung.referenz %}
+                                            <br><small class="text-muted">{{ buchung.referenz|truncatechars:20 }}</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <strong>{{ buchung.buchungstext|truncatechars:50 }}</strong>
+                                        {% if buchung.beleg %}
+                                            <br><small class="text-success">
+                                                <i class="fas fa-paperclip"></i> Beleg vorhanden
+                                            </small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">
+                                            {% if buchung.soll_konto %}
+                                                <strong>{{ buchung.soll_konto.nummer }}</strong> {{ buchung.soll_konto.name|truncatechars:15 }}
+                                            {% else %}
+                                                <span class="text-danger">Kein Soll-Konto</span>
+                                            {% endif %}
+                                        </small>
+                                        <br>
+                                        <i class="fas fa-arrow-down text-muted"></i>
+                                        <br>
+                                        <small class="text-muted">
+                                            {% if buchung.haben_konto %}
+                                                <strong>{{ buchung.haben_konto.nummer }}</strong> {{ buchung.haben_konto.name|truncatechars:15 }}
+                                            {% else %}
+                                                <span class="text-danger">Kein Haben-Konto</span>
+                                            {% endif %}
+                                        </small>
+                                    </td>
+                                    <td class="text-end">
+                                        <strong class="fs-5">{{ buchung.betrag|floatformat:2 }}€</strong>
+                                    </td>
+                                    <td>
+                                        {% if buchung.geschaeftspartner %}
+                                            {{ buchung.geschaeftspartner.name|truncatechars:20 }}
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if buchung.validiert %}
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-check"></i> Validiert
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-warning">
+                                                <i class="fas fa-exclamation-triangle"></i> Prüfen
+                                            </span>
+                                        {% endif %}
+                                        {% if buchung.automatisch_erstellt %}
+                                            <br><small class="text-muted">
+                                                <i class="fas fa-robot"></i> Auto
+                                            </small>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <a href="{% url 'buchungen:detail' buchung.pk %}" 
+                                               class="btn btn-outline-primary" title="Details">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="{% url 'buchungen:bearbeiten' buchung.pk %}" 
+                                               class="btn btn-outline-secondary" title="Bearbeiten">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <button type="button" 
+                                                    class="btn btn-outline-{% if buchung.validiert %}warning{% else %}success{% endif %} validate-btn"
+                                                    data-buchung-id="{{ buchung.pk }}"
+                                                    data-current-status="{{ buchung.validiert|yesno:'true,false' }}"
+                                                    title="{% if buchung.validiert %}Als ungeprüft markieren{% else %}Validieren{% endif %}">
+                                                <i class="fas fa-{% if buchung.validiert %}times{% else %}check{% endif %}"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                {% if is_paginated %}
+                    <div class="card-footer">
+                        <nav aria-label="Buchungen Navigation">
+                            <ul class="pagination pagination-sm justify-content-center mb-0">
+                                {% if page_obj.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                            &laquo; Zurück
+                                        </a>
+                                    </li>
+                                {% endif %}
+
+                                <li class="page-item active">
+                                    <span class="page-link">
+                                        Seite {{ page_obj.number }} von {{ page_obj.paginator.num_pages }}
+                                        ({{ page_obj.paginator.count }} Buchungen)
+                                    </span>
+                                </li>
+
+                                {% if page_obj.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                            Weiter &raquo;
+                                        </a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    </div>
+                {% endif %}
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-calculator fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">Noch keine Buchungen vorhanden</h5>
+                    <p class="text-muted">Peter Zwegat sagt: "Jede Reise beginnt mit dem ersten Schritt!"</p>
+                    <a href="{% url 'buchungen:erstellen' %}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Erste Buchung erstellen
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- AJAX für Validierung -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Validierung Toggle
+    document.querySelectorAll('.validate-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            const buchungId = this.dataset.buchungId;
+            const currentStatus = this.dataset.currentStatus === 'true';
+            const aktion = currentStatus ? 'invalidieren' : 'validieren';
+            
+            fetch(`{% url 'buchungen:ajax_validieren' '00000000-0000-0000-0000-000000000000' %}`.replace('00000000-0000-0000-0000-000000000000', buchungId), {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || '',
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'aktion=' + aktion
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Seite neu laden für einfachheit
+                    location.reload();
+                } else {
+                    alert('Fehler: ' + (data.error || 'Unbekannter Fehler'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Netzwerkfehler beim Validieren');
+            });
+        });
+    });
+});
+</script>
+{% endblock %}

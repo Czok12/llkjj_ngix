@@ -1,0 +1,182 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ page_title }} - {{ block.super }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .konto-info {
+        font-size: 0.875rem;
+        color: #6c757d;
+    }
+    .buchungsform .alert {
+        border-left: 4px solid #0d6efd;
+    }
+    .form-group label {
+        font-weight: 600;
+    }
+    .soll-haben-container {
+        background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+        border-radius: 0.5rem;
+        padding: 1rem;
+        margin: 1rem 0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'buchungen:liste' %}">Buchungen</a></li>
+                    <li class="breadcrumb-item active">{{ page_title }}</li>
+                </ol>
+            </nav>
+            
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h2 mb-1">💰 {{ page_title }}</h1>
+                    <p class="text-muted">{{ page_subtitle }}</p>
+                </div>
+                <div class="btn-group" role="group">
+                    <a href="{% url 'buchungen:liste' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-list"></i> Zur Übersicht
+                    </a>
+                    <a href="{% url 'buchungen:schnellbuchung' %}" class="btn btn-success">
+                        <i class="fas fa-bolt"></i> Schnellbuchung
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-xl-6">
+            <!-- Formular Card -->
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-calculator"></i> Buchung erfassen
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% crispy form %}
+                </div>
+            </div>
+
+            <!-- Hilfe Card -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-question-circle"></i> Peter Zwegats Buchungs-Tipps
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="text-primary">🎯 Soll-Konto (Belastung)</h6>
+                            <ul class="list-unstyled small">
+                                <li><strong>Ausgaben:</strong> Aufwandskonten (4000-6999)</li>
+                                <li><strong>Einkäufe:</strong> z.B. 4980 (Büromaterial)</li>
+                                <li><strong>Privatentnahme:</strong> 1800 (Privatentnahme)</li>
+                                <li><strong>Anlagen:</strong> 0000-0999 (Anlagevermögen)</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-success">🎯 Haben-Konto (Gutschrift)</h6>
+                            <ul class="list-unstyled small">
+                                <li><strong>Einnahmen:</strong> Ertragskonten (8000-8999)</li>
+                                <li><strong>Zahlungen:</strong> z.B. 1200 (Bank), 1000 (Kasse)</li>
+                                <li><strong>Privateinlage:</strong> 1800 (Eigenkapital)</li>
+                                <li><strong>Verbindlichkeiten:</strong> 1600-1799</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="alert alert-info">
+                        <strong>💡 Merkregel:</strong> 
+                        "Soll" = Wo kommt das Geld her? | "Haben" = Wo geht das Geld hin?
+                        <br><small>Beispiel: Büromaterial gekauft → Soll: 4980 (Büromaterial), Haben: 1200 (Bank)</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Autocomplete für Konten
+    const kontoSelects = document.querySelectorAll('.konto-select');
+    
+    kontoSelects.forEach(function(select) {
+        select.addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            if (selectedOption.value) {
+                // Info über gewähltes Konto anzeigen
+                showKontoInfo(this, selectedOption.text);
+            }
+        });
+    });
+    
+    function showKontoInfo(select, kontoText) {
+        // Bestehende Info entfernen
+        const existingInfo = select.parentNode.querySelector('.konto-info');
+        if (existingInfo) {
+            existingInfo.remove();
+        }
+        
+        // Neue Info hinzufügen
+        const infoDiv = document.createElement('div');
+        infoDiv.className = 'konto-info mt-1';
+        infoDiv.innerHTML = '<i class="fas fa-info-circle"></i> ' + kontoText;
+        select.parentNode.appendChild(infoDiv);
+    }
+    
+    // Betrag formatieren
+    const betragInput = document.querySelector('input[name="betrag"]');
+    if (betragInput) {
+        betragInput.addEventListener('blur', function() {
+            const value = parseFloat(this.value);
+            if (!isNaN(value)) {
+                this.value = value.toFixed(2);
+            }
+        });
+    }
+    
+    // Buchungstext-Vorschläge basierend auf Konten
+    const sollKonto = document.querySelector('select[name="soll_konto"]');
+    const habenKonto = document.querySelector('select[name="haben_konto"]');
+    const buchungstext = document.querySelector('input[name="buchungstext"]');
+    
+    if (sollKonto && habenKonto && buchungstext) {
+        function updateBuchungstext() {
+            const sollText = sollKonto.options[sollKonto.selectedIndex]?.text || '';
+            const habenText = habenKonto.options[habenKonto.selectedIndex]?.text || '';
+            
+            if (sollText && habenText && !buchungstext.value) {
+                // Einfache Logik für Buchungstext-Vorschläge
+                if (sollText.includes('Büro')) {
+                    buchungstext.placeholder = 'Büromaterial gekauft';
+                } else if (sollText.includes('Porto')) {
+                    buchungstext.placeholder = 'Portokosten';
+                } else if (habenText.includes('Erlös')) {
+                    buchungstext.placeholder = 'Einnahme von Kunde';
+                } else {
+                    buchungstext.placeholder = 'Buchungstext eingeben...';
+                }
+            }
+        }
+        
+        sollKonto.addEventListener('change', updateBuchungstext);
+        habenKonto.addEventListener('change', updateBuchungstext);
+    }
+});
+</script>
+{% endblock %}

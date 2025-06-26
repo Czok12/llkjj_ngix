@@ -1,0 +1,196 @@
+{% extends 'buchungen/erstellen.html' %}
+
+{% block title %}{{ page_title }} - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'buchungen:liste' %}">Buchungen</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'buchungen:detail' object.pk %}">Details</a></li>
+                    <li class="breadcrumb-item active">Bearbeiten</li>
+                </ol>
+            </nav>
+            
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h2 mb-1">✏️ {{ page_title }}</h1>
+                    <p class="text-muted">{{ page_subtitle }}</p>
+                </div>
+                <div class="btn-group" role="group">
+                    <a href="{% url 'buchungen:detail' object.pk %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-eye"></i> Details
+                    </a>
+                    <a href="{% url 'buchungen:liste' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-list"></i> Zur Übersicht
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-xl-6">
+            <!-- Warning für Bearbeitung -->
+            <div class="alert alert-warning">
+                <i class="fas fa-exclamation-triangle"></i>
+                <strong>Achtung:</strong> Sie bearbeiten eine bestehende Buchung vom 
+                <strong>{{ object.buchungsdatum|date:"d.m.Y" }}</strong>.
+                {% if object.validiert %}
+                    <br><small>Diese Buchung wurde bereits validiert.</small>
+                {% endif %}
+            </div>
+
+            <!-- Formular Card -->
+            <div class="card shadow">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">
+                        <i class="fas fa-edit"></i> Buchung bearbeiten
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% crispy form %}
+                </div>
+            </div>
+
+            <!-- Original Daten Card -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-history"></i> Original-Buchung
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <strong>Datum:</strong> {{ object.buchungsdatum|date:"d.m.Y" }}<br>
+                            <strong>Betrag:</strong> {{ object.betrag|floatformat:2 }}€<br>
+                            <strong>Erstellt:</strong> {{ object.erstellt_am|date:"d.m.Y H:i" }}
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Soll:</strong> 
+                            {% if object.soll_konto %}
+                                {{ object.soll_konto.nummer }} - {{ object.soll_konto.name }}
+                            {% else %}
+                                <span class="text-muted">Nicht gesetzt</span>
+                            {% endif %}<br>
+                            <strong>Haben:</strong>
+                            {% if object.haben_konto %}
+                                {{ object.haben_konto.nummer }} - {{ object.haben_konto.name }}
+                            {% else %}
+                                <span class="text-muted">Nicht gesetzt</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% if object.buchungstext %}
+                        <hr>
+                        <strong>Text:</strong> {{ object.buchungstext }}
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Hilfe Card (identisch zu erstellen.html) -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-question-circle"></i> Peter Zwegats Buchungs-Tipps
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="text-primary">🎯 Soll-Konto (Belastung)</h6>
+                            <ul class="list-unstyled small">
+                                <li><strong>Ausgaben:</strong> Aufwandskonten (4000-6999)</li>
+                                <li><strong>Einkäufe:</strong> z.B. 4980 (Büromaterial)</li>
+                                <li><strong>Privatentnahme:</strong> 1800 (Privatentnahme)</li>
+                                <li><strong>Anlagen:</strong> 0000-0999 (Anlagevermögen)</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-success">🎯 Haben-Konto (Gutschrift)</h6>
+                            <ul class="list-unstyled small">
+                                <li><strong>Einnahmen:</strong> Ertragskonten (8000-8999)</li>
+                                <li><strong>Zahlungen:</strong> z.B. 1200 (Bank), 1000 (Kasse)</li>
+                                <li><strong>Privateinlage:</strong> 1800 (Eigenkapital)</li>
+                                <li><strong>Verbindlichkeiten:</strong> 1600-1799</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="alert alert-info">
+                        <strong>💡 Merkregel:</strong> 
+                        "Soll" = Wo kommt das Geld her? | "Haben" = Wo geht das Geld hin?
+                        <br><small>Beispiel: Büromaterial gekauft → Soll: 4980 (Büromaterial), Haben: 1200 (Bank)</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Gleiche JavaScript-Funktionalität wie erstellen.html -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Warnung bei Änderungen
+    let originalFormData = new FormData(document.querySelector('form'));
+    let hasChanges = false;
+    
+    document.querySelector('form').addEventListener('input', function() {
+        hasChanges = true;
+    });
+    
+    window.addEventListener('beforeunload', function(e) {
+        if (hasChanges) {
+            e.preventDefault();
+            e.returnValue = 'Sie haben ungespeicherte Änderungen. Möchten Sie die Seite wirklich verlassen?';
+        }
+    });
+    
+    // Submit Handler
+    document.querySelector('form').addEventListener('submit', function() {
+        hasChanges = false; // Änderungen werden gespeichert
+    });
+    
+    // Gleiche Funktionalität wie erstellen.html
+    const kontoSelects = document.querySelectorAll('.konto-select');
+    
+    kontoSelects.forEach(function(select) {
+        select.addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            if (selectedOption.value) {
+                showKontoInfo(this, selectedOption.text);
+            }
+        });
+    });
+    
+    function showKontoInfo(select, kontoText) {
+        const existingInfo = select.parentNode.querySelector('.konto-info');
+        if (existingInfo) {
+            existingInfo.remove();
+        }
+        
+        const infoDiv = document.createElement('div');
+        infoDiv.className = 'konto-info mt-1';
+        infoDiv.innerHTML = '<i class="fas fa-info-circle"></i> ' + kontoText;
+        select.parentNode.appendChild(infoDiv);
+    }
+    
+    const betragInput = document.querySelector('input[name="betrag"]');
+    if (betragInput) {
+        betragInput.addEventListener('blur', function() {
+            const value = parseFloat(this.value);
+            if (!isNaN(value)) {
+                this.value = value.toFixed(2);
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

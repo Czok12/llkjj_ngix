@@ -18,7 +18,7 @@ urlpatterns = [
     path("", dashboard_view, name="dashboard"),
     # App URLs
     path("konten/", include("konten.urls")),
-    # path("buchungen/", include("buchungen.urls")),
+    path("buchungen/", include("buchungen.urls")),
     # path("belege/", include("belege.urls")),
     # path("auswertungen/", include("auswertungen.urls")),
     # path("steuer/", include("steuer.urls")),
