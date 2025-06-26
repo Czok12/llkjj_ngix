@@ -163,7 +163,7 @@ class LLKJJStarter:
 
         # Django-Installation prüfen
         try:
-            result = subprocess.run(
+            result = subprocess.run(  # noqa: S603
                 [
                     self.python_executable,
                     "-c",
@@ -200,7 +200,7 @@ class LLKJJStarter:
 
         try:
             # Erstelle Migrationen
-            result = subprocess.run(
+            result = subprocess.run(  # noqa: S603
                 [self.python_executable, "manage.py", "makemigrations"],
                 cwd=self.project_root,
                 capture_output=True,
@@ -219,7 +219,7 @@ class LLKJJStarter:
                 )
 
             # Wende Migrationen an
-            result = subprocess.run(
+            result = subprocess.run(  # noqa: S603
                 [self.python_executable, "manage.py", "migrate"],
                 cwd=self.project_root,
                 capture_output=True,
@@ -254,7 +254,7 @@ class LLKJJStarter:
 
         try:
             # Prüfe ob Konten schon existieren
-            result = subprocess.run(
+            result = subprocess.run(  # noqa: S603
                 [
                     self.python_executable,
                     "manage.py",
@@ -279,7 +279,7 @@ class LLKJJStarter:
 
             # Importiere SKR03-Konten
             print(f"{Colors.OKCYAN}📥 Importiere SKR03-Konten...{Colors.ENDC}")
-            result = subprocess.run(
+            result = subprocess.run(  # noqa: S603
                 [self.python_executable, "manage.py", "import_skr03"],
                 cwd=self.project_root,
                 capture_output=True,
@@ -319,7 +319,7 @@ class LLKJJStarter:
         print(f"{Colors.OKBLUE}🎨 Sammle Static Files...{Colors.ENDC}")
 
         try:
-            result = subprocess.run(
+            result = subprocess.run(  # noqa: S603
                 [self.python_executable, "manage.py", "collectstatic", "--noinput"],
                 cwd=self.project_root,
                 capture_output=True,
@@ -360,7 +360,7 @@ class LLKJJStarter:
         print()
 
         try:
-            subprocess.run(
+            subprocess.run(  # noqa: S603
                 [self.python_executable, "manage.py", "runserver", f"{host}:{port}"],
                 cwd=self.project_root,
                 check=False,

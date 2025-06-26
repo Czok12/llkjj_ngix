@@ -1,6 +1,5 @@
 from django.contrib import admin
 from django.utils.html import format_html
-from django.utils.safestring import mark_safe
 
 from .models import Beleg
 
@@ -132,8 +131,9 @@ class BelegAdmin(admin.ModelAdmin):
         if obj.datei:
             file_extension = obj.datei.name.lower().split(".")[-1]
             if file_extension in ["jpg", "jpeg", "png", "gif"]:
-                return mark_safe(
-                    f'<img src="{obj.datei.url}" style="max-width: 200px; max-height: 150px;" />'
+                return format_html(
+                    '<img src="{}" style="max-width: 200px; max-height: 150px;" />',
+                    obj.datei.url,
                 )
             elif file_extension == "pdf":
                 return format_html(

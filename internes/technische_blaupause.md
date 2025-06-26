@@ -2,7 +2,7 @@ Technische Blaupause: Architektur & Datenmodell
 Dieses Dokument definiert die technische Implementierung von llkjj_art.
 
 1. Systemarchitektur & Technologien
-Backend: Django 5.x auf Python 3.11+.
+Backend: Django 5.x auf Python 3.13+.
 
 Datenbank: PostgreSQL (produktiv), SQLite (Entwicklung).
 

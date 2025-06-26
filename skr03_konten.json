@@ -1,23 +1,94 @@
 [
-  {"nummer": "1000", "name": "Kasse", "kategorie": "Aktivkonto", "typ": "Barmittel"},
-  {"nummer": "1200", "name": "Bank", "kategorie": "Aktivkonto", "typ": "Girokonto"},
-  {"nummer": "1800", "name": "Privatentnahmen", "kategorie": "Eigenkapital", "typ": "Privat"},
-  {"nummer": "1801", "name": "Privateinlagen", "kategorie": "Eigenkapital", "typ": "Privat"},
-  {"nummer": "2000", "name": "Forderungen aus Lieferungen und Leistungen", "kategorie": "Aktivkonto", "typ": "Forderungen"},
-  {"nummer": "2600", "name": "Umsatzerlöse (steuerfrei nach §19 UStG)", "kategorie": "Erlöse", "typ": "Einnahmen"},
-  {"nummer": "2800", "name": "Sonstige betriebliche Erträge", "kategorie": "Erlöse", "typ": "Einnahmen"},
-  {"nummer": "3000", "name": "Wareneingang", "kategorie": "Aufwand", "typ": "Ausgaben"},
-  {"nummer": "3100", "name": "Büromaterial", "kategorie": "Aufwand", "typ": "Ausgaben"},
-  {"nummer": "3125", "name": "Fachliteratur", "kategorie": "Aufwand", "typ": "Ausgaben"},
-  {"nummer": "3150", "name": "Reisekosten Inland", "kategorie": "Aufwand", "typ": "Ausgaben"},
-  {"nummer": "3200", "name": "Telefon, Internet", "kategorie": "Aufwand", "typ": "Ausgaben"},
-  {"nummer": "3300", "name": "Miete, Pacht", "kategorie": "Aufwand", "typ": "Ausgaben"},
-  {"nummer": "3400", "name": "Versicherungen", "kategorie": "Aufwand", "typ": "Ausgaben"},
-  {"nummer": "4900", "name": "Sonstige betriebliche Aufwendungen", "kategorie": "Aufwand", "typ": "Ausgaben"}
-]
-
-
-[
+  {
+    "nummer": "1000",
+    "name": "Kasse",
+    "kategorie": "Aktivkonto",
+    "typ": "Barmittel"
+  },
+  {
+    "nummer": "1200",
+    "name": "Bank",
+    "kategorie": "Aktivkonto",
+    "typ": "Girokonto"
+  },
+  {
+    "nummer": "1800",
+    "name": "Privatentnahmen",
+    "kategorie": "Eigenkapital",
+    "typ": "Privat"
+  },
+  {
+    "nummer": "1801",
+    "name": "Privateinlagen",
+    "kategorie": "Eigenkapital",
+    "typ": "Privat"
+  },
+  {
+    "nummer": "2000",
+    "name": "Forderungen aus Lieferungen und Leistungen",
+    "kategorie": "Aktivkonto",
+    "typ": "Forderungen"
+  },
+  {
+    "nummer": "2600",
+    "name": "Umsatzerlöse (steuerfrei nach §19 UStG)",
+    "kategorie": "Erlöse",
+    "typ": "Einnahmen"
+  },
+  {
+    "nummer": "2800",
+    "name": "Sonstige betriebliche Erträge",
+    "kategorie": "Erlöse",
+    "typ": "Einnahmen"
+  },
+  {
+    "nummer": "3000",
+    "name": "Wareneingang",
+    "kategorie": "Aufwand",
+    "typ": "Ausgaben"
+  },
+  {
+    "nummer": "3100",
+    "name": "Büromaterial",
+    "kategorie": "Aufwand",
+    "typ": "Ausgaben"
+  },
+  {
+    "nummer": "3125",
+    "name": "Fachliteratur",
+    "kategorie": "Aufwand",
+    "typ": "Ausgaben"
+  },
+  {
+    "nummer": "3150",
+    "name": "Reisekosten Inland",
+    "kategorie": "Aufwand",
+    "typ": "Ausgaben"
+  },
+  {
+    "nummer": "3200",
+    "name": "Telefon, Internet",
+    "kategorie": "Aufwand",
+    "typ": "Ausgaben"
+  },
+  {
+    "nummer": "3300",
+    "name": "Miete, Pacht",
+    "kategorie": "Aufwand",
+    "typ": "Ausgaben"
+  },
+  {
+    "nummer": "3400",
+    "name": "Versicherungen",
+    "kategorie": "Aufwand",
+    "typ": "Ausgaben"
+  },
+  {
+    "nummer": "4900",
+    "name": "Sonstige betriebliche Aufwendungen",
+    "kategorie": "Aufwand",
+    "typ": "Ausgaben"
+  },
   {
     "nummer": "0420",
     "name": "Büroeinrichtung",

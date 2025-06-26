@@ -10,12 +10,11 @@ import logging
 # Standard Machine Learning
 try:
     import numpy as np
-    import pandas as pd
     from sklearn.feature_extraction.text import TfidfVectorizer
-    from sklearn.metrics import classification_report
     from sklearn.model_selection import train_test_split
     from sklearn.naive_bayes import MultinomialNB
     from sklearn.pipeline import Pipeline
+
     ML_AVAILABLE = True
 except ImportError:
     ML_AVAILABLE = False
@@ -25,6 +24,7 @@ try:
     import spacy
     from fuzzywuzzy import fuzz, process
     from sentence_transformers import SentenceTransformer
+
     NLP_AVAILABLE = True
 except ImportError:
     NLP_AVAILABLE = False
@@ -33,17 +33,17 @@ except ImportError:
 try:
     import cv2
     import easyocr
+
     CV_AVAILABLE = True
 except ImportError:
     CV_AVAILABLE = False
 
 # Django Integration
 try:
-    from django.conf import settings
     from django.core.cache import cache
-    from django.db.models import Count, Q
 
-    from .models import Beleg, BelegKategorieML
+    from .models import BelegKategorieML
+
     DJANGO_AVAILABLE = True
 except ImportError:
     DJANGO_AVAILABLE = False
@@ -94,14 +94,13 @@ class ErweiterteKI:
             self.vectorizer = TfidfVectorizer(
                 max_features=5000,
                 ngram_range=(1, 3),  # Einzelwörter bis Dreifach-Wörter
-                stop_words='english',  # Später durch deutsche Stopwörter ersetzen
-                lowercase=True
+                stop_words="english",  # Später durch deutsche Stopwörter ersetzen
+                lowercase=True,
             )
 
-            self.ml_model = Pipeline([
-                ('tfidf', self.vectorizer),
-                ('classifier', MultinomialNB(alpha=0.1))
-            ])
+            self.ml_model = Pipeline(
+                [("tfidf", self.vectorizer), ("classifier", MultinomialNB(alpha=0.1))]
+            )
 
             # Trainiere mit vorhandenen Daten
             self._trainiere_ml_modell()
@@ -137,7 +136,7 @@ class ErweiterteKI:
         """Initialisiert EasyOCR für bessere Texterkennung."""
         try:
             # Deutsche und englische Sprache
-            self.ocr_reader = easyocr.Reader(['de', 'en'], gpu=False)
+            self.ocr_reader = easyocr.Reader(["de", "en"], gpu=False)
             logger.info("EasyOCR Reader initialisiert")
         except Exception as e:
             logger.warning(f"EasyOCR nicht verfügbar: {e}")
@@ -151,7 +150,7 @@ class ErweiterteKI:
             # Lade Trainingsdaten aus der Datenbank
             training_data = BelegKategorieML.objects.filter(
                 benutzer_korrektur=True
-            ).values_list('schluesselwoerter', 'korrekte_kategorie')
+            ).values_list("schluesselwoerter", "korrekte_kategorie")
 
             if len(training_data) < 10:
                 logger.info("Nicht genug Trainingsdaten für ML-Modell")
@@ -175,16 +174,16 @@ class ErweiterteKI:
                 return
 
             # Trainiere das Modell
-            X_train, X_test, y_train, y_test = train_test_split(
+            x_train, x_test, y_train, y_test = train_test_split(
                 texte, kategorien, test_size=0.2, random_state=42
             )
 
-            self.ml_model.fit(X_train, y_train)
+            self.ml_model.fit(x_train, y_train)
 
             # Evaluiere das Modell
-            if len(X_test) > 0:
-                self.ml_model.predict(X_test)
-                logger.info(f"ML-Modell trainiert mit {len(X_train)} Beispielen")
+            if len(x_test) > 0:
+                self.ml_model.predict(x_test)
+                logger.info(f"ML-Modell trainiert mit {len(x_train)} Beispielen")
 
         except Exception as e:
             logger.error(f"Fehler beim Training des ML-Modells: {e}")
@@ -209,7 +208,7 @@ class ErweiterteKI:
             denoised = cv2.fastNlMeansDenoising(gray)
 
             # Kontrast verbessern
-            clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
+            clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
             enhanced = clahe.apply(denoised)
 
             # OCR mit EasyOCR
@@ -217,7 +216,7 @@ class ErweiterteKI:
 
             # Extrahiere Text
             text_parts = []
-            for (_bbox, text, confidence) in results:
+            for _bbox, text, confidence in results:
                 if confidence > 0.5:  # Nur konfidente Erkennungen
                     text_parts.append(text)
 
@@ -279,13 +278,13 @@ class ErweiterteKI:
 
         # Lade aus Trainingsdaten
         training_data = BelegKategorieML.objects.values(
-            'korrekte_kategorie', 'schluesselwoerter'
+            "korrekte_kategorie", "schluesselwoerter"
         ).distinct()
 
         for data in training_data:
-            kategorie = data['korrekte_kategorie']
+            kategorie = data["korrekte_kategorie"]
             try:
-                woerter = json.loads(data['schluesselwoerter'])
+                woerter = json.loads(data["schluesselwoerter"])
                 text = " ".join(woerter)
 
                 if kategorie not in referenztexte:
@@ -310,8 +309,9 @@ class ErweiterteKI:
         try:
             # Bekannte Lieferanten aus der Datenbank
             from buchungen.models import Geschaeftspartner
+
             bekannte_lieferanten = list(
-                Geschaeftspartner.objects.values_list('name', flat=True)
+                Geschaeftspartner.objects.values_list("name", flat=True)
             )
 
             if not bekannte_lieferanten:
@@ -330,9 +330,7 @@ class ErweiterteKI:
 
             for entitaet in erkannte_entitaeten:
                 match = process.extractOne(
-                    entitaet,
-                    bekannte_lieferanten,
-                    scorer=fuzz.ratio
+                    entitaet, bekannte_lieferanten, scorer=fuzz.ratio
                 )
                 if match and match[1] >= 80:  # Mindestens 80% Ähnlichkeit
                     beste_matches.append((match[0], match[1]))
@@ -371,8 +369,9 @@ class ErweiterteKI:
             logger.error(f"Fehler bei ML-Kategorisierung: {e}")
             return "SONSTIGES", 0.0
 
-    def intelligente_kategorisierung(self, ocr_text: str, lieferant: str = None,
-                                   betrag: float = None) -> tuple[str, float]:
+    def intelligente_kategorisierung(
+        self, ocr_text: str, lieferant: str = None, betrag: float = None
+    ) -> tuple[str, float]:
         """
         Kombiniert alle KI-Methoden für beste Kategorisierung.
 
@@ -390,13 +389,16 @@ class ErweiterteKI:
 
         # 3. Regelbasierte Kategorisierung (Fallback)
         from .ki_service import beleg_ki
+
         regel_kat, regel_conf = beleg_ki._regelbasierte_kategorisierung(ocr_text)
         ergebnisse.append((regel_kat, regel_conf * 0.3))  # 30% Gewichtung
 
         # Kombiniere Ergebnisse
         return self._kombiniere_ki_ergebnisse(ergebnisse)
 
-    def _kombiniere_ki_ergebnisse(self, ergebnisse: list[tuple[str, float]]) -> tuple[str, float]:
+    def _kombiniere_ki_ergebnisse(
+        self, ergebnisse: list[tuple[str, float]]
+    ) -> tuple[str, float]:
         """Kombiniert multiple KI-Ergebnisse zu einem finalen Ergebnis."""
         if not ergebnisse:
             return "SONSTIGES", 0.0

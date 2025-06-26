@@ -159,9 +159,10 @@ def dashboard_view(request):
         "Ihre Disziplin zahlt sich aus!",
     ]
 
-    import random
+    import secrets
 
-    zwegat_spruch = random.choice(zwegat_sprueche)
+    # Verwende secrets für kryptographisch sichere Zufallsauswahl
+    zwegat_spruch = secrets.choice(zwegat_sprueche)
 
     context = {
         "page_title": "Dashboard",

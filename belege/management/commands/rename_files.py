@@ -14,6 +14,7 @@ Verwendung:
     python manage.py rename_files --update-database
 """
 
+import logging
 import os
 import re
 
@@ -23,6 +24,8 @@ from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 
 from belege.models import Beleg
+
+logger = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):
@@ -319,8 +322,9 @@ class Command(BaseCommand):
                 except (ValueError, TypeError):
                     continue
 
-        except Exception:
-            pass
+        except Exception as e:
+            # Log the exception for debugging purposes
+            logger.warning(f"Error parsing date: {e}")
 
         return None
 

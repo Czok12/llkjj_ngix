@@ -9,15 +9,14 @@ import os
 import sys
 
 import django
-
-# Django Setup
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "llkjj_knut.settings")
-django.setup()
-
 from django.contrib.auth.models import User
 from django.test import Client
 
 from einstellungen.models import Benutzerprofil
+
+# Django Setup
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "llkjj_knut.settings")
+django.setup()
 
 
 def test_authentication_urls():

@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: llkjj_postgres
+    environment:
+      POSTGRES_DB: llkjj_knut_db
+      POSTGRES_USER: artist
+      POSTGRES_PASSWORD: sicher123!
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - "5432:5432"
+    volumes:
+      # Persistente Daten
+      - postgres_data:/var/lib/postgresql/data
+      # Backup-Verzeichnis
+      - ./backups:/backups
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U artist -d llkjj_knut_db"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Optionaler pgAdmin für Web-Interface
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: llkjj_pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@llkjj.de
+      PGADMIN_DEFAULT_PASSWORD: admin123
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+
+# Verwendung:
+# docker-compose up -d          # Startet PostgreSQL im Hintergrund
+# docker-compose down           # Stoppt alle Services
+# docker-compose logs postgres  # Zeigt PostgreSQL Logs

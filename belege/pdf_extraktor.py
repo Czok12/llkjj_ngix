@@ -4,6 +4,7 @@ Service für die automatische Extraktion von Daten aus PDF-Belegen.
 Peter Zwegat würde sagen: "Ein Computer, der Rechnungen lesen kann?
 Das ist ja besser als jeder Steuerberater!"
 """
+
 import logging
 import re
 from datetime import date, datetime
@@ -11,6 +12,7 @@ from decimal import Decimal, InvalidOperation
 
 try:
     import fitz  # PyMuPDF  # noqa: F401
+
     PYMUPDF_AVAILABLE = True
 except ImportError:
     PYMUPDF_AVAILABLE = False
@@ -19,6 +21,7 @@ except ImportError:
 try:
     import pytesseract  # noqa: F401
     from pdf2image import convert_from_path  # noqa: F401
+
     OCR_AVAILABLE = True
 except ImportError:
     OCR_AVAILABLE = False
@@ -45,42 +48,42 @@ class PDFDatenExtraktor:
         Peter Zwegat: "Jeder Krümel wird gefunden - das ist Gründlichkeit!"
         """
         return {
-            'rechnungsnummer': [
-                r'Rechnung[s-]?[Nn]r\.?\s*:?\s*([A-Z0-9-]+)',
-                r'Invoice[- ]?[Nn]o\.?\s*:?\s*([A-Z0-9-]+)',
-                r'R[Nn]r\.?\s*:?\s*([A-Z0-9-]+)',
-                r'Belegnummer\.?\s*:?\s*([A-Z0-9-]+)',
-                r'Dokumentnummer\.?\s*:?\s*([A-Z0-9-]+)',
+            "rechnungsnummer": [
+                r"Rechnung[s-]?[Nn]r\.?\s*:?\s*([A-Z0-9-]+)",
+                r"Invoice[- ]?[Nn]o\.?\s*:?\s*([A-Z0-9-]+)",
+                r"R[Nn]r\.?\s*:?\s*([A-Z0-9-]+)",
+                r"Belegnummer\.?\s*:?\s*([A-Z0-9-]+)",
+                r"Dokumentnummer\.?\s*:?\s*([A-Z0-9-]+)",
             ],
-            'rechnungsdatum': [
-                r'Rechnungsdatum\.?\s*:?\s*(\d{1,2}[.\-/]\d{1,2}[.\-/]\d{2,4})',
-                r'Datum\.?\s*:?\s*(\d{1,2}[.\-/]\d{1,2}[.\-/]\d{2,4})',
-                r'Invoice[- ]?Date\.?\s*:?\s*(\d{1,2}[.\-/]\d{1,2}[.\-/]\d{2,4})',
-                r'vom\.?\s*:?\s*(\d{1,2}[.\-/]\d{1,2}[.\-/]\d{2,4})',
+            "rechnungsdatum": [
+                r"Rechnungsdatum\.?\s*:?\s*(\d{1,2}[.\-/]\d{1,2}[.\-/]\d{2,4})",
+                r"Datum\.?\s*:?\s*(\d{1,2}[.\-/]\d{1,2}[.\-/]\d{2,4})",
+                r"Invoice[- ]?Date\.?\s*:?\s*(\d{1,2}[.\-/]\d{1,2}[.\-/]\d{2,4})",
+                r"vom\.?\s*:?\s*(\d{1,2}[.\-/]\d{1,2}[.\-/]\d{2,4})",
             ],
-            'gesamtbetrag': [
-                r'Gesamtbetrag\.?\s*:?\s*(\d+[.,]\d{2})\s*€?',
-                r'Summe\.?\s*:?\s*(\d+[.,]\d{2})\s*€?',
-                r'Total\.?\s*:?\s*(\d+[.,]\d{2})\s*€?',
-                r'Endbetrag\.?\s*:?\s*(\d+[.,]\d{2})\s*€?',
-                r'€\s*(\d+[.,]\d{2})\s*$',
-                r'(\d+[.,]\d{2})\s*EUR',
+            "gesamtbetrag": [
+                r"Gesamtbetrag\.?\s*:?\s*(\d+[.,]\d{2})\s*€?",
+                r"Summe\.?\s*:?\s*(\d+[.,]\d{2})\s*€?",
+                r"Total\.?\s*:?\s*(\d+[.,]\d{2})\s*€?",
+                r"Endbetrag\.?\s*:?\s*(\d+[.,]\d{2})\s*€?",
+                r"€\s*(\d+[.,]\d{2})\s*$",
+                r"(\d+[.,]\d{2})\s*EUR",
             ],
-            'nettobetrag': [
-                r'Nettobetrag\.?\s*:?\s*(\d+[.,]\d{2})\s*€?',
-                r'Netto\.?\s*:?\s*(\d+[.,]\d{2})\s*€?',
-                r'Zwischensumme\.?\s*:?\s*(\d+[.,]\d{2})\s*€?',
+            "nettobetrag": [
+                r"Nettobetrag\.?\s*:?\s*(\d+[.,]\d{2})\s*€?",
+                r"Netto\.?\s*:?\s*(\d+[.,]\d{2})\s*€?",
+                r"Zwischensumme\.?\s*:?\s*(\d+[.,]\d{2})\s*€?",
             ],
-            'lieferant': [
-                r'(?:Firma|Unternehmen|Company)\.?\s*:?\s*([A-Za-zÄÖÜäöüß\s&.-]+?)(?:\n|,|\s{2,})',
-                r'^([A-Za-zÄÖÜäöüß][A-Za-zÄÖÜäöüß\s&.-]+?)(?:\n|Straße|Str\.|Platz)',
+            "lieferant": [
+                r"(?:Firma|Unternehmen|Company)\.?\s*:?\s*([A-Za-zÄÖÜäöüß\s&.-]+?)(?:\n|,|\s{2,})",
+                r"^([A-Za-zÄÖÜäöüß][A-Za-zÄÖÜäöüß\s&.-]+?)(?:\n|Straße|Str\.|Platz)",
             ],
-            'ust_id': [
-                r'USt[.-]?ID\.?\s*:?\s*([A-Z]{2}\d+)',
-                r'VAT[- ]?ID\.?\s*:?\s*([A-Z]{2}\d+)',
-                r'Umsatzsteuer[- ]?ID\.?\s*:?\s*([A-Z]{2}\d+)',
-                r'St[.-]?Nr\.?\s*:?\s*(\d+/\d+/\d+)',
-            ]
+            "ust_id": [
+                r"USt[.-]?ID\.?\s*:?\s*([A-Z]{2}\d+)",
+                r"VAT[- ]?ID\.?\s*:?\s*([A-Z]{2}\d+)",
+                r"Umsatzsteuer[- ]?ID\.?\s*:?\s*([A-Z]{2}\d+)",
+                r"St[.-]?Nr\.?\s*:?\s*(\d+/\d+/\d+)",
+            ],
         }
 
     def extrahiere_daten(self, pdf_pfad: str) -> dict[str, str | None]:
@@ -154,9 +157,7 @@ class PDFDatenExtraktor:
                 logger.info(f"OCR auf Seite {i+1}")
                 # Tesseract auf Deutsch konfigurieren
                 ocr_text = pytesseract.image_to_string(
-                    image,
-                    lang='deu+eng',
-                    config='--psm 6'
+                    image, lang="deu+eng", config="--psm 6"
                 )
                 text += ocr_text + "\n"
 
@@ -174,7 +175,7 @@ class PDFDatenExtraktor:
         daten = self._leere_daten_struktur()
 
         # Zeilen für bessere Analyse aufteilen
-        text.split('\n')
+        text.split("\n")
 
         for feld, patterns in self.patterns.items():
             for pattern in patterns:
@@ -198,20 +199,20 @@ class PDFDatenExtraktor:
         """
         wert = wert.strip()
 
-        if feld in ['gesamtbetrag', 'nettobetrag']:
+        if feld in ["gesamtbetrag", "nettobetrag"]:
             # Komma zu Punkt für Decimal
-            wert = wert.replace(',', '.')
+            wert = wert.replace(",", ".")
             # Nur Zahlen und Punkt
-            wert = re.sub(r'[^\d.]', '', wert)
+            wert = re.sub(r"[^\d.]", "", wert)
 
-        elif feld == 'rechnungsdatum':
+        elif feld == "rechnungsdatum":
             # Datum normalisieren
             wert = self._normalisiere_datum(wert)
 
-        elif feld == 'lieferant':
+        elif feld == "lieferant":
             # Firma bereinigen
-            wert = re.sub(r'\s+', ' ', wert)  # Mehrfache Leerzeichen
-            wert = wert.split('\n')[0]  # Nur erste Zeile
+            wert = re.sub(r"\s+", " ", wert)  # Mehrfache Leerzeichen
+            wert = wert.split("\n")[0]  # Nur erste Zeile
 
         return wert
 
@@ -224,10 +225,13 @@ class PDFDatenExtraktor:
         """
         # Verschiedene Datumsformate probieren
         formate = [
-            '%d.%m.%Y', '%d.%m.%y',
-            '%d/%m/%Y', '%d/%m/%y',
-            '%d-%m-%Y', '%d-%m-%y',
-            '%Y-%m-%d'
+            "%d.%m.%Y",
+            "%d.%m.%y",
+            "%d/%m/%Y",
+            "%d/%m/%y",
+            "%d-%m-%Y",
+            "%d-%m-%y",
+            "%Y-%m-%d",
         ]
 
         for fmt in formate:
@@ -246,25 +250,25 @@ class PDFDatenExtraktor:
 
         Peter Zwegat: "Manchmal muss man um die Ecke denken!"
         """
-        zeilen = text.split('\n')
+        zeilen = text.split("\n")
 
         # Wenn kein Lieferant gefunden, erste nicht-leere Zeile nehmen
-        if not daten.get('lieferant'):
+        if not daten.get("lieferant"):
             for zeile in zeilen[:5]:  # Nur ersten 5 Zeilen
                 zeile = zeile.strip()
-                if zeile and len(zeile) > 3 and not re.match(r'^\d', zeile):
-                    daten['lieferant'] = zeile
+                if zeile and len(zeile) > 3 and not re.match(r"^\d", zeile):
+                    daten["lieferant"] = zeile
                     break
 
         # Wenn kein Gesamtbetrag, nach letztem Geldbetrag suchen
-        if not daten.get('gesamtbetrag'):
-            geld_matches = re.findall(r'(\d+[.,]\d{2})', text)
+        if not daten.get("gesamtbetrag"):
+            geld_matches = re.findall(r"(\d+[.,]\d{2})", text)
             if geld_matches:
                 # Letzten und höchsten Betrag nehmen
                 beträge = []
                 for match in geld_matches:
                     try:
-                        betrag = float(match.replace(',', '.'))
+                        betrag = float(match.replace(",", "."))
                         beträge.append((betrag, match))
                     except ValueError:
                         continue
@@ -272,10 +276,10 @@ class PDFDatenExtraktor:
                 if beträge:
                     # Höchsten Betrag als Gesamtbetrag nehmen
                     max_betrag = max(beträge, key=lambda x: x[0])
-                    daten['gesamtbetrag'] = max_betrag[1].replace(',', '.')
+                    daten["gesamtbetrag"] = max_betrag[1].replace(",", ".")
 
         # === BELEG-TYP ERKENNUNG ===
-        daten['beleg_typ'] = self._erkenne_beleg_typ(text.lower())
+        daten["beleg_typ"] = self._erkenne_beleg_typ(text.lower())
 
         return daten
 
@@ -291,14 +295,12 @@ class PDFDatenExtraktor:
             r"knut\s*art",  # Beispiel Firmenname - ANPASSEN!
             r"künstler.*knut",
             r"czok",  # Beispiel Nachname - ANPASSEN!
-
             # Rechtliche Hinweise eigener Rechnungen
             r"kleinunternehmer.*§.*19.*ustg",
             r"umsatzsteuer.*befreit",
             r"rechnungssteller",
             r"unsere.*bankverbindung",
             r"zahlbar.*innerhalb",
-
             # Typische Ausgangsrechnung-Formulierungen
             r"hiermit.*rechnung",
             r"für.*erbrachte.*leistung",
@@ -325,7 +327,6 @@ class PDFDatenExtraktor:
             r"lidl",
             r"rewe",
             r"edeka",
-
             # Typische Eingangsrechnung-Begriffe
             r"ihr.*kauf.*bei",
             r"bestellung.*nummer",
@@ -338,12 +339,20 @@ class PDFDatenExtraktor:
         ]
 
         # Zähle Treffer
-        ausgangs_treffer = sum(1 for pattern in ausgangs_indikatoren
-                              if re.search(pattern, text, re.IGNORECASE))
-        eingangs_treffer = sum(1 for pattern in eingangs_indikatoren
-                              if re.search(pattern, text, re.IGNORECASE))
+        ausgangs_treffer = sum(
+            1
+            for pattern in ausgangs_indikatoren
+            if re.search(pattern, text, re.IGNORECASE)
+        )
+        eingangs_treffer = sum(
+            1
+            for pattern in eingangs_indikatoren
+            if re.search(pattern, text, re.IGNORECASE)
+        )
 
-        logger.info(f"Beleg-Typ-Erkennung: Ausgang={ausgangs_treffer}, Eingang={eingangs_treffer}")
+        logger.info(
+            f"Beleg-Typ-Erkennung: Ausgang={ausgangs_treffer}, Eingang={eingangs_treffer}"
+        )
 
         # Entscheidungslogik
         if ausgangs_treffer > eingangs_treffer and ausgangs_treffer >= 1:
@@ -362,20 +371,20 @@ class PDFDatenExtraktor:
         Peter Zwegat: "Vertrauen ist gut, Kontrolle ist besser!"
         """
         # Datum validieren
-        if daten.get('rechnungsdatum'):
+        if daten.get("rechnungsdatum"):
             try:
-                datum = datetime.fromisoformat(daten['rechnungsdatum']).date()
+                datum = datetime.fromisoformat(daten["rechnungsdatum"]).date()
                 # Plausibilitätsprüfung: nicht in der Zukunft, nicht älter als 10 Jahre
                 heute = date.today()
                 if datum > heute or datum.year < (heute.year - 10):
                     logger.warning(f"Unplausibles Datum: {datum}")
-                    daten['rechnungsdatum'] = None
+                    daten["rechnungsdatum"] = None
             except ValueError:
                 logger.warning(f"Ungültiges Datum: {daten['rechnungsdatum']}")
-                daten['rechnungsdatum'] = None
+                daten["rechnungsdatum"] = None
 
         # Betrag validieren
-        for feld in ['gesamtbetrag', 'nettobetrag']:
+        for feld in ["gesamtbetrag", "nettobetrag"]:
             if daten.get(feld):
                 try:
                     betrag = Decimal(daten[feld])
@@ -397,15 +406,15 @@ class PDFDatenExtraktor:
         Peter Zwegat: "Auch nichts ist etwas!"
         """
         return {
-            'rechnungsnummer': None,
-            'rechnungsdatum': None,
-            'gesamtbetrag': None,
-            'nettobetrag': None,
-            'lieferant': None,
-            'ust_id': None,
-            'ocr_text': "",
-            'extraktions_erfolg': False,
-            'vertrauen': 0.0  # Vertrauenswert 0-1
+            "rechnungsnummer": None,
+            "rechnungsdatum": None,
+            "gesamtbetrag": None,
+            "nettobetrag": None,
+            "lieferant": None,
+            "ust_id": None,
+            "ocr_text": "",
+            "extraktions_erfolg": False,
+            "vertrauen": 0.0,  # Vertrauenswert 0-1
         }
 
     def berechne_vertrauen(self, daten: dict) -> float:
@@ -422,11 +431,12 @@ class PDFDatenExtraktor:
         basis_vertrauen = gefundene_felder / gesamt_felder
 
         # Bonus für wichtige Felder
-        wichtige_felder = ['rechnungsdatum', 'gesamtbetrag', 'lieferant']
-        wichtige_gefunden = sum(1 for feld in wichtige_felder
-                               if daten.get(feld))
+        wichtige_felder = ["rechnungsdatum", "gesamtbetrag", "lieferant"]
+        wichtige_gefunden = sum(1 for feld in wichtige_felder if daten.get(feld))
 
-        vertrauen = (basis_vertrauen * 0.7) + (wichtige_gefunden / len(wichtige_felder) * 0.3)
+        vertrauen = (basis_vertrauen * 0.7) + (
+            wichtige_gefunden / len(wichtige_felder) * 0.3
+        )
 
         return round(vertrauen, 2)
 
@@ -439,5 +449,5 @@ def extrahiere_pdf_daten(datei_pfad: str) -> dict[str, str | None]:
     """
     extraktor = PDFDatenExtraktor()
     daten = extraktor.extrahiere_daten(datei_pfad)
-    daten['vertrauen'] = extraktor.berechne_vertrauen(daten)
+    daten["vertrauen"] = extraktor.berechne_vertrauen(daten)
     return daten
