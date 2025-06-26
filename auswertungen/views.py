@@ -6,6 +6,7 @@ import io
 from datetime import timedelta
 from decimal import Decimal
 
+from django.contrib.auth.decorators import login_required
 from django.db.models import Count, Sum
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, render
@@ -25,6 +26,7 @@ from buchungen.models import Buchungssatz, Geschaeftspartner
 from konten.models import Konto
 
 
+@login_required
 def dashboard_view(request):
     """
     Hauptdashboard mit allen wichtigen Kennzahlen.

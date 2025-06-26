@@ -5,17 +5,29 @@ Buchhaltungsbutler für Künstler - Peter Zwegat Edition 🎨
 "Ordnung muss sein - auch bei den URLs!"
 """
 
-# Import unserer Dashboard-View aus auswertungen app
+# Import unserer Views
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
+from django.shortcuts import redirect
 from django.urls import include, path
 
-from auswertungen.views import dashboard_view
+
+def home_view(request):
+    """
+    Home-View die entscheidet: Dashboard oder Willkommen-Seite
+    """
+    if request.user.is_authenticated:
+        return redirect("auswertungen:dashboard")
+    else:
+        return redirect("authentifizierung:willkommen")
+
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("", dashboard_view, name="dashboard"),
+    path("", home_view, name="home"),
+    # Authentifizierung
+    path("auth/", include("authentifizierung.urls")),
     # App URLs
     path("konten/", include("konten.urls")),
     path("buchungen/", include("buchungen.urls")),

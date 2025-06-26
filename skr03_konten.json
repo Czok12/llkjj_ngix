@@ -15,3 +15,415 @@
   {"nummer": "3400", "name": "Versicherungen", "kategorie": "Aufwand", "typ": "Ausgaben"},
   {"nummer": "4900", "name": "Sonstige betriebliche Aufwendungen", "kategorie": "Aufwand", "typ": "Ausgaben"}
 ]
+
+
+[
+  {
+    "nummer": "0420",
+    "name": "Büroeinrichtung",
+    "kategorie": "Anlagevermögen",
+    "typ": "Sachanlagen",
+    "euer_zeile_nummer": "32",
+    "euer_zeile_bezeichnung": "AfA auf unbewegliche Wirtschaftsgüter und auf immaterielle Wirtschaftsgüter"
+  },
+  {
+    "nummer": "0480",
+    "name": "Geringwertige Wirtschaftsgüter (GWG)",
+    "kategorie": "Anlagevermögen",
+    "typ": "Sachanlagen",
+    "euer_zeile_nummer": "34",
+    "euer_zeile_bezeichnung": "Aufwendungen für geringwertige Wirtschaftsgüter"
+  },
+  {
+    "nummer": "0485",
+    "name": "Wirtschaftsgüter (Sammelposten)",
+    "kategorie": "Anlagevermögen",
+    "typ": "Sachanlagen",
+    "euer_zeile_nummer": "33",
+    "euer_zeile_bezeichnung": "AfA auf Wirtschaftsgüter der Sammelposten"
+  },
+  {
+    "nummer": "1000",
+    "name": "Kasse",
+    "kategorie": "Umlaufvermögen",
+    "typ": "Finanzmittel",
+    "euer_zeile_nummer": null,
+    "euer_zeile_bezeichnung": "Keine direkte Zuordnung (Bestandskonto)"
+  },
+  {
+    "nummer": "1200",
+    "name": "Bank",
+    "kategorie": "Umlaufvermögen",
+    "typ": "Finanzmittel",
+    "euer_zeile_nummer": null,
+    "euer_zeile_bezeichnung": "Keine direkte Zuordnung (Bestandskonto)"
+  },
+  {
+    "nummer": "1400",
+    "name": "Forderungen aus Lieferungen und Leistungen",
+    "kategorie": "Umlaufvermögen",
+    "typ": "Forderungen",
+    "euer_zeile_nummer": null,
+    "euer_zeile_bezeichnung": "Keine direkte Zuordnung (Bestandskonto)"
+  },
+  {
+    "nummer": "1571",
+    "name": "Abziehbare Vorsteuer 7 %",
+    "kategorie": "Umlaufvermögen",
+    "typ": "Steuerforderung",
+    "euer_zeile_nummer": "56",
+    "euer_zeile_bezeichnung": "Abziehbare Vorsteuerbeträge"
+  },
+  {
+    "nummer": "1576",
+    "name": "Abziehbare Vorsteuer 19 %",
+    "kategorie": "Umlaufvermögen",
+    "typ": "Steuerforderung",
+    "euer_zeile_nummer": "56",
+    "euer_zeile_bezeichnung": "Abziehbare Vorsteuerbeträge"
+  },
+  {
+    "nummer": "1771",
+    "name": "Umsatzsteuer 7 %",
+    "kategorie": "Verbindlichkeiten",
+    "typ": "Steuerverbindlichkeit",
+    "euer_zeile_nummer": "15",
+    "euer_zeile_bezeichnung": "Vereinnahmte Umsatzsteuer sowie Umsatzsteuer auf unentgeltliche Wertabgaben"
+  },
+  {
+    "nummer": "1776",
+    "name": "Umsatzsteuer 19 %",
+    "kategorie": "Verbindlichkeiten",
+    "typ": "Steuerverbindlichkeit",
+    "euer_zeile_nummer": "15",
+    "euer_zeile_bezeichnung": "Vereinnahmte Umsatzsteuer sowie Umsatzsteuer auf unentgeltliche Wertabgaben"
+  },
+  {
+    "nummer": "1780",
+    "name": "Umsatzsteuer-Vorauszahlungen",
+    "kategorie": "Verbindlichkeiten",
+    "typ": "Steuerverrechnung",
+    "euer_zeile_nummer": "57",
+    "euer_zeile_bezeichnung": "An das Finanzamt gezahlte und ggf. verrechnete Umsatzsteuer"
+  },
+  {
+    "nummer": "1800",
+    "name": "Privatentnahmen allgemein",
+    "kategorie": "Eigenkapital",
+    "typ": "Privatkonto",
+    "euer_zeile_nummer": null,
+    "euer_zeile_bezeichnung": "Keine direkte Zuordnung (Eigenkapital)"
+  },
+  {
+    "nummer": "1890",
+    "name": "Privateinlagen",
+    "kategorie": "Eigenkapital",
+    "typ": "Privatkonto",
+    "euer_zeile_nummer": null,
+    "euer_zeile_bezeichnung": "Keine direkte Zuordnung (Eigenkapital)"
+  },
+  {
+    "nummer": "3100",
+    "name": "Fremdleistungen",
+    "kategorie": "Aufwand",
+    "typ": "Betriebsausgaben",
+    "euer_zeile_nummer": "26",
+    "euer_zeile_bezeichnung": "Bezogene Fremdleistungen"
+  },
+  {
+    "nummer": "3300",
+    "name": "Wareneingang 7 % Vorsteuer",
+    "kategorie": "Aufwand",
+    "typ": "Wareneinkauf",
+    "euer_zeile_nummer": "25",
+    "euer_zeile_bezeichnung": "Waren, Rohstoffe und Hilfsstoffe einschließlich der Nebenkosten"
+  },
+  {
+    "nummer": "3400",
+    "name": "Wareneingang 19 % Vorsteuer",
+    "kategorie": "Aufwand",
+    "typ": "Wareneinkauf",
+    "euer_zeile_nummer": "25",
+    "euer_zeile_bezeichnung": "Waren, Rohstoffe und Hilfsstoffe einschließlich der Nebenkosten"
+  },
+  {
+    "nummer": "4127",
+    "name": "Freiwillige soziale Aufwendungen, steuerfrei (KSK-Beitrag)",
+    "kategorie": "Aufwand",
+    "typ": "Personalkosten",
+    "euer_zeile_nummer": "30",
+    "euer_zeile_bezeichnung": "Soziale Abgaben"
+  },
+  {
+    "nummer": "4210",
+    "name": "Miete (unbewegliche Wirtschaftsgüter)",
+    "kategorie": "Aufwand",
+    "typ": "Raumkosten",
+    "euer_zeile_nummer": "37",
+    "euer_zeile_bezeichnung": "Miete/Pacht für Geschäftsräume und Grundstücke"
+  },
+  {
+    "nummer": "4240",
+    "name": "Gas, Strom, Wasser",
+    "kategorie": "Aufwand",
+    "typ": "Raumkosten",
+    "euer_zeile_nummer": "39",
+    "euer_zeile_bezeichnung": "Sonstige Aufwendungen für Räume"
+  },
+  {
+    "nummer": "4360",
+    "name": "Versicherungen (betrieblich)",
+    "kategorie": "Aufwand",
+    "typ": "Betriebsausgaben",
+    "euer_zeile_nummer": "59",
+    "euer_zeile_bezeichnung": "Sonstige unbeschränkt abziehbare Betriebsausgaben"
+  },
+  {
+    "nummer": "4380",
+    "name": "Beiträge (IHK, Berufsverbände)",
+    "kategorie": "Aufwand",
+    "typ": "Betriebsausgaben",
+    "euer_zeile_nummer": "59",
+    "euer_zeile_bezeichnung": "Sonstige unbeschränkt abziehbare Betriebsausgaben"
+  },
+  {
+    "nummer": "4510",
+    "name": "Kfz-Steuer",
+    "kategorie": "Aufwand",
+    "typ": "Fahrzeugkosten",
+    "euer_zeile_nummer": "62",
+    "euer_zeile_bezeichnung": "Kraftfahrzeugsteuer und sonstige Kraftfahrzeugkosten"
+  },
+  {
+    "nummer": "4520",
+    "name": "Kfz-Versicherungen",
+    "kategorie": "Aufwand",
+    "typ": "Fahrzeugkosten",
+    "euer_zeile_nummer": "62",
+    "euer_zeile_bezeichnung": "Kraftfahrzeugsteuer und sonstige Kraftfahrzeugkosten"
+  },
+  {
+    "nummer": "4530",
+    "name": "Laufende Kfz-Betriebskosten (Treibstoff)",
+    "kategorie": "Aufwand",
+    "typ": "Fahrzeugkosten",
+    "euer_zeile_nummer": "63",
+    "euer_zeile_bezeichnung": "Laufende/feste Kfz-Kosten o. AfA und Zinsen"
+  },
+  {
+    "nummer": "4540",
+    "name": "Kfz-Reparaturen",
+    "kategorie": "Aufwand",
+    "typ": "Fahrzeugkosten",
+    "euer_zeile_nummer": "63",
+    "euer_zeile_bezeichnung": "Laufende/feste Kfz-Kosten o. AfA und Zinsen"
+  },
+  {
+    "nummer": "4560",
+    "name": "Kfz-Leasing",
+    "kategorie": "Aufwand",
+    "typ": "Fahrzeugkosten",
+    "euer_zeile_nummer": "61",
+    "euer_zeile_bezeichnung": "Leasingkosten für Kraftfahrzeuge"
+  },
+  {
+    "nummer": "4600",
+    "name": "Werbekosten",
+    "kategorie": "Aufwand",
+    "typ": "Werbung & Repräsentation",
+    "euer_zeile_nummer": "52",
+    "euer_zeile_bezeichnung": "Werbekosten"
+  },
+  {
+    "nummer": "4630",
+    "name": "Geschenke abzugsfähig",
+    "kategorie": "Aufwand",
+    "typ": "Werbung & Repräsentation",
+    "euer_zeile_nummer": "52",
+    "euer_zeile_bezeichnung": "Werbekosten"
+  },
+  {
+    "nummer": "4650",
+    "name": "Bewirtungskosten",
+    "kategorie": "Aufwand",
+    "typ": "Werbung & Repräsentation",
+    "euer_zeile_nummer": "53",
+    "euer_zeile_bezeichnung": "Bewirtungsaufwendungen"
+  },
+  {
+    "nummer": "4654",
+    "name": "Nicht abzugsfähige Bewirtungskosten",
+    "kategorie": "Aufwand",
+    "typ": "Korrekturposten",
+    "euer_zeile_nummer": "54",
+    "euer_zeile_bezeichnung": "Davon nicht abziehbare Bewirtungsaufwendungen"
+  },
+  {
+    "nummer": "4663",
+    "name": "Reisekosten Unternehmer Fahrtkosten",
+    "kategorie": "Aufwand",
+    "typ": "Reisekosten",
+    "euer_zeile_nummer": "42",
+    "euer_zeile_bezeichnung": "Reisekosten Unternehmer - Fahrtkosten"
+  },
+  {
+    "nummer": "4674",
+    "name": "Reisekosten Unternehmer Verpflegungsmehraufwand",
+    "kategorie": "Aufwand",
+    "typ": "Reisekosten",
+    "euer_zeile_nummer": "43",
+    "euer_zeile_bezeichnung": "Reisekosten Unternehmer - Verpflegungsmehraufwand"
+  },
+  {
+    "nummer": "4676",
+    "name": "Reisekosten Unternehmer Übernachtungsaufwand",
+    "kategorie": "Aufwand",
+    "typ": "Reisekosten",
+    "euer_zeile_nummer": "44",
+    "euer_zeile_bezeichnung": "Reisekosten Unternehmer - Übernachtungskosten"
+  },
+  {
+    "nummer": "4806",
+    "name": "Wartungskosten für Hard- und Software",
+    "kategorie": "Aufwand",
+    "typ": "IT-Kosten",
+    "euer_zeile_nummer": "59",
+    "euer_zeile_bezeichnung": "Sonstige unbeschränkt abziehbare Betriebsausgaben"
+  },
+  {
+    "nummer": "4822",
+    "name": "Abschreibungen auf immaterielle Vermögensgegenstände",
+    "kategorie": "Aufwand",
+    "typ": "Abschreibungen",
+    "euer_zeile_nummer": "32",
+    "euer_zeile_bezeichnung": "AfA auf unbewegliche Wirtschaftsgüter und auf immaterielle Wirtschaftsgüter"
+  },
+  {
+    "nummer": "4830",
+    "name": "Abschreibungen auf Sachanlagen",
+    "kategorie": "Aufwand",
+    "typ": "Abschreibungen",
+    "euer_zeile_nummer": "32",
+    "euer_zeile_bezeichnung": "AfA auf unbewegliche Wirtschaftsgüter und auf immaterielle Wirtschaftsgüter"
+  },
+  {
+    "nummer": "4855",
+    "name": "Sofortabschreibung geringwertiger Wirtschaftsgüter",
+    "kategorie": "Aufwand",
+    "typ": "Abschreibungen",
+    "euer_zeile_nummer": "34",
+    "euer_zeile_bezeichnung": "Aufwendungen für geringwertige Wirtschaftsgüter"
+  },
+  {
+    "nummer": "4900",
+    "name": "Sonstige betriebliche Aufwendungen",
+    "kategorie": "Aufwand",
+    "typ": "Betriebsausgaben",
+    "euer_zeile_nummer": "59",
+    "euer_zeile_bezeichnung": "Sonstige unbeschränkt abziehbare Betriebsausgaben"
+  },
+  {
+    "nummer": "4920",
+    "name": "Porto",
+    "kategorie": "Aufwand",
+    "typ": "Büro & Verwaltung",
+    "euer_zeile_nummer": "59",
+    "euer_zeile_bezeichnung": "Sonstige unbeschränkt abziehbare Betriebsausgaben"
+  },
+  {
+    "nummer": "4930",
+    "name": "Bürobedarf",
+    "kategorie": "Aufwand",
+    "typ": "Büro & Verwaltung",
+    "euer_zeile_nummer": "59",
+    "euer_zeile_bezeichnung": "Sonstige unbeschränkt abziehbare Betriebsausgaben"
+  },
+  {
+    "nummer": "4940",
+    "name": "Telefon",
+    "kategorie": "Aufwand",
+    "typ": "IT-Kosten",
+    "euer_zeile_nummer": "41",
+    "euer_zeile_bezeichnung": "Aufwendungen für Telekommunikation (z. B. Telefon, Internet)"
+  },
+  {
+    "nummer": "4945",
+    "name": "Telefax und Internet",
+    "kategorie": "Aufwand",
+    "typ": "IT-Kosten",
+    "euer_zeile_nummer": "41",
+    "euer_zeile_bezeichnung": "Aufwendungen für Telekommunikation (z. B. Telefon, Internet)"
+  },
+  {
+    "nummer": "4950",
+    "name": "Rechts- und Beratungskosten",
+    "kategorie": "Aufwand",
+    "typ": "Büro & Verwaltung",
+    "euer_zeile_nummer": "47",
+    "euer_zeile_bezeichnung": "Kosten für Rechts- und Steuerberatung, Buchführung"
+  },
+  {
+    "nummer": "4955",
+    "name": "Buchführungskosten",
+    "kategorie": "Aufwand",
+    "typ": "Büro & Verwaltung",
+    "euer_zeile_nummer": "47",
+    "euer_zeile_bezeichnung": "Kosten für Rechts- und Steuerberatung, Buchführung"
+  },
+  {
+    "nummer": "4964",
+    "name": "Aufwendungen für Lizenzen und Konzessionen",
+    "kategorie": "Aufwand",
+    "typ": "IT-Kosten",
+    "euer_zeile_nummer": "51",
+    "euer_zeile_bezeichnung": "Miete/Pacht für bewegliche Wirtschaftsgüter (ohne Kfz)"
+  },
+  {
+    "nummer": "4969",
+    "name": "Fortbildungskosten",
+    "kategorie": "Aufwand",
+    "typ": "Betriebsausgaben",
+    "euer_zeile_nummer": "46",
+    "euer_zeile_bezeichnung": "Fortbildungskosten (ohne Reisekosten)"
+  },
+  {
+    "nummer": "4980",
+    "name": "Sonstiger Betriebsbedarf (z.B. Künstlerbedarf)",
+    "kategorie": "Aufwand",
+    "typ": "Betriebsausgaben",
+    "euer_zeile_nummer": "59",
+    "euer_zeile_bezeichnung": "Sonstige unbeschränkt abziehbare Betriebsausgaben"
+  },
+  {
+    "nummer": "8195",
+    "name": "Erlöse als Kleinunternehmer nach § 19 UStG",
+    "kategorie": "Erlöse",
+    "typ": "Umsatzerlöse",
+    "euer_zeile_nummer": "13",
+    "euer_zeile_bezeichnung": "Betriebseinnahmen als Kleinunternehmer"
+  },
+  {
+    "nummer": "8337",
+    "name": "Erlöse aus freiberuflicher Tätigkeit 7 % USt",
+    "kategorie": "Erlöse",
+    "typ": "Umsatzerlöse",
+    "euer_zeile_nummer": "11",
+    "euer_zeile_bezeichnung": "Umsatzsteuerpflichtige Betriebseinnahmen"
+  },
+  {
+    "nummer": "8400",
+    "name": "Erlöse 19 % USt",
+    "kategorie": "Erlöse",
+    "typ": "Umsatzerlöse",
+    "euer_zeile_nummer": "11",
+    "euer_zeile_bezeichnung": "Umsatzsteuerpflichtige Betriebseinnahmen"
+  },
+  {
+    "nummer": "8921",
+    "name": "Verwendung von Gegenständen (Kfz-Nutzung) 19 % USt",
+    "kategorie": "Erlöse",
+    "typ": "Entnahmen",
+    "euer_zeile_nummer": "16",
+    "euer_zeile_bezeichnung": "Private Kfz-Nutzung"
+  }
+]

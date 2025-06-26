@@ -1,0 +1,362 @@
+{% extends "base.html" %}
+
+{% block title %}llkjj_knut - Buchhaltung für Künstler{% endblock %}
+
+{% block extra_css %}
+<style>
+.hero-section {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 20px;
+    padding: 4rem 2rem;
+    margin-bottom: 3rem;
+    text-align: center;
+}
+
+.hero-title {
+    font-size: 3rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+
+.hero-subtitle {
+    font-size: 1.25rem;
+    margin-bottom: 2rem;
+    opacity: 0.9;
+}
+
+.cta-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 2rem;
+}
+
+.cta-button {
+    background: white;
+    color: #667eea;
+    padding: 15px 30px;
+    border-radius: 25px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.cta-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+    color: #667eea;
+    text-decoration: none;
+}
+
+.cta-button.secondary {
+    background: transparent;
+    border: 2px solid white;
+    color: white;
+}
+
+.cta-button.secondary:hover {
+    background: white;
+    color: #667eea;
+}
+
+.feature-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    margin: 3rem 0;
+}
+
+.feature-card {
+    background: white;
+    border-radius: 15px;
+    padding: 2rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+    text-align: center;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+}
+
+.feature-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.feature-title {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+    color: #333;
+}
+
+.feature-description {
+    color: #666;
+    line-height: 1.6;
+}
+
+.peter-section {
+    background: #f8f9fa;
+    border-radius: 15px;
+    padding: 3rem 2rem;
+    margin: 3rem 0;
+    text-align: center;
+}
+
+.peter-avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    margin: 0 auto 2rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.testimonial {
+    font-size: 1.25rem;
+    font-style: italic;
+    color: #495057;
+    margin-bottom: 1rem;
+    line-height: 1.6;
+}
+
+.testimonial-author {
+    font-weight: bold;
+    color: #343a40;
+}
+
+.stats-section {
+    background: white;
+    border-radius: 15px;
+    padding: 2rem;
+    margin: 3rem 0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 2rem;
+    text-align: center;
+}
+
+.stat-item {
+    padding: 1rem;
+}
+
+.stat-number {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #667eea;
+    display: block;
+}
+
+.stat-label {
+    color: #666;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+@media (max-width: 768px) {
+    .hero-title {
+        font-size: 2rem;
+    }
+    
+    .cta-buttons {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .cta-button {
+        width: 100%;
+        max-width: 280px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    
+    <!-- Hero Section -->
+    <div class="hero-section">
+        <h1 class="hero-title">🎨 llkjj_knut</h1>
+        <p class="hero-subtitle">
+            Buchhaltung für Künstler - Einfach, übersichtlich und mit Peter Zwegats Ordnungsliebe
+        </p>
+        <p style="font-size: 1.1rem; opacity: 0.9; margin-bottom: 2rem;">
+            Speziell entwickelt für freischaffende Künstler und Kleinunternehmer nach §19 UStG
+        </p>
+        
+        <div class="cta-buttons">
+            <a href="{% url 'authentifizierung:register' %}" class="cta-button">
+                <i class="fas fa-user-plus mr-2"></i>Kostenlos registrieren
+            </a>
+            <a href="{% url 'authentifizierung:login' %}" class="cta-button secondary">
+                <i class="fas fa-sign-in-alt mr-2"></i>Anmelden
+            </a>
+        </div>
+    </div>
+
+    <!-- Features Grid -->
+    <div class="feature-grid">
+        <div class="feature-card">
+            <div class="feature-icon text-blue-500">
+                <i class="fas fa-calculator"></i>
+            </div>
+            <h3 class="feature-title">Einfache Buchführung</h3>
+            <p class="feature-description">
+                SKR03-Kontenrahmen bereits integriert. Buchen Sie Ihre Geschäftsvorfälle 
+                mit wenigen Klicks - Peter Zwegat approved!
+            </p>
+        </div>
+
+        <div class="feature-card">
+            <div class="feature-icon text-green-500">
+                <i class="fas fa-file-invoice-dollar"></i>
+            </div>
+            <h3 class="feature-title">Automatische EÜR</h3>
+            <p class="feature-description">
+                Einnahme-Überschuss-Rechnung wird automatisch generiert. 
+                Steuerberater-kompatibel und finanzamtstauglich.
+            </p>
+        </div>
+
+        <div class="feature-card">
+            <div class="feature-icon text-orange-500">
+                <i class="fas fa-robot"></i>
+            </div>
+            <h3 class="feature-title">KI-Belegerkennung</h3>
+            <p class="feature-description">
+                Laden Sie Belege hoch und lassen Sie die KI die Daten automatisch 
+                extrahieren. Spart Zeit und reduziert Fehler.
+            </p>
+        </div>
+
+        <div class="feature-card">
+            <div class="feature-icon text-purple-500">
+                <i class="fas fa-shield-alt"></i>
+            </div>
+            <h3 class="feature-title">GoBD-konform</h3>
+            <p class="feature-description">
+                Alle Daten werden revisionssicher gespeichert und entsprechen 
+                den Grundsätzen ordnungsmäßiger Buchführung.
+            </p>
+        </div>
+
+        <div class="feature-card">
+            <div class="feature-icon text-red-500">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <h3 class="feature-title">Übersichtliche Auswertungen</h3>
+            <p class="feature-description">
+                Behalten Sie Ihre Finanzen im Blick mit intuitiven Dashboards 
+                und detaillierten Berichten.
+            </p>
+        </div>
+
+        <div class="feature-card">
+            <div class="feature-icon text-teal-500">
+                <i class="fas fa-users"></i>
+            </div>
+            <h3 class="feature-title">Für Künstler gemacht</h3>
+            <p class="feature-description">
+                Speziell auf die Bedürfnisse freischaffender Künstler und 
+                Kleinunternehmer zugeschnitten.
+            </p>
+        </div>
+    </div>
+
+    <!-- Peter Zwegat Section -->
+    <div class="peter-section">
+        <div class="peter-avatar">
+            👔
+        </div>
+        <h2 style="color: #343a40; margin-bottom: 2rem;">Mit Peter Zwegats Ordnungsliebe</h2>
+        <blockquote class="testimonial">
+            "Ordnung ist das halbe Leben - die andere Hälfte ist Kunst! Mit llkjj_knut 
+            bringen Sie beides zusammen und haben Ihre Finanzen endlich im Griff."
+        </blockquote>
+        <div class="testimonial-author">- Peter Zwegat (Inspiration)</div>
+    </div>
+
+    <!-- Statistics Section -->
+    <div class="stats-section">
+        <h2 style="text-align: center; margin-bottom: 2rem; color: #343a40;">
+            Warum llkjj_knut?
+        </h2>
+        <div class="stats-grid">
+            <div class="stat-item">
+                <span class="stat-number">100%</span>
+                <span class="stat-label">Kostenlos</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number">§19</span>
+                <span class="stat-label">UStG konform</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number">SKR03</span>
+                <span class="stat-label">Kontenrahmen</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number">GoBD</span>
+                <span class="stat-label">Zertifiziert</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Final CTA -->
+    <div style="text-align: center; padding: 3rem 0;">
+        <h2 style="color: #343a40; margin-bottom: 2rem;">
+            Bereit für mehr Ordnung in Ihren Finanzen?
+        </h2>
+        <div class="cta-buttons">
+            <a href="{% url 'authentifizierung:register' %}" class="cta-button" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white;">
+                <i class="fas fa-rocket mr-2"></i>Jetzt starten - Es ist kostenlos!
+            </a>
+        </div>
+        <p style="margin-top: 1rem; color: #666; font-size: 0.9rem;">
+            Keine Kreditkarte erforderlich • Sofortiger Zugang • Daten jederzeit exportierbar
+        </p>
+    </div>
+
+</div>
+
+<!-- Optional: Animate on scroll -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Simple animation for feature cards
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+    
+    const observer = new IntersectionObserver(function(entries) {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
+    }, observerOptions);
+    
+    // Initially hide cards
+    document.querySelectorAll('.feature-card').forEach(card => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+        observer.observe(card);
+    });
+});
+</script>
+{% endblock %}

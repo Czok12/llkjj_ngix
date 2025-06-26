@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+
+{% block title %}E-Mail gesendet - llkjj_knut{% endblock %}
+
+{% block extra_css %}
+<style>
+.done-container {
+    max-width: 500px;
+    margin: 3rem auto;
+    text-align: center;
+    padding: 2rem;
+}
+
+.done-header {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+    border-radius: 15px;
+    padding: 3rem 2rem;
+    margin-bottom: 2rem;
+}
+
+.done-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    animation: checkmark 0.8s ease-out;
+}
+
+.info-box {
+    background: white;
+    border-radius: 10px;
+    padding: 2rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+}
+
+.steps-list {
+    text-align: left;
+    margin: 2rem 0;
+}
+
+.steps-list li {
+    margin: 1rem 0;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.tips-box {
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin: 2rem 0;
+}
+
+@keyframes checkmark {
+    0% {
+        opacity: 0;
+        transform: scale(0.3);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.2);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.action-buttons {
+    margin: 2rem 0;
+}
+
+.btn-outline-primary {
+    border-radius: 25px;
+    padding: 10px 20px;
+    font-weight: 500;
+    margin: 0.5rem;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="done-container">
+        
+        <div class="done-header">
+            <div class="done-icon">📧</div>
+            <h1 class="display-6">E-Mail wurde gesendet!</h1>
+            <p class="lead mb-0">Prüfen Sie Ihren Posteingang</p>
+        </div>
+
+        <div class="info-box">
+            <h3><i class="fas fa-envelope-open-text"></i> Was passiert jetzt?</h3>
+            
+            <ol class="steps-list">
+                <li>
+                    <strong>📬 E-Mail prüfen:</strong><br>
+                    Schauen Sie in Ihren Posteingang (und Spam-Ordner)
+                </li>
+                <li>
+                    <strong>🔗 Link klicken:</strong><br>
+                    Klicken Sie auf den Passwort-Reset-Link in der E-Mail
+                </li>
+                <li>
+                    <strong>🔐 Neues Passwort:</strong><br>
+                    Geben Sie Ihr neues, sicheres Passwort ein
+                </li>
+                <li>
+                    <strong>✅ Fertig:</strong><br>
+                    Melden Sie sich mit dem neuen Passwort an
+                </li>
+            </ol>
+        </div>
+
+        <div class="tips-box">
+            <h5><i class="fas fa-lightbulb"></i> Peter Zwegats Tipps:</h5>
+            <ul class="mb-0">
+                <li>"Prüfen Sie auch den Spam-Ordner - E-Mails verirren sich manchmal!"</li>
+                <li>"Der Link ist 24 Stunden gültig - aber zögern Sie nicht zu lange!"</li>
+                <li>"Wählen Sie ein starkes Passwort - Ihre Daten sind es wert!"</li>
+                <li>"Notieren Sie sich das neue Passwort an einem sicheren Ort!"</li>
+            </ul>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <a href="{% url 'authentifizierung:login' %}" class="btn btn-outline-primary">
+                <i class="fas fa-sign-in-alt"></i> Zur Anmeldung
+            </a>
+            <a href="{% url 'authentifizierung:password_reset' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-redo"></i> Erneut senden
+            </a>
+        </div>
+
+        <!-- Hilfe-Sektion -->
+        <div class="alert alert-info mt-4">
+            <h6><i class="fas fa-question-circle"></i> Keine E-Mail erhalten?</h6>
+            <p class="mb-0">
+                Falls Sie nach 5 Minuten keine E-Mail erhalten haben:
+            </p>
+            <ul class="mt-2 mb-0">
+                <li>Prüfen Sie den Spam-/Junk-Ordner</li>
+                <li>Stellen Sie sicher, dass die E-Mail-Adresse korrekt war</li>
+                <li>Versuchen Sie es erneut</li>
+                <li>Kontaktieren Sie den Support: <a href="mailto:support@llkjj-knut.de">support@llkjj-knut.de</a></li>
+            </ul>
+        </div>
+
+        <!-- Sicherheitshinweise -->
+        <div class="text-center mt-4">
+            <small class="text-muted">
+                <i class="fas fa-shield-alt"></i>
+                Aus Sicherheitsgründen werden keine Details über existierende Benutzerkonten preisgegeben.
+            </small>
+        </div>
+
+    </div>
+</div>
+
+<!-- Auto-Refresh für E-Mail-Client -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Button um E-Mail-Client zu öffnen (falls möglich)
+    addEmailClientButton();
+    
+    // Countdown für automatische Weiterleitung (optional)
+    // startCountdown();
+});
+
+function addEmailClientButton() {
+    const container = document.querySelector('.action-buttons');
+    
+    const emailButton = document.createElement('a');
+    emailButton.href = 'mailto:';
+    emailButton.className = 'btn btn-outline-success';
+    emailButton.innerHTML = '<i class="fas fa-external-link-alt"></i> E-Mail-Programm öffnen';
+    
+    container.appendChild(emailButton);
+}
+
+function startCountdown() {
+    let seconds = 300; // 5 Minuten
+    const countdownElement = document.createElement('div');
+    countdownElement.className = 'alert alert-secondary mt-3';
+    countdownElement.innerHTML = `
+        <i class="fas fa-clock"></i> 
+        <strong>Automatische Weiterleitung in:</strong> 
+        <span id="countdown">${Math.floor(seconds / 60)}:${(seconds % 60).toString().padStart(2, '0')}</span>
+    `;
+    
+    document.querySelector('.done-container').appendChild(countdownElement);
+    
+    const interval = setInterval(() => {
+        seconds--;
+        const minutes = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        
+        document.getElementById('countdown').textContent = 
+            `${minutes}:${secs.toString().padStart(2, '0')}`;
+        
+        if (seconds <= 0) {
+            clearInterval(interval);
+            window.location.href = "{% url 'authentifizierung:login' %}";
+        }
+    }, 1000);
+}
+</script>
+{% endblock %}

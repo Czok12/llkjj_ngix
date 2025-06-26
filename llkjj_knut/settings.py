@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     "crispy_forms",
     "crispy_tailwind",
     # Project Apps
+    "authentifizierung",
     "konten",
     "buchungen",
     "belege",
@@ -158,6 +159,38 @@ if DEBUG:
     ]
 
 # =============================================================================
+# AUTHENTIFIZIERUNG & SESSION KONFIGURATION
+# =============================================================================
+
+# Login/Logout URLs
+LOGIN_URL = "/auth/anmeldung/"
+LOGIN_REDIRECT_URL = "/"
+LOGOUT_REDIRECT_URL = "/auth/anmeldung/"
+
+# Session-Einstellungen
+SESSION_COOKIE_AGE = 1209600  # 2 Wochen
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SECURE = not DEBUG  # HTTPS in Production
+SESSION_SAVE_EVERY_REQUEST = True
+
+# CSRF-Einstellungen
+CSRF_COOKIE_SECURE = not DEBUG  # HTTPS in Production
+CSRF_COOKIE_HTTPONLY = True
+
+# Password-Validierung wird bereits oben definiert
+
+# E-Mail Backend (für Passwort-Reset)
+if DEBUG:
+    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+else:
+    EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+    EMAIL_HOST = env("EMAIL_HOST", default="smtp.gmail.com")
+    EMAIL_PORT = env.int("EMAIL_PORT", default=587)
+    EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=True)
+    EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="")
+    EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")
+
+# =============================================================================
 # PROJEKT-SPEZIFISCHE EINSTELLUNGEN
 # =============================================================================
 
@@ -230,6 +263,64 @@ LOGGING = {
         "llkjj_knut": {
             "handlers": ["file", "console"],
             "level": env("LOG_LEVEL", default="DEBUG"),
+            "propagate": False,
+        },
+    },
+}
+
+
+# In: llkjj_ngix/settings.py (oder wo auch immer Ihre Haupteinstellungsdatei ist)
+
+# ... am Ende der Datei einfügen
+
+# LOGGING KONFIGURATION
+# ------------------------------------------------------------------------------
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "verbose": {
+            "format": "%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s",
+        },
+        "simple": {
+            "format": "%(levelname)s %(asctime)s %(message)s",
+        },
+    },
+    "handlers": {
+        "console": {
+            "level": "INFO",  # Im Terminal nur INFO und höher anzeigen
+            "class": "logging.StreamHandler",
+            "formatter": "simple",
+        },
+        "file_debug": {
+            "level": "DEBUG",  # In die Datei alles ab DEBUG-Level schreiben
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": BASE_DIR
+            / "logs/debug.log",  # Speichert die Log-Datei im Hauptverzeichnis/logs/
+            "maxBytes": 1024 * 1024 * 5,  # 5 MB pro Datei
+            "backupCount": 5,  # Behält die letzten 5 Log-Dateien
+            "formatter": "verbose",
+        },
+    },
+    "root": {
+        "handlers": ["console", "file_debug"],
+        "level": "DEBUG",  # Der Root-Logger fängt alles ab DEBUG-Level ab
+    },
+    "loggers": {
+        "django": {
+            "handlers": ["console", "file_debug"],
+            "level": "INFO",  # Django's eigenes Logging etwas reduzieren
+            "propagate": False,
+        },
+        "celery": {
+            "handlers": ["console", "file_debug"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        # Hier können wir Log-Level für spezifische Apps definieren
+        "belege": {
+            "handlers": ["console", "file_debug"],
+            "level": "DEBUG",  # Unsere 'belege' App soll sehr gesprächig sein
             "propagate": False,
         },
     },

@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}Passwort zurücksetzen - llkjj_knut{% endblock %}
+
+{% block extra_css %}
+<style>
+.reset-container {
+    max-width: 500px;
+    margin: 3rem auto;
+    padding: 2rem;
+}
+
+.reset-header {
+    background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
+    color: white;
+    border-radius: 15px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.reset-form {
+    background: white;
+    border-radius: 10px;
+    padding: 2rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e9ecef;
+}
+
+.peter-tip {
+    border-left: 4px solid #ffc107;
+    background: #fff3cd;
+    color: #856404;
+    border-radius: 0 10px 10px 0;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
+    border: none;
+    border-radius: 25px;
+    padding: 12px 24px;
+    font-weight: 600;
+    color: #212529;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(255, 193, 7, 0.3);
+    color: #212529;
+}
+
+.security-info {
+    background: #d1ecf1;
+    border: 1px solid #bee5eb;
+    border-radius: 8px;
+    padding: 1rem;
+    margin: 1rem 0;
+}
+
+.back-link {
+    color: #6c757d;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.back-link:hover {
+    color: #495057;
+    text-decoration: underline;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="reset-container">
+        
+        <div class="reset-header text-center">
+            <h1 class="display-6">🔑 Passwort zurücksetzen</h1>
+            <p class="lead mb-0">Keine Sorge - das passiert den Besten!</p>
+        </div>
+
+        <div class="reset-form">
+            <form method="post" novalidate>
+                {% csrf_token %}
+                
+                {% crispy form %}
+                
+            </form>
+        </div>
+
+        <!-- Sicherheitshinweise -->
+        <div class="security-info">
+            <h6><i class="fas fa-shield-alt"></i> Sicherheitshinweise</h6>
+            <ul class="mb-0">
+                <li>Der Reset-Link ist 24 Stunden gültig</li>
+                <li>Sie können den Link nur einmal verwenden</li>
+                <li>Prüfen Sie auch Ihren Spam-Ordner</li>
+                <li>Bei Problemen wenden Sie sich an den Support</li>
+            </ul>
+        </div>
+
+        <!-- Zusätzliche Hilfe -->
+        <div class="text-center mt-4">
+            <div class="alert alert-warning">
+                <i class="fas fa-lightbulb"></i>
+                <strong>Tipp:</strong> Verwenden Sie ein sicheres Passwort mit mindestens 8 Zeichen, 
+                Groß- und Kleinbuchstaben, Zahlen und Sonderzeichen.
+            </div>
+        </div>
+
+        <!-- Alternative Kontaktmöglichkeiten -->
+        <div class="text-center mt-4">
+            <p><strong>Andere Probleme?</strong></p>
+            <small class="text-muted">
+                Kontaktieren Sie uns: <a href="mailto:support@llkjj-knut.de">support@llkjj-knut.de</a>
+            </small>
+        </div>
+
+    </div>
+</div>
+
+<!-- JavaScript für E-Mail-Validierung -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const emailField = document.getElementById('id_email');
+    
+    if (emailField) {
+        emailField.addEventListener('blur', function() {
+            validateEmail(this.value);
+        });
+        
+        emailField.addEventListener('input', function() {
+            clearValidationStyles(this);
+        });
+    }
+});
+
+function validateEmail(email) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const field = document.getElementById('id_email');
+    const container = field.closest('.form-group');
+    
+    if (emailRegex.test(email)) {
+        field.style.borderColor = '#28a745';
+        showValidationMessage(container, 'E-Mail-Format ist korrekt', 'success');
+    } else if (email.length > 0) {
+        field.style.borderColor = '#dc3545';
+        showValidationMessage(container, 'Bitte geben Sie eine gültige E-Mail-Adresse ein', 'error');
+    }
+}
+
+function clearValidationStyles(field) {
+    field.style.borderColor = '';
+    const container = field.closest('.form-group');
+    const existingMessage = container.querySelector('.validation-message');
+    if (existingMessage) {
+        existingMessage.remove();
+    }
+}
+
+function showValidationMessage(container, message, type) {
+    // Entferne existierende Nachrichten
+    const existingMessage = container.querySelector('.validation-message');
+    if (existingMessage) {
+        existingMessage.remove();
+    }
+    
+    // Erstelle neue Nachricht
+    const messageElement = document.createElement('div');
+    messageElement.className = `validation-message small mt-1 ${type === 'success' ? 'text-success' : 'text-danger'}`;
+    messageElement.innerHTML = `<i class="fas fa-${type === 'success' ? 'check' : 'exclamation-triangle'}"></i> ${message}`;
+    
+    container.appendChild(messageElement);
+}
+</script>
+{% endblock %}
