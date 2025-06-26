@@ -5,7 +5,7 @@
 ## 🛠️ **Tool-Stack Übersicht**
 
 ### ✅ **Was wird verwendet:**
-- **🔍 Ruff**: Linting + Import-Sortierung (ersetzt isort, flake8, pylint)
+- **🔍 Ruff**: 
 - **🔬 MyPy**: Statische Typ-Prüfung
 - **🎨 Black**: Code-Formatierung
 
@@ -75,7 +75,7 @@ select = [
     "T20", # flake8-print
 ]
 
-[tool.ruff.isort]
+[tool.ruff]
 # Django-optimierte Import-Sortierung
 known-first-party = ["llkjj_knut", "konten", "buchungen", "belege"]
 section-order = ["future", "standard-library", "third-party", "first-party", "local-folder"]

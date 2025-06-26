@@ -31,6 +31,29 @@ pytesseract
 pdf2image
 PyMuPDF  # PDF Text-Extraktion
 
+# AI/ML für intelligente Belegerfassung
+scikit-learn  # Machine Learning Algorithmen
+spacy  # NLP für deutsche Texterkennung
+spacy[de]  # Deutsche Sprachmodelle
+transformers  # Hugging Face Transformers für NLP
+torch  # PyTorch für Deep Learning
+sentence-transformers  # Semantic Text Similarity
+fuzzywuzzy[speedup]  # Fuzzy String Matching
+python-Levenshtein  # String-Ähnlichkeit
+textdistance  # Text-Ähnlichkeits-Algorithmen
+
+# Computer Vision & OCR Verbesserung
+easyocr  # Bessere OCR-Alternative zu Tesseract
+opencv-python  # Bildvorverarbeitung für OCR
+layoutparser[ocr]  # Document Layout Analysis
+paddleocr  # Sehr gute OCR-Engine
+
+# Datenverarbeitung & Analyse
+pandas  # Datenmanipulation
+numpy  # Numerische Operationen
+matplotlib  # Visualisierung
+seaborn  # Statistische Plots
+
 # Code Quality
 ruff
 mypy
