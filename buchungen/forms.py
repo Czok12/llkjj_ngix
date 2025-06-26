@@ -3,24 +3,15 @@ Forms für Buchungen - Hier passiert die Magie!
 Peter Zwegat: "Ein gutes Formular ist wie ein guter Anzug - sitzt perfekt!"
 """
 
+from crispy_forms.bootstrap import FormActions
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import HTML, Column, Fieldset, Layout, Reset, Row, Submit
 from django import forms
 from django.core.exceptions import ValidationError
-from django.db import transaction
-from crispy_forms.helper import FormHelper
-from crispy_forms.layout import (
-    Layout,
-    Fieldset,
-    Row,
-    Column,
-    Submit,
-    Reset,
-    HTML,
-    Div,
-)
-from crispy_forms.bootstrap import FormActions
 
-from konten.models import Konto
 from belege.models import Beleg
+from konten.models import Konto
+
 from .models import Buchungssatz, Geschaeftspartner
 
 
@@ -84,7 +75,7 @@ class BuchungssatzForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        
+
         # Crispy Forms Layout
         self.helper = FormHelper()
         self.helper.form_method = "post"
@@ -93,7 +84,7 @@ class BuchungssatzForm(forms.ModelForm):
             HTML(
                 '<div class="alert alert-info">'
                 '<i class="fas fa-calculator"></i> '
-                '<strong>Peter Zwegat sagt:</strong> '
+                "<strong>Peter Zwegat sagt:</strong> "
                 '"Soll an Haben - das ist der Grundsatz der Buchhaltung!"'
                 "</div>"
             ),
@@ -246,7 +237,7 @@ class SchnellbuchungForm(forms.ModelForm):
             HTML(
                 '<div class="alert alert-success">'
                 '<i class="fas fa-rocket"></i> '
-                '<strong>Schnellbuchung</strong> - Peter Zwegat approved!'
+                "<strong>Schnellbuchung</strong> - Peter Zwegat approved!"
                 "</div>"
             ),
             "buchungstyp",
@@ -278,7 +269,10 @@ class SchnellbuchungForm(forms.ModelForm):
         standard_konten = {
             "einnahme": {"soll": "1200", "haben": "8400"},  # Bank an Erlöse
             "ausgabe": {"soll": "4980", "haben": "1200"},  # Aufwand an Bank
-            "privatentnahme": {"soll": "1800", "haben": "1200"},  # Privatentnahme an Bank
+            "privatentnahme": {
+                "soll": "1800",
+                "haben": "1200",
+            },  # Privatentnahme an Bank
             "privateinlage": {"soll": "1200", "haben": "1800"},  # Bank an Eigenkapital
         }
 
@@ -346,7 +340,7 @@ class CSVImportForm(forms.Form):
             HTML(
                 '<div class="alert alert-info">'
                 '<i class="fas fa-upload"></i> '
-                '<strong>CSV-Import</strong><br>'
+                "<strong>CSV-Import</strong><br>"
                 'Peter Zwegat: "Ordnung in den Daten ist der erste Schritt!"'
                 "</div>"
             ),
@@ -368,7 +362,7 @@ class CSVImportForm(forms.Form):
     def clean_csv_datei(self):
         """Validierung der hochgeladenen Datei"""
         datei = self.cleaned_data["csv_datei"]
-        
+
         if datei:
             # Dateigröße prüfen (max 10MB)
             if datei.size > 10 * 1024 * 1024:
@@ -377,7 +371,7 @@ class CSVImportForm(forms.Form):
                 )
 
             # Dateiendung prüfen
-            erlaubte_endungen = ['.csv', '.xlsx', '.xls']
+            erlaubte_endungen = [".csv", ".xlsx", ".xls"]
             if not any(datei.name.lower().endswith(ext) for ext in erlaubte_endungen):
                 raise ValidationError(
                     "Peter Zwegat sagt: 'Nur CSV oder Excel-Dateien erlaubt!'"

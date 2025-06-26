@@ -5,28 +5,20 @@ Peter Zwegat: "Hier fließt das Geld - digital versteht sich!"
 
 import csv
 import io
+
 from django.contrib import messages
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import transaction
-from django.db.models import Q, Count, Sum
-from django.http import JsonResponse, HttpResponse
-from django.shortcuts import render, redirect, get_object_or_404
+from django.db.models import Q, Sum
+from django.http import HttpResponse, JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
-from django.views.generic import (
-    ListView,
-    DetailView,
-    CreateView,
-    UpdateView,
-    DeleteView,
-    FormView,
-)
-from django.core.paginator import Paginator
 from django.utils import timezone
+from django.views.generic import CreateView, DetailView, FormView, ListView, UpdateView
 
 from konten.models import Konto
-from belege.models import Beleg
+
+from .forms import BuchungssatzForm, CSVImportForm, SchnellbuchungForm
 from .models import Buchungssatz, Geschaeftspartner
-from .forms import BuchungssatzForm, SchnellbuchungForm, CSVImportForm
 
 
 class BuchungssatzListView(ListView):
@@ -91,7 +83,7 @@ class BuchungssatzListView(ListView):
     def get_context_data(self, **kwargs):
         """Zusätzliche Kontextdaten"""
         context = super().get_context_data(**kwargs)
-        
+
         # Statistiken
         queryset = self.get_queryset()
         context["stats"] = {
@@ -103,8 +95,10 @@ class BuchungssatzListView(ListView):
 
         # Filter-Optionen
         context["konten"] = Konto.objects.filter(aktiv=True).order_by("nummer")
-        context["partner"] = Geschaeftspartner.objects.filter(aktiv=True).order_by("name")
-        
+        context["partner"] = Geschaeftspartner.objects.filter(aktiv=True).order_by(
+            "name"
+        )
+
         # Aktuelle Filter
         context["current_filters"] = {
             "search": self.request.GET.get("search", ""),
@@ -117,7 +111,7 @@ class BuchungssatzListView(ListView):
 
         context["page_title"] = "Buchungen"
         context["page_subtitle"] = "Alle Buchungssätze im Überblick"
-        
+
         return context
 
 
@@ -212,8 +206,10 @@ class BuchungssatzUpdateView(UpdateView):
     def get_context_data(self, **kwargs):
         """Zusätzliche Kontextdaten"""
         context = super().get_context_data(**kwargs)
-        context["page_title"] = f"Buchung bearbeiten"
-        context["page_subtitle"] = f"Änderungen an Buchung vom {self.object.buchungsdatum}"
+        context["page_title"] = "Buchung bearbeiten"
+        context["page_subtitle"] = (
+            f"Änderungen an Buchung vom {self.object.buchungsdatum}"
+        )
         return context
 
 
@@ -236,11 +232,11 @@ class SchnellbuchungCreateView(CreateView):
         buchungstyp = form.cleaned_data["buchungstyp"]
         typ_namen = {
             "einnahme": "Einnahme",
-            "ausgabe": "Ausgabe", 
+            "ausgabe": "Ausgabe",
             "privatentnahme": "Privatentnahme",
             "privateinlage": "Privateinlage",
         }
-        
+
         messages.success(
             self.request,
             f"⚡ Peter Zwegat freut sich: '{typ_namen.get(buchungstyp)} über {form.instance.betrag}€ schnell gebucht!'",
@@ -269,15 +265,15 @@ class CSVImportView(FormView):
         try:
             # CSV-Daten analysieren
             csv_daten = self._parse_csv(form.cleaned_data)
-            
+
             # Mapping-Interface anzeigen
             self.request.session["csv_daten"] = csv_daten
             return redirect("buchungen:csv_mapping")
-            
+
         except Exception as e:
             messages.error(
                 self.request,
-                f"❌ Peter Zwegat warnt: 'Fehler beim Verarbeiten der CSV-Datei: {e}'"
+                f"❌ Peter Zwegat warnt: 'Fehler beim Verarbeiten der CSV-Datei: {e}'",
             )
             return self.form_invalid(form)
 
@@ -289,15 +285,15 @@ class CSVImportView(FormView):
         erste_zeile_ueberspringen = form_data["erste_zeile_ueberspringen"]
 
         # Datei in String umwandeln
-        if csv_datei.name.endswith(('.xlsx', '.xls')):
+        if csv_datei.name.endswith((".xlsx", ".xls")):
             # Excel-Datei (TODO: pandas integration)
             raise ValueError("Excel-Import noch nicht implementiert")
-        
+
         content = csv_datei.read().decode(encoding)
         csv_reader = csv.reader(io.StringIO(content), delimiter=trennzeichen)
-        
+
         zeilen = list(csv_reader)
-        
+
         if erste_zeile_ueberspringen and zeilen:
             header = zeilen[0]
             daten = zeilen[1:]
@@ -347,7 +343,7 @@ def csv_mapping_view(request):
             ("partner_name", "Partner-Name"),
         ],
     }
-    
+
     return render(request, "buchungen/csv_mapping.html", context)
 
 
@@ -376,7 +372,9 @@ def _process_csv_mapping(request, csv_daten):
                         wert = zeile[spalte_index].strip()
                         if feld_name == "betrag":
                             # Betrag normalisieren
-                            wert = wert.replace(",", ".").replace("€", "").replace(" ", "")
+                            wert = (
+                                wert.replace(",", ".").replace("€", "").replace(" ", "")
+                            )
                             buchung_data[feld_name] = float(wert)
                         else:
                             buchung_data[feld_name] = wert
@@ -391,7 +389,9 @@ def _process_csv_mapping(request, csv_daten):
                         automatisch_erstellt=True,
                         # TODO: Intelligente Kontierung
                         soll_konto=Konto.objects.filter(nummer="1200").first(),  # Bank
-                        haben_konto=Konto.objects.filter(nummer="8400").first(),  # Erlöse
+                        haben_konto=Konto.objects.filter(
+                            nummer="8400"
+                        ).first(),  # Erlöse
                     )
                     buchung.full_clean()
                     buchung.save()
@@ -428,7 +428,7 @@ def buchung_validieren_ajax(request, pk):
     if request.method == "POST":
         buchung = get_object_or_404(Buchungssatz, pk=pk)
         aktion = request.POST.get("aktion")
-        
+
         if aktion == "validieren":
             buchung.validiert = True
             message = "✅ Buchung validiert!"
@@ -437,15 +437,17 @@ def buchung_validieren_ajax(request, pk):
             message = "⚠️ Buchung zur Überprüfung markiert!"
         else:
             return JsonResponse({"error": "Ungültige Aktion"}, status=400)
-            
+
         buchung.save()
-        
-        return JsonResponse({
-            "success": True,
-            "message": message,
-            "validiert": buchung.validiert,
-        })
-    
+
+        return JsonResponse(
+            {
+                "success": True,
+                "message": message,
+                "validiert": buchung.validiert,
+            }
+        )
+
     return JsonResponse({"error": "Nur POST erlaubt"}, status=405)
 
 
@@ -458,13 +460,9 @@ def konten_autocomplete(request):
     if len(query) < 2:
         return JsonResponse({"results": []})
 
-    konten = (
-        Konto.objects.filter(
-            Q(nummer__icontains=query) | Q(name__icontains=query),
-            aktiv=True
-        )
-        .order_by("nummer")[:20]
-    )
+    konten = Konto.objects.filter(
+        Q(nummer__icontains=query) | Q(name__icontains=query), aktiv=True
+    ).order_by("nummer")[:20]
 
     results = [
         {
@@ -489,35 +487,47 @@ def buchungen_export_csv(request):
     view = BuchungssatzListView()
     view.request = request
     buchungen = view.get_queryset()
-    
+
     response = HttpResponse(content_type="text/csv")
     response["Content-Disposition"] = 'attachment; filename="buchungen_export.csv"'
     response.write("\ufeff")  # UTF-8 BOM für Excel
 
     writer = csv.writer(response, delimiter=";")
-    writer.writerow([
-        "Datum",
-        "Buchungstext", 
-        "Betrag",
-        "Soll-Konto",
-        "Haben-Konto",
-        "Partner",
-        "Referenz",
-        "Validiert",
-        "Erstellt am",
-    ])
+    writer.writerow(
+        [
+            "Datum",
+            "Buchungstext",
+            "Betrag",
+            "Soll-Konto",
+            "Haben-Konto",
+            "Partner",
+            "Referenz",
+            "Validiert",
+            "Erstellt am",
+        ]
+    )
 
     for buchung in buchungen:
-        writer.writerow([
-            buchung.buchungsdatum.strftime("%d.%m.%Y"),
-            buchung.buchungstext,
-            f"{buchung.betrag:.2f}".replace(".", ","),
-            f"{buchung.soll_konto.nummer} - {buchung.soll_konto.name}" if buchung.soll_konto else "",
-            f"{buchung.haben_konto.nummer} - {buchung.haben_konto.name}" if buchung.haben_konto else "",
-            buchung.geschaeftspartner.name if buchung.geschaeftspartner else "",
-            buchung.referenz,
-            "Ja" if buchung.validiert else "Nein",
-            buchung.erstellt_am.strftime("%d.%m.%Y %H:%M"),
-        ])
+        writer.writerow(
+            [
+                buchung.buchungsdatum.strftime("%d.%m.%Y"),
+                buchung.buchungstext,
+                f"{buchung.betrag:.2f}".replace(".", ","),
+                (
+                    f"{buchung.soll_konto.nummer} - {buchung.soll_konto.name}"
+                    if buchung.soll_konto
+                    else ""
+                ),
+                (
+                    f"{buchung.haben_konto.nummer} - {buchung.haben_konto.name}"
+                    if buchung.haben_konto
+                    else ""
+                ),
+                buchung.geschaeftspartner.name if buchung.geschaeftspartner else "",
+                buchung.referenz,
+                "Ja" if buchung.validiert else "Nein",
+                buchung.erstellt_am.strftime("%d.%m.%Y %H:%M"),
+            ]
+        )
 
     return response
