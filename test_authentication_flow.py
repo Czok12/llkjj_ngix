@@ -57,7 +57,7 @@ def test_user_creation_with_profile():
     test_user = User.objects.create_user(
         username="test_artist",
         email="test@artist.de",
-        password="testpasswort123",
+        password="testpasswort123",  # noqa: S106 - test password is safe
         first_name="Test",
         last_name="Künstler",
     )
@@ -107,10 +107,10 @@ def test_login_redirect_logic():
 
     # Test 2: Authentifiziert -> Dashboard
     test_user = User.objects.create_user(
-        username="temp_user", email="temp@test.de", password="temp123"
+        username="temp_user", email="temp@test.de", password="temp123"  # noqa: S106
     )
 
-    client.login(username="temp_user", password="temp123")
+    client.login(username="temp_user", password="temp123")  # noqa: S106
     response = client.get("/")
 
     if response.status_code == 302 and "/auswertungen/" in response.url:

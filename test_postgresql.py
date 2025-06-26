@@ -13,8 +13,8 @@ import django
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "llkjj_knut.settings")
 django.setup()
 
-from django.core.management import execute_from_command_line
-from django.db import connection
+from django.core.management import execute_from_command_line  # noqa: E402
+from django.db import connection  # noqa: E402
 
 
 def test_database_connection():

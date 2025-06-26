@@ -15,7 +15,7 @@ sys.path.append(str(Path(__file__).parent))
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "llkjj_knut.settings")
 django.setup()
 
-import logging
+import logging  # noqa: E402
 
 # Logger für verschiedene Module erstellen
 main_logger = logging.getLogger(__name__)

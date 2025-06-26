@@ -50,6 +50,10 @@ class Konto(models.Model):
         ("ERTRAG", "Ertragskonto (Einnahmen)"),
         ("EIGENKAPITAL", "Eigenkapital"),
         ("ERLÖSE", "Erlöse"),
+        # SKR03-spezifische Kategorien
+        ("ANLAGEVERMÖGEN", "Anlagevermögen"),
+        ("UMLAUFVERMÖGEN", "Umlaufvermögen"),
+        ("VERBINDLICHKEITEN", "Verbindlichkeiten"),
     ]
 
     kategorie = models.CharField(
@@ -70,10 +74,28 @@ class Konto(models.Model):
         ("PRIVAT", "Private Konten"),
         ("ANLAGE", "Anlagevermögen"),
         ("SONSTIGE", "Sonstige"),
+        # SKR03-spezifische Typen
+        ("REISEKOSTEN", "Reisekosten"),
+        ("IT-KOSTEN", "IT-Kosten"),
+        ("ABSCHREIBUNGEN", "Abschreibungen"),
+        ("BETRIEBSAUSGABEN", "Betriebsausgaben"),
+        ("UMSATZERLÖSE", "Umsatzerlöse"),
+        ("FAHRZEUGKOSTEN", "Fahrzeugkosten"),
+        ("WERBUNG & REPRÄSENTATION", "Werbung & Repräsentation"),
+        ("BÜRO & VERWALTUNG", "Büro & Verwaltung"),
+        ("RAUMKOSTEN", "Raumkosten"),
+        ("STEUERVERBINDLICHKEIT", "Steuerverbindlichkeit"),
+        ("STEUERVERRECHNUNG", "Steuerverrechnung"),
+        ("PRIVATKONTO", "Privatkonto"),
+        ("KORREKTURPOSTEN", "Korrekturposten"),
+        ("SACHANLAGEN", "Sachanlagen"),
+        ("STEUERFORDERUNG", "Steuerforderung"),
+        ("PERSONALKOSTEN", "Personalkosten"),
+        ("ENTNAHMEN", "Entnahmen"),
     ]
 
     typ = models.CharField(
-        max_length=20,
+        max_length=30,  # Erhöht für längere SKR03-Typen
         choices=TYP_CHOICES,
         help_text="Weitere Klassifizierung für bessere Übersicht",
         verbose_name="Kontotyp",

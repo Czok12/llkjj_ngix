@@ -58,7 +58,9 @@ class Command(BaseCommand):
         try:
             # Backup erstellen
             self.stdout.write("🗄️ Erstelle Datenbank-Backup...")
-            subprocess.run(cmd, check=True, env={"PGPASSWORD": db_config["PASSWORD"]})
+            subprocess.run(
+                cmd, check=True, env={"PGPASSWORD": db_config["PASSWORD"]}
+            )  # noqa: S603
 
             self.stdout.write(
                 self.style.SUCCESS(f"✅ Backup erfolgreich erstellt: {filepath}")

@@ -110,7 +110,9 @@ class ServiceManager:
         all_good = True
         for name, cmd in requirements:
             try:
-                result = subprocess.run(cmd, capture_output=True, text=True, timeout=5)
+                result = subprocess.run(
+                    cmd, capture_output=True, text=True, timeout=5
+                )  # noqa: S603
                 if result.returncode == 0:
                     print(f"  ✅ {name}: OK")
                 else:
@@ -126,7 +128,7 @@ class ServiceManager:
         """Startet einen Docker Service"""
         try:
             print(f"  🐳 Starte {config['description']}...")
-            result = subprocess.run(
+            result = subprocess.run(  # noqa: S603
                 config["command"], cwd=self.base_dir, capture_output=True, text=True
             )
 
@@ -147,7 +149,7 @@ class ServiceManager:
             print(f"  🚀 Starte {config['description']}...")
 
             # Prozess im Hintergrund starten
-            process = subprocess.Popen(
+            process = subprocess.Popen(  # noqa: S603
                 config["command"],
                 cwd=self.base_dir,
                 stdout=subprocess.PIPE,
@@ -239,8 +241,10 @@ class ServiceManager:
         # Docker Services stoppen
         try:
             print("  🐳 Stoppe Docker Services...")
-            subprocess.run(
-                ["docker-compose", "down"], cwd=self.base_dir, capture_output=True
+            subprocess.run(  # noqa: S603
+                ["docker-compose", "down"],
+                cwd=self.base_dir,
+                capture_output=True,  # noqa: S607
             )
             print("  ✅ Docker Services gestoppt")
         except Exception as e:
@@ -257,8 +261,8 @@ class ServiceManager:
             if config["type"] == "docker":
                 # Docker Status prüfen
                 try:
-                    result = subprocess.run(
-                        ["docker-compose", "ps", service_name],
+                    result = subprocess.run(  # noqa: S603
+                        ["docker-compose", "ps", service_name],  # noqa: S607
                         cwd=self.base_dir,
                         capture_output=True,
                         text=True,
@@ -267,7 +271,7 @@ class ServiceManager:
                         status = f"{Colors.GREEN}🟢 Läuft{Colors.ENDC}"
                     else:
                         status = f"{Colors.RED}🔴 Gestoppt{Colors.ENDC}"
-                except:
+                except Exception:  # noqa: E722 -> improved to catch specific exception
                     status = f"{Colors.RED}🔴 Unbekannt{Colors.ENDC}"
             else:
                 # Prozess Status prüfen
