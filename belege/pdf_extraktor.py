@@ -291,21 +291,21 @@ class PDFDatenExtraktor:
             r"knut\s*art",  # Beispiel Firmenname - ANPASSEN!
             r"künstler.*knut",
             r"czok",  # Beispiel Nachname - ANPASSEN!
-            
+
             # Rechtliche Hinweise eigener Rechnungen
             r"kleinunternehmer.*§.*19.*ustg",
             r"umsatzsteuer.*befreit",
             r"rechnungssteller",
             r"unsere.*bankverbindung",
             r"zahlbar.*innerhalb",
-            
+
             # Typische Ausgangsrechnung-Formulierungen
             r"hiermit.*rechnung",
             r"für.*erbrachte.*leistung",
             r"honorar.*für",
             r"vergütung.*für",
         ]
-        
+
         # Eindeutige Indikatoren für EINGANGSRECHNUNGEN (fremde Rechnungen)
         eingangs_indikatoren = [
             # Bekannte Lieferanten/Shops
@@ -325,7 +325,7 @@ class PDFDatenExtraktor:
             r"lidl",
             r"rewe",
             r"edeka",
-            
+
             # Typische Eingangsrechnung-Begriffe
             r"ihr.*kauf.*bei",
             r"bestellung.*nummer",
@@ -336,15 +336,15 @@ class PDFDatenExtraktor:
             r"ihre.*bestellung",
             r"vielen.*dank.*für.*ihren.*einkauf",
         ]
-        
+
         # Zähle Treffer
-        ausgangs_treffer = sum(1 for pattern in ausgangs_indikatoren 
+        ausgangs_treffer = sum(1 for pattern in ausgangs_indikatoren
                               if re.search(pattern, text, re.IGNORECASE))
-        eingangs_treffer = sum(1 for pattern in eingangs_indikatoren 
+        eingangs_treffer = sum(1 for pattern in eingangs_indikatoren
                               if re.search(pattern, text, re.IGNORECASE))
-        
+
         logger.info(f"Beleg-Typ-Erkennung: Ausgang={ausgangs_treffer}, Eingang={eingangs_treffer}")
-        
+
         # Entscheidungslogik
         if ausgangs_treffer > eingangs_treffer and ausgangs_treffer >= 1:
             return "RECHNUNG_AUSGANG"

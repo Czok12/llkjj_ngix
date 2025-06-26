@@ -29,14 +29,14 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         self.stdout.write("🔍 Peter Zwegat's Beleg-Detektiv startet...")
-        
+
         # Belege finden, die neu klassifiziert werden sollen
         if options['force']:
             belege = Beleg.objects.filter(datei__isnull=False)
             self.stdout.write(f"Prüfe ALLE {belege.count()} Belege...")
         else:
             belege = Beleg.objects.filter(
-                datei__isnull=False, 
+                datei__isnull=False,
                 beleg_typ='SONSTIGES'
             )
             self.stdout.write(f"Prüfe {belege.count()} unklassifizierte Belege...")
@@ -48,7 +48,7 @@ class Command(BaseCommand):
             for beleg in belege:
                 try:
                     self.stdout.write(f"Analysiere: {beleg.original_dateiname}")
-                    
+
                     # OCR-Daten extrahieren wenn nötig
                     if not beleg.ocr_text:
                         daten = extrahiere_pdf_daten(beleg.datei.path)
@@ -59,16 +59,16 @@ class Command(BaseCommand):
                         from belege.pdf_extraktor import PDFDatenExtraktor
                         extraktor = PDFDatenExtraktor()
                         daten = extraktor._erweiterte_analyse(beleg.ocr_text, {})
-                    
+
                     # Beleg-Typ aktualisieren
                     neuer_typ = daten.get('beleg_typ', 'SONSTIGES')
                     alter_typ = beleg.beleg_typ
-                    
+
                     if neuer_typ != alter_typ:
                         if not options['dry_run']:
                             beleg.beleg_typ = neuer_typ
                             beleg.save()
-                            
+
                         self.stdout.write(
                             self.style.SUCCESS(
                                 f"  ✅ {alter_typ} → {neuer_typ}"
@@ -77,7 +77,7 @@ class Command(BaseCommand):
                         erfolgreiche_erkennungen += 1
                     else:
                         self.stdout.write(f"  ⏸️  Bereits korrekt: {alter_typ}")
-                        
+
                 except Exception as e:
                     self.stdout.write(
                         self.style.ERROR(f"  ❌ Fehler: {str(e)}")
@@ -97,7 +97,7 @@ class Command(BaseCommand):
                     f"\n🎉 Peter Zwegat ist stolz: {erfolgreiche_erkennungen} Belege neu klassifiziert!"
                 )
             )
-            
+
         if fehler > 0:
             self.stdout.write(
                 self.style.ERROR(f"⚠️  {fehler} Fehler aufgetreten")
