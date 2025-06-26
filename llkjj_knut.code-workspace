@@ -38,8 +38,16 @@
         }
     ],
     "settings": {
-        "python.defaultInterpreterPath": "./venv/bin/python",
+        "python.defaultInterpreterPath": "/Users/czok/Skripte/venv_llkjj/bin/python",
         "python.terminal.activateEnvironment": true,
+        "python.terminal.activateEnvInCurrentTerminal": true,
+        "python.terminal.executeInFileDir": false,
+        "terminal.integrated.cwd": "${workspaceFolder}",
+        "terminal.integrated.env.osx": {
+            "VIRTUAL_ENV": "/Users/czok/Skripte/venv_llkjj",
+            "PATH": "/Users/czok/Skripte/venv_llkjj/bin:${env:PATH}",
+            "PYTHONPATH": "${workspaceFolder}"
+        },
         // Django-spezifische Einstellungen
         "files.associations": {
             "*.html": "django-html",
@@ -74,9 +82,8 @@
             "settings.py": "wsgi.py,asgi.py,urls.py",
             "manage.py": "requirements.txt,pyproject.toml,.env.example"
         },
-        // Terminal
+        // Terminal - Konfiguration für automatische venv-Aktivierung
         "terminal.integrated.defaultProfile.osx": "zsh",
-        "terminal.integrated.cwd": "${workspaceFolder}",
         // Dateien-Filter für übersichtlichere Ansicht
         "files.exclude": {
             "**/__pycache__": true,
@@ -112,7 +119,7 @@
             {
                 "label": "📦 Setup: Projekt initialisieren",
                 "type": "shell",
-                "command": "python3 -m venv venv && source venv/bin/activate && pip install -r requirements.txt && python manage.py migrate && python manage.py import_skr03",
+                "command": "python3 -m venv /Users/czok/Skripte/venv_llkjj && source /Users/czok/Skripte/venv_llkjj/bin/activate && pip install -r requirements.txt && python manage.py migrate && python manage.py import_skr03",
                 "group": "build",
                 "presentation": {
                     "echo": true,

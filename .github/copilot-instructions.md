@@ -3,7 +3,7 @@ Projekt: llkjj_knut (Buchhaltung + Steuererklärung für Künstler)
 1. Projekt-Ziel & Kontext
 
 Ziel: Ein Django-basiertes Buchhaltungs- und Steuererklärungstool, mit Funktionen wie Buchhaltungsbutler. speziell für freischaffende Künstler und Kleinunternehmer nach §19 UStG. 
-Users/czok/Skripte/venv.
+Virtual Environment: /Users/czok/Skripte/venv_llkjj
 Zusätzlich: Möglichkeit der Erstellung der EÜR, Einkommensteuererklärung und Umsatzsteuererklärung.
 1. Architektur & Struktur:
 

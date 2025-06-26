@@ -66,7 +66,7 @@ class LLKJJStarter:
             self.project_root / "venv",
             self.project_root / ".venv",
             self.project_root.parent / "venv",
-            Path("/Users/czok/Skripte/venv"),  # Alter Standard
+            Path("/Users/czok/Skripte/venv_llkjj"),  # Neuer Standard-Pfad
         ]
 
         for path in possible_paths:

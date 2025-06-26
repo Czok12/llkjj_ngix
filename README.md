@@ -43,8 +43,8 @@ llkjj_art/
 
 1. **Virtuelle Umgebung erstellen und aktivieren:**
    ```zsh
-   python3 -m venv venv
-   source venv/bin/activate
+   python3 -m venv /Users/czok/Skripte/venv_llkjj
+   source /Users/czok/Skripte/venv_llkjj/bin/activate
    ```
 
 2. **Dependencies installieren:**

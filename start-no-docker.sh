@@ -20,9 +20,9 @@ echo "=================================="
 if [ -d "venv" ]; then
     echo -e "${GREEN}📦 Aktiviere Virtual Environment...${NC}"
     source venv/bin/activate
-elif [ -f "/Users/czok/Skripte/venv/bin/activate" ]; then
+elif [ -f "/Users/czok/Skripte/venv_llkjj/bin/activate" ]; then
     echo -e "${GREEN}📦 Aktiviere Virtual Environment (global)...${NC}"
-    source /Users/czok/Skripte/venv/bin/activate
+    source /Users/czok/Skripte/venv_llkjj/bin/activate
 else
     echo -e "${YELLOW}⚠️  Kein Virtual Environment gefunden - nutze System-Python${NC}"
 fi
