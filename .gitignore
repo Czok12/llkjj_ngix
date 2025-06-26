@@ -23,7 +23,8 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
-
+backup/
+backups/
 # Django
 *.log
 local_settings.py

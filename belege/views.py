@@ -95,6 +95,12 @@ def beleg_upload(request):
 
     Peter Zwegat: "Rein mit dem PDF - raus mit den Daten!"
     """
+    # Vorauswahl des Beleg-Typs aus URL-Parameter
+    initial_data = {}
+    beleg_typ = request.GET.get("typ")
+    if beleg_typ and beleg_typ in [choice[0] for choice in Beleg.BELEG_TYP_CHOICES]:
+        initial_data["beleg_typ"] = beleg_typ
+
     if request.method == "POST":
         form = BelegUploadForm(request.POST, request.FILES)
 
@@ -102,33 +108,57 @@ def beleg_upload(request):
             try:
                 beleg = form.save(commit=False)
 
-                # Automatische Datenextraktion aus PDF
-                if beleg.datei:
-                    logger.info("Starte PDF-Datenextraktion für: %s", beleg.datei.name)
+                logger.info(
+                    "Form valid. Beleg vor dem Speichern: datei=%s", beleg.datei
+                )
 
-                    # Temporären Pfad zur hochgeladenen Datei erstellen
-                    temp_pfad = (
-                        beleg.datei.path
-                        if hasattr(beleg.datei, "path")
-                        else beleg.datei.temporary_file_path()
-                    )
+                # Hochgeladene Datei sichern und kopieren
+                uploaded_file = request.FILES.get("datei")
+                if uploaded_file:
+                    # Sichere Kopie der Datei erstellen
+                    import os
+                    import tempfile
 
-                    # Daten extrahieren
-                    extrahierte_daten = extrahiere_pdf_daten(temp_pfad)
+                    from django.core.files.base import ContentFile
+                    from django.core.files.storage import default_storage
+
+                    # Original-Dateiname speichern
+                    original_name = uploaded_file.name
+                    beleg.original_dateiname = original_name
+                    beleg.dateigröße = uploaded_file.size
+
+                    # Temporäre Datei erstellen für OCR-Verarbeitung
+                    with tempfile.NamedTemporaryFile(
+                        delete=False, suffix=".pdf"
+                    ) as temp_file:
+                        # Datei-Inhalt in temporäre Datei schreiben
+                        for chunk in uploaded_file.chunks():
+                            temp_file.write(chunk)
+                        temp_file_path = temp_file.name
+
+                    logger.info("Temporäre Datei erstellt: %s", temp_file_path)
+
+                    # PDF-Daten extrahieren BEVOR wir das Beleg-Objekt speichern
+                    extrahierte_daten = extrahiere_pdf_daten(temp_file_path)
+                    logger.info("PDF-Daten extrahiert: %s", extrahierte_daten.keys())
 
                     # Extrahierte Daten in Beleg-Objekt übernehmen
                     if extrahierte_daten.get("rechnungsdatum"):
                         try:
-                            beleg.rechnungsdatum = datetime.fromisoformat(
-                                extrahierte_daten["rechnungsdatum"]
-                            ).date()
-                        except ValueError:
+                            rechnungsdatum_str = extrahierte_daten["rechnungsdatum"]
+                            if rechnungsdatum_str:
+                                beleg.rechnungsdatum = datetime.fromisoformat(
+                                    rechnungsdatum_str
+                                ).date()
+                        except (ValueError, TypeError):
                             pass
 
                     if extrahierte_daten.get("gesamtbetrag"):
                         try:
-                            beleg.betrag = Decimal(extrahierte_daten["gesamtbetrag"])
-                        except (InvalidOperation, ValueError):
+                            gesamtbetrag_str = extrahierte_daten["gesamtbetrag"]
+                            if gesamtbetrag_str:
+                                beleg.betrag = Decimal(gesamtbetrag_str)
+                        except (InvalidOperation, ValueError, TypeError):
                             pass
 
                     # OCR-Text und Rechnungsnummer speichern
@@ -162,7 +192,26 @@ def beleg_upload(request):
                     if extrahierte_daten.get("beleg_typ"):
                         beleg.beleg_typ = extrahierte_daten["beleg_typ"]
 
-                    # Erfolgreiche Extraktion
+                    # Jetzt intelligenten Dateinamen generieren mit den verfügbaren Daten
+                    from .models import generiere_intelligenten_dateinamen
+
+                    ziel_pfad = generiere_intelligenten_dateinamen(beleg, original_name)
+
+                    # Datei ins Media-Verzeichnis kopieren
+                    with open(temp_file_path, "rb") as temp_file:
+                        file_content = ContentFile(temp_file.read())
+                        final_path = default_storage.save(ziel_pfad, file_content)
+
+                    # Beleg-Objekt mit korrektem Dateipfad speichern
+                    beleg.datei = final_path
+                    beleg.save()
+
+                    # Temporäre Datei löschen
+                    os.unlink(temp_file_path)
+
+                    logger.info("Datei erfolgreich kopiert nach: %s", final_path)
+
+                    # Erfolgreiche Extraktion bewerten
                     vertrauen = extrahierte_daten.get("vertrauen", 0.0)
                     vertrauen_wert = float(vertrauen) if vertrauen is not None else 0.0
 
@@ -190,7 +239,12 @@ def beleg_upload(request):
                         )
                         beleg.status = "FEHLER"
 
-                beleg.save()
+                    # Finales Update mit Status
+                    beleg.save()
+
+                else:
+                    # Kein File Upload - normales Speichern
+                    beleg.save()
 
                 # Zur Bearbeitungsseite weiterleiten
                 messages.success(request, "Beleg erfolgreich hochgeladen!")
@@ -204,10 +258,229 @@ def beleg_upload(request):
                     f"Peter Zwegat sagt: 'Nicht aufgeben, nochmal versuchen!'",
                 )
     else:
-        form = BelegUploadForm()
+        form = BelegUploadForm(initial=initial_data)
 
     return render(
         request, "belege/upload.html", {"form": form, "titel": "Neuen Beleg hochladen"}
+    )
+
+
+def beleg_upload_dual(request):
+    """
+    Geteilte Upload-Seite für Eingangs- und Ausgangsrechnungen.
+    Links: Eingangsrechnungen (Ausgaben), Rechts: Ausgangsrechnungen (Einnahmen)
+
+    Peter Zwegat: "Links Ausgaben, rechts Einnahmen -
+    so behalten Sie den Überblick wie ein Profi!"
+    """
+    # Formulare für beide Seiten
+    form_eingang = BelegUploadForm(prefix="eingang")
+    form_ausgang = BelegUploadForm(prefix="ausgang")
+
+    # Standard-Werte setzen
+    form_eingang.initial = {"beleg_typ": "RECHNUNG_EINGANG"}
+    form_ausgang.initial = {"beleg_typ": "RECHNUNG_AUSGANG"}
+
+    if request.method == "POST":
+        upload_typ = request.POST.get("upload_typ")
+
+        if upload_typ == "eingang":
+            form_eingang = BelegUploadForm(
+                request.POST, request.FILES, prefix="eingang"
+            )
+            active_form = form_eingang
+            beleg_typ_default = "RECHNUNG_EINGANG"
+            success_message = "Eingangsrechnung erfolgreich hochgeladen!"
+
+        elif upload_typ == "ausgang":
+            form_ausgang = BelegUploadForm(
+                request.POST, request.FILES, prefix="ausgang"
+            )
+            active_form = form_ausgang
+            beleg_typ_default = "RECHNUNG_AUSGANG"
+            success_message = "Ausgangsrechnung erfolgreich hochgeladen!"
+        else:
+            messages.error(request, "Ungültiger Upload-Typ")
+            return redirect("belege:upload_dual")
+
+        if active_form.is_valid():
+            try:
+                beleg = active_form.save(commit=False)
+
+                # Beleg-Typ sicherstellen
+                if not beleg.beleg_typ:
+                    beleg.beleg_typ = beleg_typ_default
+
+                logger.info(
+                    "Dual Upload Form valid. Beleg vor dem Speichern: datei=%s",
+                    beleg.datei,
+                )
+
+                # Hochgeladene Datei sichern und kopieren
+                prefix = "eingang" if upload_typ == "eingang" else "ausgang"
+                uploaded_file = request.FILES.get(f"{prefix}-datei")
+                if uploaded_file:
+                    # Sichere Kopie der Datei erstellen
+                    import os
+                    import tempfile
+
+                    from django.core.files.base import ContentFile
+                    from django.core.files.storage import default_storage
+
+                    # Original-Dateiname speichern
+                    original_name = uploaded_file.name
+                    beleg.original_dateiname = original_name
+                    beleg.dateigröße = uploaded_file.size
+
+                    # Temporäre Datei erstellen für OCR-Verarbeitung
+                    with tempfile.NamedTemporaryFile(
+                        delete=False, suffix=".pdf"
+                    ) as temp_file:
+                        # Datei-Inhalt in temporäre Datei schreiben
+                        for chunk in uploaded_file.chunks():
+                            temp_file.write(chunk)
+                        temp_file_path = temp_file.name
+
+                    logger.info(
+                        "Dual Upload: Temporäre Datei erstellt: %s", temp_file_path
+                    )
+
+                    # PDF-Daten extrahieren
+                    extrahierte_daten = extrahiere_pdf_daten(temp_file_path)
+                    logger.info(
+                        "Dual Upload: PDF-Daten extrahiert: %s",
+                        extrahierte_daten.keys(),
+                    )
+
+                    # Extrahierte Daten in Beleg-Objekt übernehmen
+                    if extrahierte_daten.get("rechnungsdatum"):
+                        try:
+                            datum_str = extrahierte_daten["rechnungsdatum"]
+                            if datum_str:
+                                beleg.rechnungsdatum = datetime.fromisoformat(
+                                    datum_str
+                                ).date()
+                        except (ValueError, TypeError):
+                            pass
+
+                    if extrahierte_daten.get("gesamtbetrag"):
+                        try:
+                            betrag_str = extrahierte_daten["gesamtbetrag"]
+                            if betrag_str:
+                                beleg.betrag = Decimal(betrag_str)
+                        except (InvalidOperation, ValueError, TypeError):
+                            pass
+
+                    # OCR-Text und Rechnungsnummer speichern
+                    beleg.ocr_text = extrahierte_daten.get("ocr_text", "")
+                    beleg.ocr_verarbeitet = True
+
+                    # Rechnungsnummer aus extrahierten Daten übernehmen
+                    if extrahierte_daten.get("rechnungsnummer"):
+                        beleg.rechnungsnummer = extrahierte_daten["rechnungsnummer"]
+
+                    # Geschäftspartner suchen/erstellen
+                    partner_name = extrahierte_daten.get("lieferant")
+                    if partner_name:
+                        partner_typ = (
+                            "LIEFERANT" if upload_typ == "eingang" else "KUNDE"
+                        )
+                        partner, created = Geschaeftspartner.objects.get_or_create(
+                            name__iexact=partner_name,
+                            defaults={
+                                "name": partner_name,
+                                "partner_typ": partner_typ,
+                                "aktiv": True,
+                            },
+                        )
+                        beleg.geschaeftspartner = partner
+
+                        if created:
+                            messages.info(
+                                request,
+                                f"Neuer Geschäftspartner '{partner_name}' wurde angelegt.",
+                            )
+
+                    # Automatische Beleg-Typ-Erkennung
+                    if extrahierte_daten.get("beleg_typ"):
+                        beleg.beleg_typ = extrahierte_daten["beleg_typ"]
+
+                    # Intelligenten Dateinamen generieren
+                    from .models import generiere_intelligenten_dateinamen
+
+                    ziel_pfad = generiere_intelligenten_dateinamen(beleg, original_name)
+
+                    # Datei ins Media-Verzeichnis kopieren
+                    with open(temp_file_path, "rb") as temp_file:
+                        file_content = ContentFile(temp_file.read())
+                        final_path = default_storage.save(ziel_pfad, file_content)
+
+                    # Beleg-Objekt mit korrektem Dateipfad speichern
+                    beleg.datei = final_path
+                    beleg.save()
+
+                    # Temporäre Datei löschen
+                    os.unlink(temp_file_path)
+
+                    logger.info(
+                        "Dual Upload: Datei erfolgreich kopiert nach: %s", final_path
+                    )
+
+                    # Erfolgreiche Extraktion bewerten
+                    vertrauen = extrahierte_daten.get("vertrauen", 0.0)
+                    vertrauen_wert = float(vertrauen) if vertrauen is not None else 0.0
+
+                    if vertrauen_wert > 0.7:
+                        messages.success(
+                            request,
+                            f"PDF erfolgreich verarbeitet! "
+                            f"Vertrauen: {int(vertrauen_wert * 100)}% - "
+                            f"Peter Zwegat ist stolz auf Sie!",
+                        )
+                        beleg.status = "GEPRUEFT"
+                    elif vertrauen_wert > 0.3:
+                        messages.warning(
+                            request,
+                            f"PDF teilweise verarbeitet. "
+                            f"Vertrauen: {int(vertrauen_wert * 100)}% - "
+                            f"Bitte prüfen Sie die Daten!",
+                        )
+                        beleg.status = "NEU"
+                    else:
+                        messages.error(
+                            request,
+                            "PDF konnte nicht automatisch verarbeitet werden. "
+                            "Bitte geben Sie die Daten manuell ein.",
+                        )
+                        beleg.status = "FEHLER"
+
+                    # Finales Update mit Status
+                    beleg.save()
+
+                else:
+                    # Kein File Upload - normales Speichern
+                    beleg.save()
+
+                # Zur Bearbeitungsseite weiterleiten
+                messages.success(request, success_message)
+                return redirect("belege:bearbeiten", beleg_id=beleg.id)
+
+            except Exception as e:
+                logger.error("Fehler beim Beleg-Upload: %s", str(e))
+                messages.error(
+                    request,
+                    f"Fehler beim Upload: {str(e)}. "
+                    f"Peter Zwegat sagt: 'Nicht aufgeben, nochmal versuchen!'",
+                )
+
+    return render(
+        request,
+        "belege/upload_dual.html",
+        {
+            "form_eingang": form_eingang,
+            "form_ausgang": form_ausgang,
+            "titel": "Belege hochladen",
+        },
     )
 
 

@@ -1,0 +1,284 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Kontenblatt {{ konto.nummer }} - Peter Zwegats Buchhaltungsbutler{% endblock %}
+
+{% block extra_css %}
+<style>
+.kontenblatt-header {
+    @apply bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg p-6 mb-8;
+}
+
+.export-section {
+    @apply bg-white rounded-lg shadow-md p-4 mb-6;
+}
+
+.export-btn {
+    @apply px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all hover:scale-105;
+}
+
+.filter-section {
+    @apply bg-white rounded-lg shadow-md p-4 mb-6;
+}
+
+.buchungen-table {
+    @apply w-full border-collapse bg-white rounded-lg shadow-md overflow-hidden;
+}
+
+.buchungen-table th {
+    @apply bg-gray-100 px-4 py-3 text-left font-semibold;
+}
+
+.buchungen-table td {
+    @apply px-4 py-3 border-b;
+}
+
+.saldo-box {
+    @apply bg-white rounded-lg shadow-md p-6;
+}
+
+.saldo-positiv {
+    @apply text-green-600;
+}
+
+.saldo-negativ {
+    @apply text-red-600;
+}
+
+.amount {
+    @apply text-right font-mono;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Header -->
+    <div class="kontenblatt-header">
+        <h1 class="text-3xl font-bold mb-2">
+            📋 Kontenblatt {{ konto.nummer }} - {{ konto.name }}
+        </h1>
+        <p class="text-indigo-100">
+            <em>"Jedes Konto erzählt eine Geschichte - hier ist Ihre Geschichte in Zahlen!"</em>
+            <br><strong>- Peter Zwegat</strong>
+        </p>
+    </div>
+
+    <!-- Export-Bereich -->
+    <div class="export-section">
+        <h2 class="text-lg font-bold mb-3">📊 Export-Optionen</h2>
+        <div class="flex gap-3">
+            <a href="{% url 'auswertungen:kontenblatt_excel' konto.id %}?jahr={{ jahr }}{% if monat %}&monat={{ monat }}{% endif %}" 
+               class="export-btn">
+                📊 Excel-Export
+            </a>
+        </div>
+    </div>
+
+    <!-- Filter-Bereich -->
+    <div class="filter-section">
+        <h2 class="text-lg font-bold mb-3">🔍 Zeitraum filtern</h2>
+        <form method="get" class="flex flex-wrap items-center gap-4">
+            <div>
+                <label for="jahr" class="block text-sm font-medium mb-1">Jahr:</label>
+                <select name="jahr" id="jahr" class="border rounded-md px-3 py-2">
+                    {% for available_jahr in verfuegbare_jahre %}
+                        <option value="{{ available_jahr }}" {% if available_jahr == jahr %}selected{% endif %}>
+                            {{ available_jahr }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div>
+                <label for="monat" class="block text-sm font-medium mb-1">Monat (optional):</label>
+                <select name="monat" id="monat" class="border rounded-md px-3 py-2">
+                    <option value="">Alle Monate</option>
+                    {% for monat_nr, monat_name in verfuegbare_monate %}
+                        <option value="{{ monat_nr }}" {% if monat_nr|stringformat:"s" == monat %}selected{% endif %}>
+                            {{ monat_name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium mb-1">&nbsp;</label>
+                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                    Filtern
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Saldo-Übersicht -->
+    <div class="saldo-box mb-6">
+        <h2 class="text-lg font-bold mb-4">💰 Saldo-Übersicht</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="text-center">
+                <div class="text-sm text-gray-600">Soll-Summe</div>
+                <div class="text-xl font-bold amount">{{ soll_summe|floatformat:2 }} €</div>
+            </div>
+            <div class="text-center">
+                <div class="text-sm text-gray-600">Haben-Summe</div>
+                <div class="text-xl font-bold amount">{{ haben_summe|floatformat:2 }} €</div>
+            </div>
+            <div class="text-center">
+                <div class="text-sm text-gray-600">Saldo</div>
+                <div class="text-2xl font-bold amount {% if saldo >= 0 %}saldo-positiv{% else %}saldo-negativ{% endif %}">
+                    {{ saldo|floatformat:2 }} €
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Soll-Buchungen -->
+    {% if soll_buchungen %}
+    <div class="mb-8">
+        <h2 class="text-xl font-bold mb-4">📈 Soll-Buchungen</h2>
+        <table class="buchungen-table">
+            <thead>
+                <tr>
+                    <th>Datum</th>
+                    <th>Beleg</th>
+                    <th>Beschreibung</th>
+                    <th>Gegenkonto</th>
+                    <th>Geschäftspartner</th>
+                    <th class="amount">Betrag</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for buchung in soll_buchungen %}
+                <tr>
+                    <td>{{ buchung.buchungsdatum|date:"d.m.Y" }}</td>
+                    <td>
+                        {% if buchung.beleg %}
+                            <a href="#" class="text-blue-600 hover:underline">
+                                {{ buchung.beleg.nummer|default:"---" }}
+                            </a>
+                        {% else %}
+                            ---
+                        {% endif %}
+                    </td>
+                    <td>{{ buchung.beschreibung|default:"---" }}</td>
+                    <td>
+                        <span class="text-sm text-gray-600">{{ buchung.haben_konto.nummer }}</span><br>
+                        {{ buchung.haben_konto.name|truncatechars:30 }}
+                    </td>
+                    <td>
+                        {% if buchung.geschaeftspartner %}
+                            {{ buchung.geschaeftspartner.name }}
+                        {% else %}
+                            ---
+                        {% endif %}
+                    </td>
+                    <td class="amount font-bold">{{ buchung.betrag|floatformat:2 }} €</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    <!-- Haben-Buchungen -->
+    {% if haben_buchungen %}
+    <div class="mb-8">
+        <h2 class="text-xl font-bold mb-4">📉 Haben-Buchungen</h2>
+        <table class="buchungen-table">
+            <thead>
+                <tr>
+                    <th>Datum</th>
+                    <th>Beleg</th>
+                    <th>Beschreibung</th>
+                    <th>Gegenkonto</th>
+                    <th>Geschäftspartner</th>
+                    <th class="amount">Betrag</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for buchung in haben_buchungen %}
+                <tr>
+                    <td>{{ buchung.buchungsdatum|date:"d.m.Y" }}</td>
+                    <td>
+                        {% if buchung.beleg %}
+                            <a href="#" class="text-blue-600 hover:underline">
+                                {{ buchung.beleg.nummer|default:"---" }}
+                            </a>
+                        {% else %}
+                            ---
+                        {% endif %}
+                    </td>
+                    <td>{{ buchung.beschreibung|default:"---" }}</td>
+                    <td>
+                        <span class="text-sm text-gray-600">{{ buchung.soll_konto.nummer }}</span><br>
+                        {{ buchung.soll_konto.name|truncatechars:30 }}
+                    </td>
+                    <td>
+                        {% if buchung.geschaeftspartner %}
+                            {{ buchung.geschaeftspartner.name }}
+                        {% else %}
+                            ---
+                        {% endif %}
+                    </td>
+                    <td class="amount font-bold">{{ buchung.betrag|floatformat:2 }} €</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    <!-- Keine Buchungen -->
+    {% if not soll_buchungen and not haben_buchungen %}
+    <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-r-lg">
+        <div class="flex">
+            <div class="flex-shrink-0">
+                <svg class="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                </svg>
+            </div>
+            <div class="ml-3">
+                <h3 class="text-sm font-medium text-yellow-800">
+                    Keine Buchungen gefunden
+                </h3>
+                <div class="mt-2 text-sm text-yellow-700">
+                    <p>Für das Konto {{ konto.nummer }} - {{ konto.name }} sind im gewählten Zeitraum keine Buchungen vorhanden.</p>
+                    <p class="mt-1"><em>"Das ist nicht schlimm - auch ein leeres Konto kann wichtig sein!" - Peter Zwegat</em></p>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Zurück-Link -->
+    <div class="mt-8">
+        <a href="{% url 'auswertungen:dashboard' %}" 
+           class="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-all">
+            ← Zurück zum Dashboard
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Form automatisch absenden bei Änderung
+document.getElementById('jahr').addEventListener('change', function() {
+    this.form.submit();
+});
+
+document.getElementById('monat').addEventListener('change', function() {
+    this.form.submit();
+});
+
+// Export-Button Animation
+document.querySelectorAll('.export-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        this.style.transform = 'scale(0.95)';
+        setTimeout(() => {
+            this.style.transform = '';
+        }, 150);
+    });
+});
+</script>
+{% endblock %}

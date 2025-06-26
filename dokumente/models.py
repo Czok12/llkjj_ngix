@@ -191,7 +191,7 @@ class Dokument(models.Model):
     )
 
     dateigröße = models.PositiveIntegerField(
-        help_text="Dateigröße in Bytes", verbose_name="Dateigröße"
+        default=0, help_text="Dateigröße in Bytes", verbose_name="Dateigröße"
     )
 
     # Dokumentendetails

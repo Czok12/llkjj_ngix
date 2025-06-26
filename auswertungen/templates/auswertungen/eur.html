@@ -1,0 +1,232 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}EÜR {{ jahr }} - Peter Zwegats Buchhaltungsbutler{% endblock %}
+
+{% block extra_css %}
+<style>
+.export-buttons {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+}
+
+.export-btn {
+    @apply px-4 py-2 rounded-lg text-white font-medium transition-all hover:scale-105;
+}
+
+.export-btn.pdf {
+    @apply bg-red-600 hover:bg-red-700;
+}
+
+.export-btn.excel {
+    @apply bg-green-600 hover:bg-green-700;
+}
+
+.export-btn.xml {
+    @apply bg-blue-600 hover:bg-blue-700;
+}
+
+.eur-section {
+    @apply bg-white rounded-lg shadow-md p-6 mb-6;
+}
+
+.eur-table {
+    @apply w-full border-collapse;
+}
+
+.eur-table th {
+    @apply bg-gray-100 px-4 py-3 text-left font-semibold border-b;
+}
+
+.eur-table td {
+    @apply px-4 py-3 border-b;
+}
+
+.eur-table .category-row {
+    @apply bg-blue-50 font-semibold;
+}
+
+.eur-table .total-row {
+    @apply bg-yellow-50 font-bold border-t-2 border-yellow-300;
+}
+
+.amount {
+    @apply text-right font-mono;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Header mit Peter Zwegat Branding -->
+    <div class="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg p-6 mb-8">
+        <h1 class="text-3xl font-bold mb-2">📊 Einnahmen-Überschuss-Rechnung {{ jahr }}</h1>
+        <p class="text-blue-100">
+            <em>"Eine ordentliche EÜR ist wie ein gut geschnittener Anzug - macht gleich einen professionellen Eindruck!"</em>
+            <br><strong>- Peter Zwegat</strong>
+        </p>
+    </div>
+
+    <!-- Export-Buttons -->
+    <div class="export-buttons">
+        <a href="{% url 'auswertungen:eur_pdf' %}?jahr={{ jahr }}" 
+           class="export-btn pdf">
+            📄 PDF-Export
+        </a>
+        <a href="{% url 'auswertungen:eur_excel' %}?jahr={{ jahr }}" 
+           class="export-btn excel">
+            📊 Excel-Export
+        </a>
+        <a href="{% url 'auswertungen:eur_elster_xml' %}?jahr={{ jahr }}" 
+           class="export-btn xml">
+            📤 ELSTER-XML
+        </a>
+    </div>
+
+    <!-- Jahr-Auswahl -->
+    <div class="bg-white rounded-lg shadow-md p-4 mb-6">
+        <form method="get" class="flex items-center gap-4">
+            <label for="jahr" class="font-semibold">Jahr:</label>
+            <select name="jahr" id="jahr" class="border rounded-md px-3 py-2" onchange="this.form.submit()">
+                {% for available_jahr in verfuegbare_jahre %}
+                    <option value="{{ available_jahr }}" {% if available_jahr == jahr %}selected{% endif %}>
+                        {{ available_jahr }}
+                    </option>
+                {% endfor %}
+            </select>
+        </form>
+    </div>
+
+    <!-- EÜR-Tabelle -->
+    <div class="eur-section">
+        <h2 class="text-xl font-bold mb-4">Betriebseinnahmen</h2>
+        <table class="eur-table">
+            <thead>
+                <tr>
+                    <th>Position</th>
+                    <th class="amount">Betrag (€)</th>
+                    <th class="amount">Anteil (%)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for position, betrag in einnahmen_kategorien.items %}
+                <tr>
+                    <td>{{ position }}</td>
+                    <td class="amount">{{ betrag|floatformat:2 }}</td>
+                    <td class="amount">
+                        {% if gesamte_einnahmen > 0 %}
+                            {{ betrag|mul:100|div:gesamte_einnahmen|floatformat:1 }}%
+                        {% else %}
+                            0.0%
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="3" class="text-center text-gray-500">
+                        <em>Noch keine Einnahmen erfasst</em>
+                    </td>
+                </tr>
+                {% endfor %}
+                <tr class="total-row">
+                    <td><strong>Summe Betriebseinnahmen</strong></td>
+                    <td class="amount"><strong>{{ gesamte_einnahmen|floatformat:2 }}</strong></td>
+                    <td class="amount"><strong>100.0%</strong></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="eur-section">
+        <h2 class="text-xl font-bold mb-4">Betriebsausgaben</h2>
+        <table class="eur-table">
+            <thead>
+                <tr>
+                    <th>Position</th>
+                    <th class="amount">Betrag (€)</th>
+                    <th class="amount">Anteil (%)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for position, betrag in ausgaben_kategorien.items %}
+                <tr>
+                    <td>{{ position }}</td>
+                    <td class="amount">{{ betrag|floatformat:2 }}</td>
+                    <td class="amount">
+                        {% if gesamte_ausgaben > 0 %}
+                            {{ betrag|mul:100|div:gesamte_ausgaben|floatformat:1 }}%
+                        {% else %}
+                            0.0%
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="3" class="text-center text-gray-500">
+                        <em>Noch keine Ausgaben erfasst</em>
+                    </td>
+                </tr>
+                {% endfor %}
+                <tr class="total-row">
+                    <td><strong>Summe Betriebsausgaben</strong></td>
+                    <td class="amount"><strong>{{ gesamte_ausgaben|floatformat:2 }}</strong></td>
+                    <td class="amount"><strong>100.0%</strong></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Gewinn/Verlust -->
+    <div class="eur-section">
+        <div class="bg-{% if gewinn_verlust >= 0 %}green{% else %}red{% endif %}-50 border-l-4 border-{% if gewinn_verlust >= 0 %}green{% else %}red{% endif %}-400 p-4 rounded-r-lg">
+            <div class="flex items-center justify-between">
+                <h2 class="text-xl font-bold text-{% if gewinn_verlust >= 0 %}green{% else %}red{% endif %}-800">
+                    {% if gewinn_verlust >= 0 %}
+                        🎉 Gewinn {{ jahr }}
+                    {% else %}
+                        ⚠️ Verlust {{ jahr }}
+                    {% endif %}
+                </h2>
+                <div class="text-2xl font-bold text-{% if gewinn_verlust >= 0 %}green{% else %}red{% endif %}-800">
+                    {{ gewinn_verlust|floatformat:2 }} €
+                </div>
+            </div>
+            <p class="text-{% if gewinn_verlust >= 0 %}green{% else %}red{% endif %}-700 mt-2">
+                {% if gewinn_verlust >= 0 %}
+                    <em>"Fantastisch! Sie machen Gewinn. Das ist die beste Grundlage für eine solide Zukunft!"</em>
+                {% else %}
+                    <em>"Kopf hoch! Verluste gehören zum Geschäft. Wichtig ist, dass Sie den Überblick behalten!"</em>
+                {% endif %}
+                <br><strong>- Peter Zwegat</strong>
+            </p>
+        </div>
+    </div>
+
+    <!-- Hinweise -->
+    <div class="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-r-lg">
+        <h3 class="font-bold text-blue-800 mb-2">💡 Peter Zwegats Steuer-Tipps:</h3>
+        <ul class="text-blue-700 space-y-1">
+            <li>• Diese EÜR ist nach §4 Abs. 3 EStG erstellt</li>
+            <li>• Alle Beträge sind bereits nach SKR03-Standard kategorisiert</li>
+            <li>• Der PDF-Export ist druckfertig für Ihren Steuerberater</li>
+            <li>• Die ELSTER-XML kann direkt ans Finanzamt übertragen werden</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Kleine Animation für Export-Buttons
+document.querySelectorAll('.export-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        this.style.transform = 'scale(0.95)';
+        setTimeout(() => {
+            this.style.transform = '';
+        }, 150);
+    });
+});
+</script>
+{% endblock %}

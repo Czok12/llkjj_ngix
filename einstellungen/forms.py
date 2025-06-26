@@ -4,6 +4,8 @@ Forms für Benutzerprofil-Verwaltung in llkjj_knut.
 Peter Zwegat: "Ein gutes Formular ist wie ein guter Anzug - alles muss perfekt sitzen!"
 """
 
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import HTML, Column, Fieldset, Layout, Row
 from django import forms
 from django.core.exceptions import ValidationError
 
@@ -328,6 +330,68 @@ class BenutzerErstellungForm(forms.ModelForm):
         # Alle Felder sind Pflichtfelder in diesem Formular
         for field in self.fields.values():
             field.required = True
+
+        # Crispy Forms Layout - Peter Zwegats strukturierter Ansatz
+        self.helper = FormHelper()
+        self.helper.form_method = "post"
+        self.helper.form_class = "profilform"
+        self.helper.layout = Layout(
+            HTML(
+                '<div class="create-card text-center">'
+                '<h1 class="display-5">🎭 Willkommen bei llkjj_knut!</h1>'
+                '<p class="lead">Lassen Sie uns Ihr Profil erstellen</p>'
+                "</div>"
+            ),
+            HTML(
+                '<div class="peter-tip">'
+                '<i class="fas fa-lightbulb text-warning"></i> '
+                '<strong>Peter Zwegat sagt:</strong> "Ein vollständiges Profil ist wie ein gutes Fundament - '
+                'darauf baut sich alles andere auf! Nehmen Sie sich die Zeit, alles ordentlich auszufüllen."'
+                "</div>"
+            ),
+            Fieldset(
+                '<i class="fas fa-user"></i> Schritt 1: Persönliche Daten',
+                Row(
+                    Column("vorname", css_class="col-md-6"),
+                    Column("nachname", css_class="col-md-6"),
+                ),
+                "email",
+                css_class="form-step",
+            ),
+            Fieldset(
+                '<i class="fas fa-home"></i> Schritt 2: Adresse',
+                "strasse",
+                Row(
+                    Column("plz", css_class="col-md-4"),
+                    Column("ort", css_class="col-md-8"),
+                ),
+                css_class="form-step",
+            ),
+            Fieldset(
+                '<i class="fas fa-calculator"></i> Schritt 3: Steuerliche Daten',
+                HTML(
+                    '<div class="peter-tip">'
+                    '<i class="fas fa-info-circle"></i> '
+                    "<strong>Wichtig:</strong> Die Steuer-Identifikationsnummer finden Sie auf Ihrem "
+                    "letzten Steuerbescheid oder können sie beim Bundeszentralamt für Steuern erfragen."
+                    "</div>"
+                ),
+                "steuer_id",
+                css_class="form-step",
+            ),
+            Fieldset(
+                '<i class="fas fa-briefcase"></i> Schritt 4: Berufliche Daten',
+                "beruf",
+                css_class="form-step",
+            ),
+            HTML(
+                '<div class="peter-tip mt-4">'
+                '<i class="fas fa-shield-alt text-success"></i> '
+                "<strong>Datenschutz:</strong> Alle Ihre Daten werden verschlüsselt gespeichert und nur für "
+                "die Buchhaltung und Steuererklärung verwendet. Peter Zwegat hätte es nicht anders gewollt!"
+                "</div>"
+            ),
+        )
 
 
 class SchnelleinstellungenForm(forms.ModelForm):

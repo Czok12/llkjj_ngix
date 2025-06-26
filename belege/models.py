@@ -20,23 +20,27 @@ def generiere_intelligenten_dateinamen(instance, filename):
         # Dateiendung extrahieren
         dateiendung = filename.split(".")[-1].lower()
 
-        # Basis-Informationen sammeln
+        # Basis-Informationen sammeln - FALLBACK für leere Werte
         haendler = "Unbekannt"
-        datum_str = "01_01_00"
+        datum_str = datetime.now().strftime("%d_%m_%y")  # Fallback: heute
         rechnungsnr = "000"
 
         # Geschäftspartner verwenden falls vorhanden
-        if instance.geschaeftspartner and instance.geschaeftspartner.name:
+        if (
+            hasattr(instance, "geschaeftspartner")
+            and instance.geschaeftspartner
+            and instance.geschaeftspartner.name
+        ):
             haendler = bereinige_dateinamen(instance.geschaeftspartner.name)
 
-        # Rechnungsdatum formatieren
-        if instance.rechnungsdatum:
+        # Rechnungsdatum formatieren - FALLBACK falls leer
+        if hasattr(instance, "rechnungsdatum") and instance.rechnungsdatum:
             datum_str = instance.rechnungsdatum.strftime("%d_%m_%y")
 
-        # Rechnungsnummer aus OCR-Text extrahieren falls vorhanden
+        # Rechnungsnummer aus verschiedenen Quellen extrahieren
         if hasattr(instance, "rechnungsnummer") and instance.rechnungsnummer:
             rechnungsnr = bereinige_dateinamen(instance.rechnungsnummer)
-        elif instance.ocr_text:
+        elif hasattr(instance, "ocr_text") and instance.ocr_text:
             # Rechnungsnummer aus OCR-Text extrahieren
             rechnungsnummer_patterns = [
                 r"Rechnung[s-]?[Nn]r\.?\s*:?\s*([A-Z0-9-]+)",
@@ -55,22 +59,18 @@ def generiere_intelligenten_dateinamen(instance, filename):
         # Intelligenten Dateinamen zusammensetzen
         neuer_name = f"{haendler}_{datum_str}_{rechnungsnr}.{dateiendung}"
 
-        # Pfad mit Jahr/Monat erstellen
-        jahr = (
-            instance.rechnungsdatum.year
-            if instance.rechnungsdatum
-            else datetime.now().year
-        )
-        monat = (
-            instance.rechnungsdatum.month
-            if instance.rechnungsdatum
-            else datetime.now().month
-        )
+        # Pfad mit Jahr/Monat erstellen - FALLBACK für leere Werte
+        jahr = datetime.now().year
+        monat = datetime.now().month
+
+        if hasattr(instance, "rechnungsdatum") and instance.rechnungsdatum:
+            jahr = instance.rechnungsdatum.year
+            monat = instance.rechnungsdatum.month
 
         return f"belege/{jahr}/{monat:02d}/{neuer_name}"
 
     except Exception as e:
-        # Fallback zum ursprünglichen Namen
+        # Fallback zum ursprünglichen Namen mit aktuellem Datum
         logger.warning(f"Fehler bei Dateinamen-Generierung: {e}")
         return beleg_upload_path(instance, filename)
 
@@ -118,7 +118,6 @@ class Beleg(models.Model):
         # Einnahmen
         ("RECHNUNG_AUSGANG", "Ausgangsrechnung (Einnahme)"),
         ("SONSTIGE_EINNAHME", "Sonstige Einnahme"),
-
         # Ausgaben
         ("RECHNUNG_EINGANG", "Eingangsrechnung (Ausgabe)"),
         ("QUITTUNG", "Quittung (Ausgabe)"),
@@ -130,22 +129,24 @@ class Beleg(models.Model):
         ("WEITERBILDUNG", "Weiterbildung"),
         ("VERSICHERUNG", "Versicherung"),
         ("MIETE", "Miete/Nebenkosten"),
-
         # Neutral
         ("VERTRAG", "Vertrag"),
         ("SONSTIGES", "Sonstiger Beleg"),
     ]
 
     # Kategorisierung für KI-Training
-    EINNAHME_KATEGORIEN = [
-        "RECHNUNG_AUSGANG",
-        "SONSTIGE_EINNAHME"
-    ]
+    EINNAHME_KATEGORIEN = ["RECHNUNG_AUSGANG", "SONSTIGE_EINNAHME"]
 
     AUSGABE_KATEGORIEN = [
-        "RECHNUNG_EINGANG", "QUITTUNG", "BETRIEBSAUSGABE",
-        "REISEKOSTEN", "BÜROMATERIAL", "MARKETING",
-        "WEITERBILDUNG", "VERSICHERUNG", "MIETE"
+        "RECHNUNG_EINGANG",
+        "QUITTUNG",
+        "BETRIEBSAUSGABE",
+        "REISEKOSTEN",
+        "BÜROMATERIAL",
+        "MARKETING",
+        "WEITERBILDUNG",
+        "VERSICHERUNG",
+        "MIETE",
     ]
 
     STATUS_CHOICES = [
@@ -244,20 +245,20 @@ class Beleg(models.Model):
     ki_vertrauen = models.FloatField(
         default=0.0,
         help_text="Vertrauen der automatischen Kategorisierung (0-1)",
-        verbose_name="KI-Vertrauen"
+        verbose_name="KI-Vertrauen",
     )
 
     ki_vorschlag = models.CharField(
         max_length=20,
         blank=True,
         help_text="KI-Vorschlag für Beleg-Typ",
-        verbose_name="KI-Vorschlag"
+        verbose_name="KI-Vorschlag",
     )
 
     benutzer_bestaetigt = models.BooleanField(
         default=False,
         help_text="Hat der Benutzer die Kategorisierung bestätigt?",
-        verbose_name="Benutzer bestätigt"
+        verbose_name="Benutzer bestätigt",
     )
 
     # Vorklassifizierung beim Upload
@@ -265,7 +266,7 @@ class Beleg(models.Model):
         null=True,
         blank=True,
         help_text="Vom Benutzer beim Upload als Einnahme/Ausgabe markiert",
-        verbose_name="Ist Einnahme"
+        verbose_name="Ist Einnahme",
     )
 
     # OCR und automatische Extraktion
@@ -389,9 +390,9 @@ class Beleg(models.Model):
     def braucht_manuelle_pruefung(self):
         """Braucht der Beleg manuelle Prüfung?"""
         return (
-            self.status in ["NEU", "FEHLER"] or
-            (self.ki_vertrauen > 0 and self.ki_vertrauen < 0.8) or
-            not self.benutzer_bestaetigt
+            self.status in ["NEU", "FEHLER"]
+            or (self.ki_vertrauen > 0 and self.ki_vertrauen < 0.8)
+            or not self.benutzer_bestaetigt
         )
 
     def aktualisiere_ki_daten(self, vertrauen: float, vorschlag: str):
@@ -421,12 +422,16 @@ class Beleg(models.Model):
         if self.ocr_text:
             BelegKategorieML.objects.create(
                 schluesselwoerter=self._extrahiere_schluesselwoerter(),
-                lieferant_name=self.geschaeftspartner.name if self.geschaeftspartner else "Unbekannt",
+                lieferant_name=(
+                    self.geschaeftspartner.name
+                    if self.geschaeftspartner
+                    else "Unbekannt"
+                ),
                 betrag_bereich=self._bestimme_betrag_bereich(),
                 korrekte_kategorie=self.beleg_typ,
                 ist_einnahme=self.ist_einnahme_typ,
                 vertrauen=self.ki_vertrauen,
-                benutzer_korrektur=True
+                benutzer_korrektur=True,
             )
 
         self.save()
@@ -444,11 +449,11 @@ class Beleg(models.Model):
 
         # Kategorien-spezifische Wörter
         kategorien_woerter = {
-            'büromaterial': ['papier', 'stift', 'ordner', 'toner', 'drucker'],
-            'reisekosten': ['hotel', 'bahn', 'flug', 'taxi', 'übernachtung'],
-            'marketing': ['werbung', 'anzeige', 'google', 'facebook', 'instagram'],
-            'miete': ['miete', 'nebenkosten', 'strom', 'gas', 'wasser'],
-            'versicherung': ['versicherung', 'prämie', 'police', 'schutz'],
+            "büromaterial": ["papier", "stift", "ordner", "toner", "drucker"],
+            "reisekosten": ["hotel", "bahn", "flug", "taxi", "übernachtung"],
+            "marketing": ["werbung", "anzeige", "google", "facebook", "instagram"],
+            "miete": ["miete", "nebenkosten", "strom", "gas", "wasser"],
+            "versicherung": ["versicherung", "prämie", "police", "schutz"],
         }
 
         for woerter in kategorien_woerter.values():
@@ -472,6 +477,74 @@ class Beleg(models.Model):
             return "200-1000"
         else:
             return "1000+"
+
+    def benenne_datei_um(self):
+        """
+        Benennt die Datei um, nachdem mehr Informationen verfügbar sind.
+        Peter Zwegat: "Nachbesserung ist besser als gar keine Ordnung!"
+        """
+        if not self.datei:
+            return
+
+        try:
+            import os
+
+            from django.core.files.storage import default_storage
+
+            # Neuen Namen generieren
+            alter_pfad = self.datei.name
+            alter_voller_pfad = self.datei.path
+
+            # Neuen Namen mit aktuellen Daten erstellen
+            dateiendung = alter_pfad.split(".")[-1].lower()
+
+            haendler = "Unbekannt"
+            if self.geschaeftspartner and self.geschaeftspartner.name:
+                haendler = bereinige_dateinamen(self.geschaeftspartner.name)
+
+            datum_str = datetime.now().strftime("%d_%m_%y")
+            if self.rechnungsdatum:
+                datum_str = self.rechnungsdatum.strftime("%d_%m_%y")
+
+            rechnungsnr = "000"
+            if self.rechnungsnummer:
+                rechnungsnr = bereinige_dateinamen(self.rechnungsnummer)
+
+            neuer_name = f"{haendler}_{datum_str}_{rechnungsnr}.{dateiendung}"
+
+            # Pfad mit Jahr/Monat
+            jahr = (
+                self.rechnungsdatum.year if self.rechnungsdatum else datetime.now().year
+            )
+            monat = (
+                self.rechnungsdatum.month
+                if self.rechnungsdatum
+                else datetime.now().month
+            )
+
+            neuer_pfad = f"belege/{jahr}/{monat:02d}/{neuer_name}"
+
+            # Nur umbenennen wenn sich der Name geändert hat
+            if alter_pfad != neuer_pfad:
+                # Sicherstellen dass das Ziel-Verzeichnis existiert
+                ziel_dir = f"belege/{jahr}/{monat:02d}"
+                default_storage.save(f"{ziel_dir}/.keep", b"")
+
+                neuer_voller_pfad = default_storage.path(neuer_pfad)
+
+                # Datei physisch verschieben
+                if os.path.exists(alter_voller_pfad):
+                    os.makedirs(os.path.dirname(neuer_voller_pfad), exist_ok=True)
+                    os.rename(alter_voller_pfad, neuer_voller_pfad)
+
+                    # Datenbankfeld aktualisieren
+                    self.datei.name = neuer_pfad
+                    self.save(update_fields=["datei"])
+
+                    logger.info(f"Datei umbenannt: {alter_pfad} -> {neuer_pfad}")
+
+        except Exception as e:
+            logger.warning(f"Fehler beim Umbenennen der Datei: {e}")
 
 
 class BelegKategorieML(models.Model):

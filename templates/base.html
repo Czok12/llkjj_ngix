@@ -26,6 +26,58 @@
                     <a href="{% url 'konten:liste' %}" class="text-white hover:text-blue-200 px-3 py-2 rounded-md">
                         <i class="fas fa-list mr-1"></i>Konten
                     </a>
+                    <a href="{% url 'belege:liste' %}" class="text-white hover:text-blue-200 px-3 py-2 rounded-md">
+                        <i class="fas fa-receipt mr-1"></i>Belege
+                    </a>
+                    
+                    <!-- Auswertungen Dropdown -->
+                    <div class="relative group">
+                        <button class="text-white hover:text-blue-200 px-3 py-2 rounded-md flex items-center">
+                            <i class="fas fa-chart-line mr-1"></i>Auswertungen
+                            <i class="fas fa-chevron-down ml-1 text-xs"></i>
+                        </button>
+                        <div class="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                            <div class="py-2">
+                                <a href="{% url 'auswertungen:dashboard' %}" class="block px-4 py-2 text-gray-800 hover:bg-blue-50 hover:text-blue-600">
+                                    <i class="fas fa-chart-pie mr-2 text-blue-500"></i>
+                                    <span class="font-semibold">Dashboard</span>
+                                    <div class="text-xs text-gray-500">Kennzahlen & Übersicht</div>
+                                </a>
+                                <a href="{% url 'auswertungen:eur_offiziell' %}" class="block px-4 py-2 text-gray-800 hover:bg-green-50 hover:text-green-600">
+                                    <i class="fas fa-file-invoice-dollar mr-2 text-green-500"></i>
+                                    <span class="font-semibold">EÜR (Offiziell)</span>
+                                    <div class="text-xs text-gray-500">Steuerformular-konforme EÜR</div>
+                                </a>
+                                <a href="{% url 'auswertungen:eur' %}" class="block px-4 py-2 text-gray-800 hover:bg-orange-50 hover:text-orange-600">
+                                    <i class="fas fa-list-alt mr-2 text-orange-500"></i>
+                                    <span>EÜR (Einfach)</span>
+                                    <div class="text-xs text-gray-500">Grundlegende Übersicht</div>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Upload Dropdown -->
+                    <div class="relative group">
+                        <button class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-md flex items-center">
+                            <i class="fas fa-upload mr-1"></i>Upload
+                            <i class="fas fa-chevron-down ml-1 text-xs"></i>
+                        </button>
+                        <div class="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                            <div class="py-2">
+                                <a href="{% url 'belege:upload_dual' %}" class="block px-4 py-2 text-gray-800 hover:bg-green-50 hover:text-green-600">
+                                    <i class="fas fa-columns mr-2 text-green-500"></i>
+                                    <span class="font-semibold">Dual Upload</span>
+                                    <div class="text-xs text-gray-500">Eingang & Ausgang getrennt</div>
+                                </a>
+                                <a href="{% url 'belege:upload' %}" class="block px-4 py-2 text-gray-800 hover:bg-blue-50 hover:text-blue-600">
+                                    <i class="fas fa-upload mr-2 text-blue-500"></i>
+                                    <span>Standard Upload</span>
+                                    <div class="text-xs text-gray-500">Einzelner Beleg</div>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
                     <a href="{% url 'dokumente:liste' %}" class="text-white hover:text-blue-200 px-3 py-2 rounded-md">
                         <i class="fas fa-folder mr-1"></i>Dokumente
                     </a>
@@ -54,6 +106,24 @@
                 </a>
                 <a href="{% url 'konten:liste' %}" class="text-white block px-3 py-2 rounded-md hover:bg-blue-700">
                     <i class="fas fa-list mr-2"></i>Konten
+                </a>
+                <a href="{% url 'belege:liste' %}" class="text-white block px-3 py-2 rounded-md hover:bg-blue-700">
+                    <i class="fas fa-receipt mr-2"></i>Belege
+                </a>
+                <a href="{% url 'auswertungen:dashboard' %}" class="text-white block px-3 py-2 rounded-md hover:bg-blue-700">
+                    <i class="fas fa-chart-pie mr-2"></i>Auswertungen Dashboard
+                </a>
+                <a href="{% url 'auswertungen:eur_offiziell' %}" class="text-white block px-3 py-2 rounded-md hover:bg-blue-700 ml-4">
+                    <i class="fas fa-file-invoice-dollar mr-2"></i>EÜR (Offiziell)
+                </a>
+                <a href="{% url 'auswertungen:eur' %}" class="text-white block px-3 py-2 rounded-md hover:bg-blue-700 ml-4">
+                    <i class="fas fa-list-alt mr-2"></i>EÜR (Einfach)
+                </a>
+                <a href="{% url 'belege:upload_dual' %}" class="bg-green-600 block px-3 py-2 rounded-md hover:bg-green-700">
+                    <i class="fas fa-columns mr-2"></i>Dual Upload
+                </a>
+                <a href="{% url 'belege:upload' %}" class="bg-green-500 block px-3 py-2 rounded-md hover:bg-green-600 ml-4">
+                    <i class="fas fa-upload mr-2"></i>Standard Upload
                 </a>
                 <a href="{% url 'dokumente:liste' %}" class="text-white block px-3 py-2 rounded-md hover:bg-blue-700">
                     <i class="fas fa-folder mr-2"></i>Dokumente

@@ -1,0 +1,517 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Belege hochladen - Eingang & Ausgang{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Basis-Styling für Split-View */
+.dual-upload-container {
+    display: flex;
+    gap: 2rem;
+    min-height: 70vh;
+}
+
+.upload-section {
+    flex: 1;
+    padding: 1.5rem;
+    border-radius: 15px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border: 2px solid #dee2e6;
+    transition: all 0.3s ease;
+}
+
+.upload-section.eingang {
+    border-left: 5px solid #dc3545;
+}
+
+.upload-section.ausgang {
+    border-left: 5px solid #28a745;
+}
+
+.upload-section:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+
+.section-header {
+    text-align: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.section-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.eingang .section-title {
+    color: #dc3545;
+}
+
+.ausgang .section-title {
+    color: #28a745;
+}
+
+.section-subtitle {
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+.upload-zone {
+    border: 3px dashed #ddd;
+    border-radius: 12px;
+    padding: 3rem 2rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+}
+
+.upload-zone:hover {
+    border-color: #007bff;
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0,123,255,0.15);
+}
+
+.upload-zone.dragover {
+    border-color: #28a745;
+    background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+    transform: scale(1.02);
+}
+
+.upload-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    transition: all 0.3s ease;
+}
+
+.eingang .upload-icon {
+    color: #dc3545;
+}
+
+.ausgang .upload-icon {
+    color: #28a745;
+}
+
+.upload-zone:hover .upload-icon {
+    transform: scale(1.1);
+}
+
+.upload-text {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #495057;
+}
+
+.upload-hint {
+    font-size: 0.9rem;
+    color: #6c757d;
+    margin-bottom: 1rem;
+}
+
+.file-input {
+    display: none;
+}
+
+.form-section {
+    margin-top: 1.5rem;
+}
+
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-label {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #495057;
+}
+
+.form-control {
+    border-radius: 8px;
+    border: 1px solid #ced4da;
+    padding: 0.75rem;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0,123,255,0.25);
+}
+
+.btn-upload {
+    width: 100%;
+    padding: 0.75rem;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-upload.eingang {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    color: white;
+}
+
+.btn-upload.ausgang {
+    background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
+    color: white;
+}
+
+.btn-upload:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+.zwegat-tip {
+    background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+    border: 2px solid #ffc107;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    position: relative;
+    text-align: center;
+}
+
+.zwegat-tip::before {
+    content: "💡";
+    position: absolute;
+    top: -15px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #ffc107;
+    padding: 8px 12px;
+    border-radius: 50%;
+    font-size: 1.2rem;
+}
+
+.processing-overlay {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255,255,255,0.9);
+    border-radius: 12px;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+}
+
+.spinner {
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #007bff;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 1s linear infinite;
+    margin-bottom: 1rem;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .dual-upload-container {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .upload-zone {
+        padding: 2rem 1rem;
+    }
+    
+    .upload-icon {
+        font-size: 2.5rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="h2 mb-3">
+                <i class="fas fa-cloud-upload-alt text-primary me-2"></i>
+                {{ titel }}
+            </h1>
+            
+            <!-- Peter Zwegat Tipp -->
+            <div class="zwegat-tip">
+                <strong>Peter Zwegat sagt:</strong><br>
+                "Links die Ausgaben, rechts die Einnahmen - so behalten Sie den Überblick! 
+                Klicken Sie einfach auf die gewünschte Seite und laden Sie Ihre Belege hoch. 
+                Die KI macht den Rest!"
+            </div>
+        </div>
+    </div>
+
+    <!-- Dual Upload Container -->
+    <div class="dual-upload-container">
+        <!-- Eingangsrechnungen (Ausgaben) - Links -->
+        <div class="upload-section eingang">
+            <div class="section-header">
+                <h3 class="section-title">
+                    <i class="fas fa-arrow-down me-2"></i>
+                    Eingangsrechnungen
+                </h3>
+                <p class="section-subtitle">Ausgaben • Rechnungen von Lieferanten</p>
+            </div>
+
+            <form method="post" enctype="multipart/form-data" class="upload-form" data-type="eingang">
+                {% csrf_token %}
+                <input type="hidden" name="upload_typ" value="eingang">
+                
+                <!-- Upload Zone -->
+                <div class="upload-zone" onclick="document.getElementById('id_eingang-datei').click()">
+                    <div class="upload-icon">
+                        <i class="fas fa-file-invoice"></i>
+                    </div>
+                    <div class="upload-text">Rechnung hier hochladen</div>
+                    <div class="upload-hint">
+                        PDF, JPG oder PNG<br>
+                        Klicken oder Datei hierher ziehen
+                    </div>
+                    
+                    <!-- Processing Overlay -->
+                    <div class="processing-overlay">
+                        <div class="spinner"></div>
+                        <div>Verarbeite Rechnung...</div>
+                    </div>
+                </div>
+
+                <!-- Form Fields -->
+                <div class="form-section">
+                    {{ form_eingang.datei }}
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="{{ form_eingang.beschreibung.id_for_label }}">
+                            Beschreibung
+                        </label>
+                        {{ form_eingang.beschreibung }}
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="{{ form_eingang.beleg_typ.id_for_label }}">
+                            Beleg-Typ
+                        </label>
+                        {{ form_eingang.beleg_typ }}
+                    </div>
+
+                    <button type="submit" class="btn-upload eingang">
+                        <i class="fas fa-upload me-2"></i>
+                        Eingangsrechnung hochladen
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Ausgangsrechnungen (Einnahmen) - Rechts -->
+        <div class="upload-section ausgang">
+            <div class="section-header">
+                <h3 class="section-title">
+                    <i class="fas fa-arrow-up me-2"></i>
+                    Ausgangsrechnungen
+                </h3>
+                <p class="section-subtitle">Einnahmen • Rechnungen an Kunden</p>
+            </div>
+
+            <form method="post" enctype="multipart/form-data" class="upload-form" data-type="ausgang">
+                {% csrf_token %}
+                <input type="hidden" name="upload_typ" value="ausgang">
+                
+                <!-- Upload Zone -->
+                <div class="upload-zone" onclick="document.getElementById('id_ausgang-datei').click()">
+                    <div class="upload-icon">
+                        <i class="fas fa-file-contract"></i>
+                    </div>
+                    <div class="upload-text">Rechnung hier hochladen</div>
+                    <div class="upload-hint">
+                        PDF, JPG oder PNG<br>
+                        Klicken oder Datei hierher ziehen
+                    </div>
+                    
+                    <!-- Processing Overlay -->
+                    <div class="processing-overlay">
+                        <div class="spinner"></div>
+                        <div>Verarbeite Rechnung...</div>
+                    </div>
+                </div>
+
+                <!-- Form Fields -->
+                <div class="form-section">
+                    {{ form_ausgang.datei }}
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="{{ form_ausgang.beschreibung.id_for_label }}">
+                            Beschreibung
+                        </label>
+                        {{ form_ausgang.beschreibung }}
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="{{ form_ausgang.beleg_typ.id_for_label }}">
+                            Beleg-Typ
+                        </label>
+                        {{ form_ausgang.beleg_typ }}
+                    </div>
+
+                    <button type="submit" class="btn-upload ausgang">
+                        <i class="fas fa-upload me-2"></i>
+                        Ausgangsrechnung hochladen
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Hilfe-Sektion -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-question-circle text-info me-2"></i>
+                        Hilfe zum Upload
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="text-danger">
+                                <i class="fas fa-arrow-down me-1"></i>
+                                Eingangsrechnungen (Ausgaben)
+                            </h6>
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-check text-success me-2"></i>Rechnungen von Lieferanten</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Betriebsausgaben</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Büromaterial, Software</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Reisekosten, Weiterbildung</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-success">
+                                <i class="fas fa-arrow-up me-1"></i>
+                                Ausgangsrechnungen (Einnahmen)
+                            </h6>
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-check text-success me-2"></i>Rechnungen an Kunden</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Honorare, Projektabrechnungen</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Verkäufe, Provisionen</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Sonstige Einnahmen</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Drag & Drop für beide Upload-Zonen
+    const uploadZones = document.querySelectorAll('.upload-zone');
+    
+    uploadZones.forEach(zone => {
+        zone.addEventListener('dragover', handleDragOver);
+        zone.addEventListener('dragleave', handleDragLeave);
+        zone.addEventListener('drop', handleDrop);
+    });
+    
+    function handleDragOver(e) {
+        e.preventDefault();
+        e.currentTarget.classList.add('dragover');
+    }
+    
+    function handleDragLeave(e) {
+        e.preventDefault();
+        e.currentTarget.classList.remove('dragover');
+    }
+    
+    function handleDrop(e) {
+        e.preventDefault();
+        e.currentTarget.classList.remove('dragover');
+        
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            const uploadSection = e.currentTarget.closest('.upload-section');
+            const fileInput = uploadSection.querySelector('input[type="file"]');
+            fileInput.files = files;
+            
+            // Datei-Info anzeigen
+            showFileInfo(files[0], uploadSection);
+        }
+    }
+    
+    // File Input Change Handler
+    const fileInputs = document.querySelectorAll('input[type="file"]');
+    fileInputs.forEach(input => {
+        input.addEventListener('change', function() {
+            if (this.files.length > 0) {
+                const uploadSection = this.closest('.upload-section');
+                showFileInfo(this.files[0], uploadSection);
+            }
+        });
+    });
+    
+    function showFileInfo(file, uploadSection) {
+        const uploadZone = uploadSection.querySelector('.upload-zone');
+        const uploadText = uploadZone.querySelector('.upload-text');
+        const uploadHint = uploadZone.querySelector('.upload-hint');
+        
+        uploadText.textContent = file.name;
+        uploadHint.innerHTML = `${formatFileSize(file.size)} • ${file.type}`;
+        
+        // Form aktivieren
+        uploadSection.classList.add('file-selected');
+    }
+    
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+    
+    // Form Submit Handler
+    const forms = document.querySelectorAll('.upload-form');
+    forms.forEach(form => {
+        form.addEventListener('submit', function(e) {
+            const fileInput = this.querySelector('input[type="file"]');
+            if (!fileInput.files.length) {
+                e.preventDefault();
+                alert('Bitte wählen Sie eine Datei aus!');
+                return;
+            }
+            
+            // Processing-Overlay anzeigen
+            const overlay = this.querySelector('.processing-overlay');
+            overlay.style.display = 'flex';
+            
+            // Button deaktivieren
+            const button = this.querySelector('.btn-upload');
+            button.disabled = true;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Lade hoch...';
+        });
+    });
+});
+</script>
+{% endblock %}

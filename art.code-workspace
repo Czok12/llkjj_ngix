@@ -35,6 +35,10 @@
         {
             "name": "🔧 Einstellungen",
             "path": "./einstellungen"
+        },
+        {
+            "name": "💾 Backups",
+            "path": "./backups"
         }
     ],
     "settings": {

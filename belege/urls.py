@@ -18,6 +18,7 @@ urlpatterns = [
     path("liste/", views.beleg_liste, name="liste"),
     # Upload neuer Belege
     path("upload/", views.beleg_upload, name="upload"),
+    path("upload/dual/", views.beleg_upload_dual, name="upload_dual"),
     # Beleg-Details und -Bearbeitung
     path("<uuid:beleg_id>/", views.beleg_detail, name="detail"),
     path("<uuid:beleg_id>/bearbeiten/", views.beleg_bearbeiten, name="bearbeiten"),

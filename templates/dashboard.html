@@ -22,6 +22,101 @@
         </div>
     </div>
 
+    <!-- Schnellaktionen -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+        <!-- Eingangsrechnung hochladen -->
+        <div class="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+            <div class="mb-4">
+                <i class="fas fa-file-upload text-4xl text-red-600"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-red-800 mb-2">Eingangsrechnung</h3>
+            <p class="text-red-600 text-sm mb-4">
+                Rechnungen von Lieferanten oder Dienstleistern hochladen
+            </p>
+            <a href="{% url 'belege:upload' %}?typ=RECHNUNG_EINGANG" 
+               class="bg-red-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-red-700 transition-colors">
+                <i class="fas fa-upload mr-2"></i>PDF hochladen
+            </a>
+        </div>
+
+        <!-- Ausgangsrechnung hochladen -->
+        <div class="bg-green-50 border border-green-200 rounded-lg p-6 text-center">
+            <div class="mb-4">
+                <i class="fas fa-file-invoice text-4xl text-green-600"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-green-800 mb-2">Ausgangsrechnung</h3>
+            <p class="text-green-600 text-sm mb-4">
+                Ihre eigenen Rechnungen an Kunden dokumentieren
+            </p>
+            <a href="{% url 'belege:upload' %}?typ=RECHNUNG_AUSGANG" 
+               class="bg-green-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-green-700 transition-colors">
+                <i class="fas fa-file-plus mr-2"></i>Rechnung hinzufügen
+            </a>
+        </div>
+
+        <!-- Alle Belege anzeigen -->
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 text-center">
+            <div class="mb-4">
+                <i class="fas fa-folder-open text-4xl text-blue-600"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-blue-800 mb-2">Belege verwalten</h3>
+            <p class="text-blue-600 text-sm mb-4">
+                Alle hochgeladenen Belege anzeigen und bearbeiten
+            </p>
+            <a href="{% url 'belege:liste' %}" 
+               class="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors">
+                <i class="fas fa-list mr-2"></i>Belege anzeigen
+            </a>
+        </div>
+    </div>
+
+    <!-- Peter Zwegat Tipp -->
+    <div class="bg-yellow-50 border-l-4 border-yellow-400 p-6 mb-6">
+        <div class="flex items-start">
+            <div class="flex-shrink-0">
+                <i class="fas fa-lightbulb text-yellow-600 text-2xl"></i>
+            </div>
+            <div class="ml-4">
+                <h3 class="text-lg font-medium text-yellow-800">Peter Zwegat sagt:</h3>
+                <p class="text-yellow-700 mt-1">
+                    "Ordnung ist das halbe Leben! Laden Sie Ihre Rechnungen direkt hoch - 
+                    das System erkennt automatisch Datum, Betrag und Lieferant. 
+                    So sparen Sie Zeit und vermeiden Fehler!"
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Wichtige Auswertungen -->
+    <div class="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg p-6 mb-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <h3 class="text-xl font-bold text-gray-800 mb-2">
+                    <i class="fas fa-chart-line mr-2 text-green-600"></i>
+                    Wichtige Auswertungen
+                </h3>
+                <p class="text-gray-600">
+                    Peter Zwegat: "Wer seine Zahlen kennt, behält die Kontrolle!"
+                </p>
+            </div>
+            <div class="flex space-x-4">
+                <!-- EÜR (Offiziell) -->
+                <a href="{% url 'auswertungen:eur_offiziell' %}" 
+                   class="bg-green-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-green-700 transition-colors shadow-lg">
+                    <i class="fas fa-file-invoice-dollar mr-2"></i>
+                    EÜR (Offiziell)
+                </a>
+                
+                <!-- Dashboard -->
+                <a href="{% url 'auswertungen:dashboard' %}" 
+                   class="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors shadow-lg">
+                    <i class="fas fa-chart-pie mr-2"></i>
+                    Auswertungen-Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+
     <!-- Statistik-Karten -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <!-- Konten -->
@@ -71,9 +166,12 @@
                     <p class="text-2xl font-semibold text-gray-900">{{ stats.belege_count }}</p>
                 </div>
             </div>
-            <div class="mt-4">
-                <a href="{% url 'admin:belege_beleg_changelist' %}" class="text-red-600 hover:text-red-800 text-sm font-medium">
+            <div class="mt-4 space-y-2">
+                <a href="{% url 'belege:liste' %}" class="block text-red-600 hover:text-red-800 text-sm font-medium">
                     Belege verwalten <i class="fas fa-arrow-right ml-1"></i>
+                </a>
+                <a href="{% url 'belege:upload' %}" class="block text-green-600 hover:text-green-800 text-sm font-medium">
+                    Neuen Beleg hochladen <i class="fas fa-upload ml-1"></i>
                 </a>
             </div>
         </div>
