@@ -36,7 +36,6 @@ class DokumentModelTest(TestCase):
         """Test: String-Darstellung des Dokuments."""
         dokument = Dokument.objects.create(titel="Test-Dokument", kategorie="KSK")
 
-        expected = "Test-Dokument (🎨 Künstlersozialkasse)"
         self.assertIn("Test-Dokument", str(dokument))
 
     def test_tag_liste_property(self):

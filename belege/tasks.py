@@ -1,11 +1,12 @@
 """
 Asynchrone Celery Tasks für die Belegverarbeitung.
 
-Peter Zwegat würde sagen: "Während du Kaffee trinkst, 
+Peter Zwegat würde sagen: "Während du Kaffee trinkst,
 arbeitet der Computer schon an deinen Belegen!"
 """
 
 import logging
+from datetime import datetime
 
 from celery import shared_task
 from django.core.files.storage import default_storage
@@ -20,12 +21,12 @@ logger = logging.getLogger(__name__)
 def verarbeite_beleg_async(self, beleg_id):
     """
     Asynchrone Verarbeitung eines hochgeladenen Belegs.
-    
+
     Peter Zwegat: "PDF hochladen und entspannt zurücklehnen!"
-    
+
     Args:
         beleg_id: ID des zu verarbeitenden Belegs
-        
+
     Returns:
         dict: Verarbeitungsergebnis mit Status und extrahierten Daten
     """
@@ -57,11 +58,12 @@ def verarbeite_beleg_async(self, beleg_id):
 
             # KI-Kategorisierung
             from .ki_service import beleg_ki
+
             if beleg.ocr_text:
                 kategorie, vertrauen = beleg_ki.kategorisiere_beleg(
                     beleg.ocr_text,
                     beleg.geschaeftspartner.name if beleg.geschaeftspartner else None,
-                    float(beleg.betrag) if beleg.betrag else None
+                    float(beleg.betrag) if beleg.betrag else None,
                 )
                 beleg.aktualisiere_ki_daten(vertrauen, kategorie)
 
@@ -76,7 +78,7 @@ def verarbeite_beleg_async(self, beleg_id):
                 "beleg_id": str(beleg.id),
                 "extrahierte_daten": extrahierte_daten,
                 "ki_kategorie": kategorie if beleg.ocr_text else None,
-                "ki_vertrauen": vertrauen if beleg.ocr_text else 0.0
+                "ki_vertrauen": vertrauen if beleg.ocr_text else 0.0,
             }
 
     except Beleg.DoesNotExist:
@@ -91,13 +93,18 @@ def verarbeite_beleg_async(self, beleg_id):
             beleg = Beleg.objects.get(id=beleg_id)
             beleg.status = "FEHLER"
             beleg.save()
-        except:
-            pass
+        except Exception as save_exc:
+            logger.error(
+                "Fehler beim Markieren des Belegs als fehlerhaft: %s", save_exc
+            )
 
         # Retry-Logik
         if self.request.retries < self.max_retries:
-            logger.info("Retry Beleg-Verarbeitung: %s (Versuch %s)",
-                       beleg_id, self.request.retries + 1)
+            logger.info(
+                "Retry Beleg-Verarbeitung: %s (Versuch %s)",
+                beleg_id,
+                self.request.retries + 1,
+            )
             raise self.retry(countdown=60 * (self.request.retries + 1))
 
         return {"status": "error", "message": str(exc)}
@@ -107,7 +114,7 @@ def verarbeite_beleg_async(self, beleg_id):
 def batch_ki_training():
     """
     Batch-Training der KI mit allen bestätigten Belegen.
-    
+
     Peter Zwegat: "Einmal in der Nacht das System schlauer machen!"
     """
     try:
@@ -131,12 +138,12 @@ def batch_ki_training():
 def cleanup_temp_files():
     """
     Aufräumen von temporären Dateien und verwaisten Uploads.
-    
+
     Peter Zwegat: "Ordnung halten - auch digital!"
     """
     try:
         import os
-        from datetime import datetime, timedelta
+        from datetime import timedelta
 
         # Lösche temporäre OCR-Dateien älter als 1 Tag
         temp_dir = default_storage.path("temp/")
@@ -164,7 +171,7 @@ def cleanup_temp_files():
 def health_check():
     """
     Gesundheitscheck für das Celery-System.
-    
+
     Peter Zwegat: "Regelmäßig prüfen, ob alles läuft!"
     """
     try:
@@ -176,6 +183,7 @@ def health_check():
 
         # Redis-Verbindung testen (über Celery-Backend)
         from celery import current_app
+
         current_app.backend.get("health_check_test")
 
         logger.info("Celery Health Check: Alles OK")
@@ -183,7 +191,7 @@ def health_check():
             "status": "healthy",
             "timestamp": datetime.now().isoformat(),
             "database": "ok",
-            "redis": "ok"
+            "redis": "ok",
         }
 
     except Exception as exc:
@@ -191,5 +199,5 @@ def health_check():
         return {
             "status": "unhealthy",
             "timestamp": datetime.now().isoformat(),
-            "error": str(exc)
+            "error": str(exc),
         }

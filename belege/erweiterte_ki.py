@@ -54,7 +54,7 @@ logger = logging.getLogger(__name__)
 class ErweiterteKI:
     """
     Erweiterte KI für intelligente Belegerfassung mit modernen ML-Techniken.
-    
+
     Peter Zwegat: "Das ist wie ein Steuerberater, der nie müde wird und nie Fehler macht!"
     """
 
@@ -183,7 +183,7 @@ class ErweiterteKI:
 
             # Evaluiere das Modell
             if len(X_test) > 0:
-                y_pred = self.ml_model.predict(X_test)
+                self.ml_model.predict(X_test)
                 logger.info(f"ML-Modell trainiert mit {len(X_train)} Beispielen")
 
         except Exception as e:
@@ -192,7 +192,7 @@ class ErweiterteKI:
     def verbesserte_ocr(self, image_path: str) -> str:
         """
         Verbesserte OCR mit EasyOCR und Bildvorverarbeitung.
-        
+
         Peter Zwegat: "Manchmal muss man das Bild erst putzen, bevor man es lesen kann!"
         """
         if not (CV_AVAILABLE and self.ocr_reader):
@@ -217,7 +217,7 @@ class ErweiterteKI:
 
             # Extrahiere Text
             text_parts = []
-            for (bbox, text, confidence) in results:
+            for (_bbox, text, confidence) in results:
                 if confidence > 0.5:  # Nur konfidente Erkennungen
                     text_parts.append(text)
 
@@ -230,7 +230,7 @@ class ErweiterteKI:
     def semantische_kategorisierung(self, text: str) -> tuple[str, float]:
         """
         Kategorisierung basierend auf semantischer Ähnlichkeit.
-        
+
         Peter Zwegat: "Der Computer versteht jetzt sogar, was gemeint ist!"
         """
         if not (self.sentence_model and DJANGO_AVAILABLE):
@@ -301,7 +301,7 @@ class ErweiterteKI:
     def intelligente_lieferanten_erkennung(self, text: str) -> str | None:
         """
         Erkennt Lieferanten mit Fuzzy Matching und NLP.
-        
+
         Peter Zwegat: "Auch wenn der Name falsch geschrieben ist - wir finden ihn!"
         """
         if not DJANGO_AVAILABLE:
@@ -351,7 +351,7 @@ class ErweiterteKI:
     def ml_kategorisierung(self, text: str) -> tuple[str, float]:
         """
         Machine Learning basierte Kategorisierung.
-        
+
         Peter Zwegat: "Das Modell wird immer schlauer!"
         """
         if not (self.ml_model and ML_AVAILABLE):
@@ -375,7 +375,7 @@ class ErweiterteKI:
                                    betrag: float = None) -> tuple[str, float]:
         """
         Kombiniert alle KI-Methoden für beste Kategorisierung.
-        
+
         Peter Zwegat: "Alle Mann an Deck - jede KI hilft mit!"
         """
         ergebnisse = []

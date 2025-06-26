@@ -29,8 +29,8 @@ class KontenListView(ListView):
         queryset = (
             Konto.objects.all()
             .annotate(
-                buchungen_soll=Count("buchungssatz_soll", distinct=True),
-                buchungen_haben=Count("buchungssatz_haben", distinct=True),
+                buchungen_soll=Count("soll_buchungen", distinct=True),
+                buchungen_haben=Count("haben_buchungen", distinct=True),
             )
             .order_by("nummer")
         )
