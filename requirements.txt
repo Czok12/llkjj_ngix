@@ -2,6 +2,9 @@
 Django
 django-environ
 
+# Authentication & Security
+webauthn>=2.0.0  # FIDO2/WebAuthn Support
+
 # Database
 psycopg2-binary  # PostgreSQL
   

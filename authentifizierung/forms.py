@@ -147,6 +147,8 @@ class BenutzerRegistrierungForm(UserCreationForm):
     def clean_username(self):
         """Zusätzliche Username-Validierung."""
         username = self.cleaned_data.get("username")
+        if not username:
+            raise ValidationError("Benutzername ist erforderlich.")
         if len(username) < 3:
             raise ValidationError(
                 "Der Benutzername muss mindestens 3 Zeichen lang sein."
@@ -217,9 +219,7 @@ class BenutzerAnmeldungForm(forms.Form):
             Submit("submit", "🔐 Anmelden", css_class="btn btn-primary btn-lg w-100"),
             HTML(
                 '<div class="text-center mt-3">'
-                "<p><a href=\"{% url 'authentifizierung:password_reset' %}\">Passwort vergessen?</a></p>"
-                "<p>Noch kein Konto? "
-                "<a href=\"{% url 'authentifizierung:register' %}\">Hier registrieren</a></p>"
+                "<p>Bei Problemen wenden Sie sich an den Administrator</p>"
                 "</div>"
             ),
         )

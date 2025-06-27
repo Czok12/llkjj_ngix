@@ -2,30 +2,101 @@
 Django settings for llkjj_knut project.
 
 Buchhaltungsbutler für Künstler - Peter Zwegat Edition 🎨
-"Ordnung ist das halbe Leben - die andere Hälfte ist Kunst!"
+"Ordnung# Database - SQLite für Entwicklung, PostgreSQL         "E    }     }
+
+# Für Tests immer SQLite verwenden (schneller und keine Berechtigungsprobleme)NGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",
+    }
+}
+
+# Für Tests immer SQLite verwenden (schneller und keine Berechtigungsprobleme)bug-Ausgabe nur wenn gewünscht
+if VERBOSE_SETTINGS:
+    print("📁 SQLite database configured successfully")
+
+# Für Tests immer SQLite verwenden (schneller und keine Berechtigungsprobleme): "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",
+    }
+}
+
+if VERBOSE_SETTINGS:
+    print("📁 SQLite database configured successfully")
+
+# Für Tests immer SQLite verwenden (schneller und keine Berechtigungsprobleme)ERBOSE_SETTINGS:
+    print("📁 SQLite database configured successfully")roduktion
+# https://docs.djangoproject.com/en/5.0/ref/settings/#databases
+
+# Standard SQLite-Konfiguration
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",
+    }
+}
+
+# Ermögliche PostgreSQL über DATABASE_URL (für Produktion)
+database_url = os.getenv("DATABASE_URL")
+if database_url and "postgres" in database_url:
+    # Vereinfachte PostgreSQL-Konfiguration
+    import urllib.parse as urlparse
+    url = urlparse.urlparse(database_url)
+    DATABASES["default"] = {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": url.path[1:],
+        "USER": url.username,
+        "PASSWORD": url.password,
+        "HOST": url.hostname,
+        "PORT": url.port,
+    }
+    print("🐘 PostgreSQL konfiguriert") if VERBOSE_SETTINGS else None
+else:
+    if VERBOSE_SETTINGS:
+        print("📁 SQLite konfiguriert für Entwicklung")lbe Leben - die andere Hälfte ist Kunst!"
 """
 
 import os
 import sys
 from pathlib import Path
 
-import environ
-
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Environment Variables (django-environ) - Vereinfacht
-env = environ.Env()
+# Manuelles Laden der .env-Datei
+env_file = BASE_DIR / ".env"
+# Debug-Ausgaben nur wenn explizit gewünscht
+VERBOSE_SETTINGS = os.getenv("VERBOSE_SETTINGS", "False").lower() == "true"
 
-# Lade .env-Datei falls vorhanden
-try:
-    environ.Env.read_env(BASE_DIR / ".env")
-except (FileNotFoundError, OSError):
-    # .env-Datei nicht gefunden oder nicht lesbar - verwende System-Umgebungsvariablen
-    pass
+if VERBOSE_SETTINGS:
+    print(f"🔍 Checking for .env file at: {env_file}")
+    print(f"🔍 .env file exists: {env_file.exists()}")
+
+if env_file.exists():
+    with open(env_file, encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if line and not line.startswith("#") and "=" in line:
+                # Entferne Kommentare am Ende der Zeile
+                if "#" in line:
+                    line = line.split("#")[0].strip()
+
+                key, value = line.split("=", 1)
+                key = key.strip()
+                value = value.strip().strip('"').strip("'")
+
+                # Überschreibe den Wert auch wenn er bereits gesetzt ist
+                os.environ[key] = value
+
+                if key == "DEBUG" and VERBOSE_SETTINGS:
+                    print(f"🔍 Setting DEBUG to: {value}")
+
+    if VERBOSE_SETTINGS:
+        print("📄 Loaded .env file successfully")
+elif VERBOSE_SETTINGS:
+    print("❌ .env file not found!")
+
+if VERBOSE_SETTINGS:
+    print(f"🔍 DEBUG environment variable: {os.getenv('DEBUG')}")
 
 # SECURITY WARNING: keep the secret key used in production secret!
-# CTO-approved: Production-ready secret key
 SECRET_KEY = os.getenv(
     "SECRET_KEY",
     "p@ssw0rd!2024-llkjj-art-production-super-secure-secret-key-with-50plus-chars-very-long",
@@ -100,7 +171,7 @@ TEMPLATES = [
 WSGI_APPLICATION = "llkjj_knut.wsgi.application"
 
 
-# Database - Direkte SQLite-Konfiguration für Development
+# Database - Einfache SQLite-Konfiguration für Entwicklung
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
 DATABASES = {
@@ -109,6 +180,7 @@ DATABASES = {
         "NAME": BASE_DIR / "db.sqlite3",
     }
 }
+
 
 # Für Tests immer SQLite verwenden (schneller und keine Berechtigungsprobleme)
 # Peter Zwegat: "Tests müssen schnell und zuverlässig sein!"
@@ -403,38 +475,39 @@ LOGGING = {
 
 # SECURITY: Production-ready Settings (CTO-approved)
 # Diese werden nur in Production aktiviert, wenn DEBUG=False
-if not DEBUG:
-    try:
-        from .security_settings import (
-            PRODUCTION_ALLOWED_HOSTS,
-            PRODUCTION_SECRET_KEY,
-            SECURE_BROWSER_XSS_FILTER,
-            SECURE_CONTENT_TYPE_NOSNIFF,
-            SECURE_HSTS_INCLUDE_SUBDOMAINS,
-            SECURE_HSTS_SECONDS,
-            SECURE_REFERRER_POLICY,
-            X_FRAME_OPTIONS,
-        )
-
-        # Überschreibe kritische Settings für Production
-        SECRET_KEY = PRODUCTION_SECRET_KEY
-        ALLOWED_HOSTS = PRODUCTION_ALLOWED_HOSTS
-
-        # Übernehme Security-Headers
-        globals().update(
-            {
-                "SECURE_HSTS_SECONDS": SECURE_HSTS_SECONDS,
-                "SECURE_HSTS_INCLUDE_SUBDOMAINS": SECURE_HSTS_INCLUDE_SUBDOMAINS,
-                "SECURE_CONTENT_TYPE_NOSNIFF": SECURE_CONTENT_TYPE_NOSNIFF,
-                "SECURE_BROWSER_XSS_FILTER": SECURE_BROWSER_XSS_FILTER,
-                "SECURE_REFERRER_POLICY": SECURE_REFERRER_POLICY,
-                "X_FRAME_OPTIONS": X_FRAME_OPTIONS,
-            }
-        )
-
-        print("🔒 Production Security activated")
-    except ImportError:
-        print("⚠️  Security settings not found - using defaults")
+# Temporär deaktiviert für Debug-Zwecke
+# if not DEBUG:
+#     try:
+#         from .security_settings import (
+#             PRODUCTION_ALLOWED_HOSTS,
+#             PRODUCTION_SECRET_KEY,
+#             SECURE_BROWSER_XSS_FILTER,
+#             SECURE_CONTENT_TYPE_NOSNIFF,
+#             SECURE_HSTS_INCLUDE_SUBDOMAINS,
+#             SECURE_HSTS_SECONDS,
+#             SECURE_REFERRER_POLICY,
+#             X_FRAME_OPTIONS,
+#         )
+#
+#         # Überschreibe kritische Settings für Production
+#         SECRET_KEY = PRODUCTION_SECRET_KEY
+#         ALLOWED_HOSTS = PRODUCTION_ALLOWED_HOSTS
+#
+#         # Übernehme Security-Headers
+#         globals().update(
+#             {
+#                 "SECURE_HSTS_SECONDS": SECURE_HSTS_SECONDS,
+#                 "SECURE_HSTS_INCLUDE_SUBDOMAINS": SECURE_HSTS_INCLUDE_SUBDOMAINS,
+#                 "SECURE_CONTENT_TYPE_NOSNIFF": SECURE_CONTENT_TYPE_NOSNIFF,
+#                 "SECURE_BROWSER_XSS_FILTER": SECURE_BROWSER_XSS_FILTER,
+#                 "SECURE_REFERRER_POLICY": SECURE_REFERRER_POLICY,
+#                 "X_FRAME_OPTIONS": X_FRAME_OPTIONS,
+#             }
+#         )
+#
+#         print("🔒 Production Security activated")
+#     except ImportError:
+#         print("⚠️  Security settings not found - using defaults")
 
 # PERFORMANCE: Cache für Production
 if not DEBUG and os.getenv("USE_CACHE", "False").lower() == "true":
@@ -445,6 +518,7 @@ if not DEBUG and os.getenv("USE_CACHE", "False").lower() == "true":
         }
     }
 
-print(
-    f"🚀 Django loaded - DEBUG={DEBUG}, SECRET_KEY={'***SECURE***' if not DEBUG else 'development'}"
-)
+if VERBOSE_SETTINGS:
+    print(
+        f"🚀 Django loaded - DEBUG={DEBUG}, SECRET_KEY={'***SECURE***' if not DEBUG else 'development'}"
+    )

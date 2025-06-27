@@ -15,12 +15,12 @@ from django.urls import include, path
 
 def home_view(request):
     """
-    Home-View die entscheidet: Dashboard oder Willkommen-Seite
+    Home-View die entscheidet: Dashboard oder Anmeldung
     """
     if request.user.is_authenticated:
         return redirect("auswertungen:dashboard")
     else:
-        return redirect("authentifizierung:willkommen")
+        return redirect("authentifizierung:anmelden")
 
 
 urlpatterns = [

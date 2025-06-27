@@ -1,455 +1,373 @@
 #!/usr/bin/env python3
 """
-🎨 LLKJJ Knut - Startskript für das Buchhaltungstool
-=================================================
+LLKJJ Art - Buchhaltungsbutler Python Startup Script
+Peter Zwegat Edition 🎨 - "Ordnung ins Chaos!"
 
-Dieses Skript startet die Django-Anwendung mit allen notwendigen Checks.
-Geschrieben im Stil von Peter Zwegat - damit auch die Technik ordentlich läuft!
-
-Autor: LLKJJ Art Buchhaltung
-Datum: 2025
+Cross-platform Python-basiertes Startup-Skript
 """
 
+import os
 import platform
-import shutil
+import signal
 import subprocess
 import sys
+import time
 from pathlib import Path
 
+# Konfiguration
+PROJECT_DIR = Path(__file__).parent.absolute()
+VENV_DIR = PROJECT_DIR / ".venv"
+LOG_DIR = PROJECT_DIR / "logs"
 
+
+# Farben für verschiedene Plattformen
 class Colors:
-    """ANSI-Farbcodes für hübsche Terminal-Ausgaben"""
+    if platform.system() == "Windows":
+        # Windows hat eingeschränkte Farbunterstützung
+        RED = ""
+        GREEN = ""
+        YELLOW = ""
+        BLUE = ""
+        PURPLE = ""
+        CYAN = ""
+        NC = ""
+    else:
+        RED = "\033[0;31m"
+        GREEN = "\033[0;32m"
+        YELLOW = "\033[1;33m"
+        BLUE = "\033[0;34m"
+        PURPLE = "\033[0;35m"
+        CYAN = "\033[0;36m"
+        NC = "\033[0m"
 
-    HEADER = "\033[95m"
-    OKBLUE = "\033[94m"
-    OKCYAN = "\033[96m"
-    OKGREEN = "\033[92m"
-    WARNING = "\033[93m"
-    FAIL = "\033[91m"
-    ENDC = "\033[0m"
-    BOLD = "\033[1m"
-    UNDERLINE = "\033[4m"
+
+# Globale Prozess-Liste für Cleanup
+processes = []
 
 
-class LLKJJStarter:
-    """
-    Die Hauptklasse für den Start der Anwendung.
-    Wie Peter Zwegat immer sagt: "Ordnung ist das halbe Leben!"
-    """
+def log(message, color=""):
+    """Logging mit Farben"""
+    timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
+    print(f"{color}[{timestamp}] {message}{Colors.NC}")
 
-    def __init__(self):
-        self.project_root = Path(__file__).parent
-        self.venv_path = self._get_venv_path()
-        self.python_executable = self._find_python_executable()
 
-    def _get_venv_path(self) -> Path:
-        """
-        Bestimmt den Virtual Environment Pfad.
-        Peter Zwegat: "Flexibilität ist wichtiger als starre Pfade!"
-        """
-        # 1. Prüfe .env-Datei
-        env_file = self.project_root / ".env"
-        if env_file.exists():
-            with open(env_file, encoding="utf-8") as f:
-                for line in f:
-                    if line.strip().startswith("VENV_PATH="):
-                        venv_path_str = line.split("=", 1)[1].strip()
-                        if venv_path_str.startswith("/"):
-                            # Absoluter Pfad
-                            return Path(venv_path_str)
-                        else:
-                            # Relativer Pfad zum Projekt
-                            return self.project_root / venv_path_str
+def success(message):
+    log(f"✅ {message}", Colors.GREEN)
 
-        # 2. Fallback: Standard-Pfade prüfen
-        possible_paths = [
-            self.project_root / "venv",
-            self.project_root / ".venv",
-            self.project_root.parent / "venv",
-            Path("/Users/czok/Skripte/venv_llkjj"),  # Neuer Standard-Pfad
-        ]
 
-        for path in possible_paths:
-            if path.exists():
-                return path
+def error(message):
+    log(f"❌ {message}", Colors.RED)
 
-        # 3. Letzter Fallback: venv im Projekt erstellen
-        return self.project_root / "venv"
 
-    def _find_python_executable(self) -> str:
-        """Findet den richtigen Python-Interpreter"""
-        # Erst in der venv schauen
-        if self.venv_path.exists():
-            if platform.system() == "Windows":
-                venv_python = self.venv_path / "Scripts" / "python.exe"
-            else:
-                venv_python = self.venv_path / "bin" / "python"
+def warning(message):
+    log(f"⚠️  {message}", Colors.YELLOW)
 
-            if venv_python.exists():
-                return str(venv_python)
 
-        # Fallback auf System-Python
-        return sys.executable
+def info(message):
+    log(f"ℹ️  {message}", Colors.BLUE)
 
-    def print_header(self):
-        """Zeigt einen schönen Header an"""
-        print(f"{Colors.HEADER}{Colors.BOLD}")
-        print("=" * 60)
-        print("🎨 LLKJJ Knut - Buchhaltung für Künstler")
-        print("=" * 60)
-        print(f"{Colors.ENDC}")
-        print(
-            f"{Colors.OKCYAN}Peter Zwegat hätte seine Freude: Hier wird alles ordentlich!{Colors.ENDC}"
-        )
-        print()
 
-    def check_environment(self) -> bool:
-        """
-        Überprüft die Umgebung - wie Peter immer sagt:
-        'Erstmal schauen, was wir haben!'
-        """
-        print(f"{Colors.OKBLUE}🔍 Überprüfe die Umgebung...{Colors.ENDC}")
-
-        # Python-Version prüfen
-        python_version = sys.version_info
-        if python_version.major < 3 or (
-            python_version.major == 3 and python_version.minor < 8
-        ):
-            print(
-                f"{Colors.FAIL}❌ Python 3.8+ erforderlich, gefunden: {python_version.major}.{python_version.minor}{Colors.ENDC}"
+def run_command(cmd, shell=False, capture=False, cwd=None):
+    """Kommando ausführen"""
+    try:
+        if capture:
+            result = subprocess.run(
+                cmd, shell=shell, capture_output=True, text=True, cwd=cwd
             )
-            return False
-
-        print(
-            f"{Colors.OKGREEN}✅ Python {python_version.major}.{python_version.minor}.{python_version.micro} - passt!{Colors.ENDC}"
-        )
-
-        # Virtual Environment prüfen
-        if self.venv_path.exists():
-            print(
-                f"{Colors.OKGREEN}✅ Virtual Environment gefunden: {self.venv_path}{Colors.ENDC}"
-            )
+            return result.returncode == 0, result.stdout.strip()
         else:
-            print(
-                f"{Colors.WARNING}⚠️  Virtual Environment nicht gefunden: {self.venv_path}{Colors.ENDC}"
-            )
-            print(
-                f"{Colors.WARNING}   Das ist wie Schwarzarbeit - geht, aber nicht empfehlenswert!{Colors.ENDC}"
-            )
+            result = subprocess.run(cmd, shell=shell, cwd=cwd)
+            return result.returncode == 0, ""
+    except Exception as e:
+        error(f"Kommando fehlgeschlagen: {e}")
+        return False, str(e)
 
-        # .env-Datei prüfen
-        env_file = self.project_root / ".env"
-        if not env_file.exists():
-            env_example = self.project_root / ".env.example"
-            if env_example.exists():
-                print(
-                    f"{Colors.WARNING}⚠️  .env-Datei fehlt. Kopiere .env.example...{Colors.ENDC}"
-                )
-                try:
-                    shutil.copy(env_example, env_file)
-                    print(f"{Colors.OKGREEN}✅ .env-Datei erstellt{Colors.ENDC}")
-                except OSError as e:
-                    print(
-                        f"{Colors.FAIL}❌ Fehler beim Erstellen der .env-Datei: {e}{Colors.ENDC}"
-                    )
-                    return False
-            else:
-                print(
-                    f"{Colors.FAIL}❌ Weder .env noch .env.example gefunden!{Colors.ENDC}"
-                )
-                return False
-        else:
-            print(f"{Colors.OKGREEN}✅ .env-Datei vorhanden{Colors.ENDC}")
 
-        # Django-Installation prüfen
-        try:
-            result = subprocess.run(  # noqa: S603
-                [
-                    self.python_executable,
-                    "-c",
-                    "import django; print(django.get_version())",
-                ],
-                capture_output=True,
-                text=True,
-                cwd=self.project_root,
-                check=False,
-                timeout=30,
-            )
-            if result.returncode == 0:
-                django_version = result.stdout.strip()
-                print(
-                    f"{Colors.OKGREEN}✅ Django {django_version} installiert{Colors.ENDC}"
-                )
-            else:
-                print(
-                    f"{Colors.FAIL}❌ Django nicht gefunden oder fehlerhaft{Colors.ENDC}"
-                )
-                return False
-        except (subprocess.TimeoutExpired, subprocess.SubprocessError, OSError) as e:
-            print(f"{Colors.FAIL}❌ Fehler beim Django-Check: {e}{Colors.ENDC}")
-            return False
-
+def check_command(cmd):
+    """Prüft ob ein Kommando verfügbar ist"""
+    try:
+        subprocess.run([cmd, "--version"], capture_output=True, check=True)
         return True
+    except:
+        return False
 
-    def run_migrations(self) -> bool:
-        """
-        Führt Django-Migrationen aus.
-        Peter würde sagen: 'Die Datenbank muss stimmen, sonst wird's chaotisch!'
-        """
-        print(f"{Colors.OKBLUE}🔄 Führe Datenbank-Migrationen aus...{Colors.ENDC}")
 
-        try:
-            # Erstelle Migrationen
-            result = subprocess.run(  # noqa: S603
-                [self.python_executable, "manage.py", "makemigrations"],
-                cwd=self.project_root,
-                capture_output=True,
-                text=True,
-                check=False,
-                timeout=60,
-            )
+def check_system():
+    """System-Checks durchführen"""
+    log("🔍 System-Checks werden durchgeführt...", Colors.CYAN)
 
-            if "No changes detected" in result.stdout:
-                print(f"{Colors.OKGREEN}✅ Keine neuen Migrationen nötig{Colors.ENDC}")
-            elif result.returncode == 0:
-                print(f"{Colors.OKGREEN}✅ Migrationen erstellt{Colors.ENDC}")
-            else:
-                print(
-                    f"{Colors.WARNING}⚠️  Warnung bei makemigrations: {result.stderr}{Colors.ENDC}"
-                )
+    # Python Version prüfen
+    python_version = f"{sys.version_info.major}.{sys.version_info.minor}"
+    if sys.version_info < (3, 8):
+        error(f"Python 3.8+ wird benötigt. Aktuelle Version: {python_version}")
+        return False
+    success(f"Python {python_version} gefunden")
 
-            # Wende Migrationen an
-            result = subprocess.run(  # noqa: S603
-                [self.python_executable, "manage.py", "migrate"],
-                cwd=self.project_root,
-                capture_output=True,
-                text=True,
-                check=False,
-                timeout=120,
-            )
+    # Node.js prüfen
+    if check_command("node"):
+        success("Node.js gefunden")
+    else:
+        warning("Node.js nicht gefunden - Tailwind CSS könnte nicht funktionieren")
 
-            if result.returncode == 0:
-                print(
-                    f"{Colors.OKGREEN}✅ Datenbank-Migrationen erfolgreich angewendet{Colors.ENDC}"
-                )
-                return True
-            else:
-                print(
-                    f"{Colors.FAIL}❌ Fehler bei Migrationen: {result.stderr}{Colors.ENDC}"
-                )
-                return False
+    # Docker prüfen
+    if check_command("docker"):
+        success("Docker gefunden")
+    else:
+        warning("Docker nicht gefunden - SQLite wird verwendet")
 
-        except (subprocess.TimeoutExpired, subprocess.SubprocessError, OSError) as e:
-            print(
-                f"{Colors.FAIL}❌ Fehler beim Ausführen der Migrationen: {e}{Colors.ENDC}"
-            )
+    # Redis prüfen (falls installiert)
+    if check_command("redis-server"):
+        success("Redis verfügbar")
+    else:
+        warning("Redis nicht gefunden - Celery könnte nicht funktionieren")
+
+    return True
+
+
+def setup_venv():
+    """Virtuelle Umgebung einrichten"""
+    log("🐍 Virtuelle Umgebung wird eingerichtet...", Colors.CYAN)
+
+    # Virtuelle Umgebung erstellen falls nicht vorhanden
+    if not VENV_DIR.exists():
+        info("Erstelle neue virtuelle Umgebung...")
+        success_code, _ = run_command([sys.executable, "-m", "venv", str(VENV_DIR)])
+        if not success_code:
+            error("Virtuelle Umgebung konnte nicht erstellt werden")
             return False
 
-    def import_skr03(self) -> bool:
-        """
-        Importiert die SKR03-Konten falls nötig.
-        Peter: 'Ein ordentlicher Kontenrahmen ist das A und O!'
-        """
-        print(f"{Colors.OKBLUE}💰 Prüfe SKR03-Konten...{Colors.ENDC}")
+    success("Virtuelle Umgebung bereit")
 
-        try:
-            # Prüfe ob Konten schon existieren
-            result = subprocess.run(  # noqa: S603
-                [
-                    self.python_executable,
-                    "manage.py",
-                    "shell",
-                    "-c",
-                    "from konten.models import Konto; print(Konto.objects.count())",
-                ],
-                cwd=self.project_root,
-                capture_output=True,
-                text=True,
-                check=False,
-                timeout=30,
-            )
+    # Python-Pfad in venv bestimmen
+    if platform.system() == "Windows":
+        python_venv = VENV_DIR / "Scripts" / "python.exe"
+        pip_venv = VENV_DIR / "Scripts" / "pip.exe"
+    else:
+        python_venv = VENV_DIR / "bin" / "python"
+        pip_venv = VENV_DIR / "bin" / "pip"
 
-            if result.returncode == 0:
-                konto_count = int(result.stdout.strip())
-                if konto_count > 0:
-                    print(
-                        f"{Colors.OKGREEN}✅ SKR03-Konten bereits vorhanden ({konto_count} Konten){Colors.ENDC}"
-                    )
-                    return True
+    # Pip upgraden
+    info("Aktualisiere pip...")
+    run_command([str(pip_venv), "install", "--upgrade", "pip"], capture=True)
 
-            # Importiere SKR03-Konten
-            print(f"{Colors.OKCYAN}📥 Importiere SKR03-Konten...{Colors.ENDC}")
-            result = subprocess.run(  # noqa: S603
-                [self.python_executable, "manage.py", "import_skr03"],
-                cwd=self.project_root,
-                capture_output=True,
-                text=True,
-                check=False,
-                timeout=60,
-            )
-
-            if result.returncode == 0:
-                print(
-                    f"{Colors.OKGREEN}✅ SKR03-Konten erfolgreich importiert{Colors.ENDC}"
-                )
-                return True
-            else:
-                print(
-                    f"{Colors.WARNING}⚠️  SKR03-Import nicht möglich (Command existiert möglicherweise nicht){Colors.ENDC}"
-                )
-                print(
-                    f"{Colors.WARNING}   Das ist kein Beinbruch - kann später nachgeholt werden!{Colors.ENDC}"
-                )
-                return True  # Nicht kritisch für den Start
-
-        except (
-            subprocess.TimeoutExpired,
-            subprocess.SubprocessError,
-            OSError,
-            ValueError,
-        ) as e:
-            print(f"{Colors.WARNING}⚠️  SKR03-Import übersprungen: {e}{Colors.ENDC}")
-            return True  # Nicht kritisch für den Start
-
-    def check_static_files(self) -> bool:
-        """
-        Sammelt Static Files.
-        Peter: 'Auch die Optik muss stimmen!'
-        """
-        print(f"{Colors.OKBLUE}🎨 Sammle Static Files...{Colors.ENDC}")
-
-        try:
-            result = subprocess.run(  # noqa: S603
-                [self.python_executable, "manage.py", "collectstatic", "--noinput"],
-                cwd=self.project_root,
-                capture_output=True,
-                text=True,
-                check=False,
-                timeout=60,
-            )
-
-            if result.returncode == 0:
-                print(f"{Colors.OKGREEN}✅ Static Files gesammelt{Colors.ENDC}")
-            else:
-                print(
-                    f"{Colors.WARNING}⚠️  Static Files konnten nicht gesammelt werden{Colors.ENDC}"
-                )
-                print(
-                    f"{Colors.WARNING}   Aber das ist erstmal nicht schlimm!{Colors.ENDC}"
-                )
-
-            return True
-
-        except (subprocess.TimeoutExpired, subprocess.SubprocessError, OSError) as e:
-            print(f"{Colors.WARNING}⚠️  Static Files übersprungen: {e}{Colors.ENDC}")
-            return True
-
-    def start_server(self, port: int = 8000, host: str = "127.0.0.1"):
-        """
-        Startet den Django-Entwicklungsserver.
-        Peter: 'Jetzt geht's los - ran an die Buletten!'
-        """
-        print(f"{Colors.OKGREEN}🚀 Starte Django-Server...{Colors.ENDC}")
-        print(f"{Colors.OKCYAN}📍 Server läuft auf: http://{host}:{port}{Colors.ENDC}")
-        print(f"{Colors.OKCYAN}💡 Zum Beenden: Ctrl+C drücken{Colors.ENDC}")
-        print()
-        print(
-            f"{Colors.BOLD}Peter Zwegat sagt: 'Jetzt können Sie ordentlich wirtschaften!'{Colors.ENDC}"
+    # Requirements installieren
+    requirements_file = PROJECT_DIR / "requirements.txt"
+    if requirements_file.exists():
+        info("Installiere Python-Abhängigkeiten...")
+        success_code, output = run_command(
+            [str(pip_venv), "install", "-r", str(requirements_file)], capture=True
         )
-        print("=" * 60)
-        print()
+        if not success_code:
+            error("Requirements konnten nicht installiert werden")
+            return False
+        success("Python-Abhängigkeiten installiert")
 
+    return str(python_venv)
+
+
+def setup_node():
+    """Node.js-Abhängigkeiten installieren"""
+    log("📦 Node.js-Abhängigkeiten werden installiert...", Colors.CYAN)
+
+    package_json = PROJECT_DIR / "package.json"
+    if package_json.exists() and check_command("npm"):
+        info("Installiere Node.js-Abhängigkeiten...")
+        success_code, _ = run_command(["npm", "install"], cwd=PROJECT_DIR, capture=True)
+        if success_code:
+            success("Node.js-Abhängigkeiten installiert")
+        else:
+            warning("npm install fehlgeschlagen")
+    else:
+        warning("package.json nicht gefunden oder npm nicht verfügbar")
+
+
+def setup_database(python_exe):
+    """Datenbank einrichten"""
+    log("🗄️  Datenbank wird eingerichtet...", Colors.CYAN)
+
+    # Docker PostgreSQL starten (falls möglich)
+    docker_compose = PROJECT_DIR / "docker-compose.yml"
+    if check_command("docker") and docker_compose.exists():
+        info("Starte PostgreSQL mit Docker...")
+        success_code, _ = run_command(
+            ["docker", "compose", "up", "-d", "postgres"], cwd=PROJECT_DIR, capture=True
+        )
+
+        if success_code:
+            info("Warte auf PostgreSQL...")
+            time.sleep(10)
+            os.environ["DATABASE_URL"] = (
+                "postgresql://artist:sicher123!@localhost:5432/llkjj_knut_db"
+            )
+            success("PostgreSQL gestartet")
+        else:
+            warning("PostgreSQL konnte nicht gestartet werden - verwende SQLite")
+    else:
+        info("Verwende SQLite als Datenbank")
+
+    # Django Migrationen
+    info("Führe Django-Migrationen durch...")
+    run_command([python_exe, "manage.py", "makemigrations"], cwd=PROJECT_DIR)
+    success_code, _ = run_command([python_exe, "manage.py", "migrate"], cwd=PROJECT_DIR)
+
+    if not success_code:
+        error("Migrationen fehlgeschlagen")
+        return False
+
+    success("Datenbank-Migrationen abgeschlossen")
+    return True
+
+
+def setup_static_files(python_exe):
+    """Static Files einrichten"""
+    log("🎨 Static Files werden vorbereitet...", Colors.CYAN)
+
+    # Static files sammeln
+    info("Sammle Static Files...")
+    run_command(
+        [python_exe, "manage.py", "collectstatic", "--noinput"],
+        cwd=PROJECT_DIR,
+        capture=True,
+    )
+
+    success("Static Files vorbereitet")
+
+
+def create_superuser(python_exe):
+    """Django Superuser erstellen"""
+    info("👤 Prüfe Django Superuser...")
+
+    # Superuser-Erstellung über Django Shell
+    command = """
+from django.contrib.auth import get_user_model
+User = get_user_model()
+if not User.objects.filter(username='admin').exists():
+    User.objects.create_superuser('admin', 'admin@llkjj.de', 'admin123')
+    print('Superuser erstellt')
+else:
+    print('Superuser existiert bereits')
+"""
+
+    process = subprocess.Popen(
+        [python_exe, "manage.py", "shell"],
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        cwd=PROJECT_DIR,
+    )
+
+    stdout, stderr = process.communicate(command)
+    success("Django Superuser bereit")
+
+
+def start_django_server(python_exe):
+    """Django Development Server starten"""
+    log("🚀 Django Development Server wird gestartet...", Colors.CYAN)
+
+    # Port prüfen
+    import socket
+
+    port = 8000
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        if s.connect_ex(("localhost", port)) == 0:
+            warning(f"Port {port} ist bereits belegt - versuche Port 8001")
+            port = 8001
+
+    success("Django ist bereit!")
+
+    # Informationen anzeigen
+    print(f"{Colors.GREEN}🎉 Alle Services gestartet!{Colors.NC}")
+    print(f"{Colors.PURPLE}========================================{Colors.NC}")
+    print(f"{Colors.PURPLE}🌐 Django Admin: http://localhost:{port}/admin/{Colors.NC}")
+    print(f"{Colors.PURPLE}🎨 Hauptanwendung: http://localhost:{port}/{Colors.NC}")
+    print(f"{Colors.PURPLE}👤 Login: admin / admin123{Colors.NC}")
+    print(f"{Colors.PURPLE}========================================{Colors.NC}")
+    print("\nDrücke Ctrl+C zum Beenden\n")
+
+    # Django Server starten
+    try:
+        process = subprocess.Popen(
+            [python_exe, "manage.py", "runserver", f"0.0.0.0:{port}"], cwd=PROJECT_DIR
+        )
+        processes.append(process)
+        process.wait()
+    except KeyboardInterrupt:
+        log("🛑 Server wird beendet...", Colors.YELLOW)
+
+
+def cleanup():
+    """Cleanup aller gestarteten Prozesse"""
+    log("🧹 Cleanup wird durchgeführt...", Colors.YELLOW)
+
+    for process in processes:
         try:
-            subprocess.run(  # noqa: S603
-                [self.python_executable, "manage.py", "runserver", f"{host}:{port}"],
-                cwd=self.project_root,
-                check=False,
-            )
-        except KeyboardInterrupt:
-            print(f"\n{Colors.OKCYAN}👋 Server gestoppt. Auf Wiedersehen!{Colors.ENDC}")
-        except (subprocess.SubprocessError, OSError) as e:
-            print(
-                f"\n{Colors.FAIL}❌ Fehler beim Starten des Servers: {e}{Colors.ENDC}"
-            )
+            process.terminate()
+            process.wait(timeout=5)
+        except:
+            try:
+                process.kill()
+            except:
+                pass
 
-    def run(self, port: int = 8000, host: str = "127.0.0.1"):
-        """Hauptmethode - startet alles"""
-        self.print_header()
+    success("Cleanup abgeschlossen")
 
-        # Umgebung prüfen
-        if not self.check_environment():
-            print(f"{Colors.FAIL}💥 Umgebungsprüfung fehlgeschlagen!{Colors.ENDC}")
-            print(
-                f"{Colors.FAIL}Peter würde sagen: 'Erst die Hausaufgaben machen!'{Colors.ENDC}"
-            )
-            sys.exit(1)
 
-        print()
-
-        # Migrationen
-        if not self.run_migrations():
-            print(f"{Colors.FAIL}💥 Datenbank-Setup fehlgeschlagen!{Colors.ENDC}")
-            sys.exit(1)
-
-        print()
-
-        # SKR03 importieren
-        self.import_skr03()
-        print()
-
-        # Static Files
-        self.check_static_files()
-        print()
-
-        # Server starten
-        self.start_server(port, host)
+def signal_handler(signum, frame):
+    """Signal Handler für sauberes Beenden"""
+    cleanup()
+    sys.exit(0)
 
 
 def main():
-    """
-    Hauptfunktion - Peter Zwegat Style:
-    'Keine Umschweife, direkt zur Sache!'
-    """
-    import argparse
+    """Hauptfunktion"""
+    # Log-Verzeichnis erstellen
+    LOG_DIR.mkdir(exist_ok=True)
 
-    parser = argparse.ArgumentParser(
-        description="🎨 LLKJJ Knut Startskript - Buchhaltung mit Peter-Zwegat-Power!"
-    )
-    parser.add_argument(
-        "--port",
-        "-p",
-        type=int,
-        default=8000,
-        help="Port für den Entwicklungsserver (Standard: 8000)",
-    )
-    parser.add_argument(
-        "--host",
-        default="127.0.0.1",
-        help="Host-Adresse für den Server (Standard: 127.0.0.1)",
-    )
-    parser.add_argument(
-        "--check-only",
-        action="store_true",
-        help="Nur Umgebung prüfen, Server nicht starten",
-    )
+    # Signal Handler registrieren
+    signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGTERM, signal_handler)
 
-    args = parser.parse_args()
+    log("🎨 LLKJJ Art Startup Script gestartet", Colors.PURPLE)
+    log("👨‍🎨 Peter Zwegat Edition - 'Ordnung ins Chaos!'", Colors.PURPLE)
+    print("=" * 50)
 
-    starter = LLKJJStarter()
+    try:
+        # System prüfen
+        if not check_system():
+            return 1
 
-    if args.check_only:
-        starter.print_header()
-        if starter.check_environment():
-            print(
-                f"{Colors.OKGREEN}✅ Umgebung ist ready! Peter wäre stolz!{Colors.ENDC}"
-            )
-            sys.exit(0)
-        else:
-            print(f"{Colors.FAIL}❌ Umgebung braucht noch Arbeit!{Colors.ENDC}")
-            sys.exit(1)
-    else:
-        starter.run(args.port, args.host)
+        # Virtuelle Umgebung einrichten
+        python_exe = setup_venv()
+        if not python_exe:
+            return 1
+
+        # Node.js Dependencies
+        setup_node()
+
+        # Datenbank einrichten
+        if not setup_database(python_exe):
+            return 1
+
+        # Static Files
+        setup_static_files(python_exe)
+
+        # Superuser erstellen
+        create_superuser(python_exe)
+
+        # Django Server starten
+        start_django_server(python_exe)
+
+    except KeyboardInterrupt:
+        log("🛑 Script wurde durch Benutzer abgebrochen", Colors.YELLOW)
+    except Exception as e:
+        error(f"Unerwarteter Fehler: {e}")
+        return 1
+    finally:
+        cleanup()
+
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
