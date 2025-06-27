@@ -6,7 +6,7 @@
 <h1 class="text-3xl font-bold text-gray-800 mb-6">Dashboard</h1>
 
 <!-- KPI-Karten -->
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+<div class="grid grid-cols-4 gap-6 mb-6">
     <div class="bg-white p-5 rounded-lg shadow">
         <div class="flex items-center">
             <div class="p-3 rounded-full bg-orange-100 text-orange-600">
@@ -54,9 +54,9 @@
 </div>
 
 <!-- Aufgaben & Letzte Buchungen -->
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+<div class="grid grid-cols-3 gap-6">
     <!-- Aufgabenliste -->
-    <div class="lg:col-span-1 bg-white p-6 rounded-lg shadow">
+    <div class="col-span-1 bg-white p-6 rounded-lg shadow">
         <h2 class="text-xl font-bold text-gray-800 mb-4">Ihre Aufgaben</h2>
         <ul class="space-y-4">
             {% if stats.belege_in_pruefung > 0 %}
@@ -100,7 +100,7 @@
     </div>
 
     <!-- Letzte Buchungen Tabelle -->
-    <div class="lg:col-span-2 bg-white p-6 rounded-lg shadow">
+    <div class="col-span-2 bg-white p-6 rounded-lg shadow">
         <h2 class="text-xl font-bold text-gray-800 mb-4">Letzte Buchungen</h2>
         <div class="overflow-x-auto">
             <table class="w-full text-left">
@@ -153,7 +153,7 @@
 <!-- Schnellaktionen -->
 <div class="mt-8 bg-white p-6 rounded-lg shadow">
     <h2 class="text-xl font-bold text-gray-800 mb-4">Schnellaktionen</h2>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div class="grid grid-cols-3 gap-4">
         <a href="{% url 'belege:upload' %}?typ=RECHNUNG_EINGANG" class="p-4 border border-red-200 rounded-lg hover:bg-red-50 text-center">
             <i class="fas fa-file-upload text-2xl text-red-600 mb-2"></i>
             <h3 class="font-semibold text-red-800">Eingangsrechnung</h3>

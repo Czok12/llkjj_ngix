@@ -13,7 +13,7 @@
                 </div>
                 
                 <!-- Desktop Navigation -->
-                <div class="hidden md:ml-8 md:flex md:space-x-8">
+                <div class="md:ml-8 md:flex md:space-x-8">
                     <a href="/" 
                        class="text-white hover:text-blue-200 inline-flex items-center px-1 pt-1 border-b-2 border-transparent hover:border-blue-300 text-sm font-medium transition-colors">
                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -86,7 +86,7 @@
                 </div>
             </div>
 
-            <!-- User Menu & Mobile Button -->
+            <!-- User Menu & Admin Link -->
             <div class="flex items-center">
                 <!-- Peter Zwegat Humor Badge -->
                 <div class="hidden lg:flex items-center mr-4 px-3 py-1 bg-blue-800 bg-opacity-50 rounded-full">
@@ -103,68 +103,7 @@
                     </svg>
                     Admin
                 </a>
-
-                <!-- Mobile menu button -->
-                <div class="md:hidden ml-4">
-                    <button type="button" 
-                            class="mobile-menu-button text-white hover:text-blue-200 inline-flex items-center justify-center p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
-                            aria-controls="mobile-menu" aria-expanded="false">
-                        <span class="sr-only">Hauptmenü öffnen</span>
-                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-                        </svg>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Mobile menu -->
-    <div class="mobile-menu hidden md:hidden" id="mobile-menu">
-        <div class="px-2 pt-2 pb-3 space-y-1 bg-blue-800">
-            <a href="/" class="text-white hover:bg-blue-700 block px-3 py-2 rounded-md text-base font-medium">
-                🏠 Dashboard
-            </a>
-            <a href="/konten/" class="text-white hover:bg-blue-700 block px-3 py-2 rounded-md text-base font-medium">
-                💰 Konten
-            </a>
-            <a href="/buchungen/" class="text-white hover:bg-blue-700 block px-3 py-2 rounded-md text-base font-medium">
-                📝 Buchungen
-            </a>
-            <a href="/belege/" class="text-white hover:bg-blue-700 block px-3 py-2 rounded-md text-base font-medium">
-                📄 Belege
-            </a>
-            <a href="/auswertungen/" class="text-white hover:bg-blue-700 block px-3 py-2 rounded-md text-base font-medium">
-                📊 Auswertungen
-            </a>
-            <a href="/auswertungen/eur-offiziell/" class="text-white hover:bg-blue-700 block px-3 py-1 pl-6 rounded-md text-sm font-medium">
-                🧾 EÜR (Offiziell)
-            </a>
-            <a href="/auswertungen/eur/" class="text-white hover:bg-blue-700 block px-3 py-1 pl-6 rounded-md text-sm font-medium">
-                📋 EÜR (Einfach)
-            </a>
-            <a href="/steuer/" class="text-white hover:bg-blue-700 block px-3 py-2 rounded-md text-base font-medium">
-                🧾 Steuer
-            </a>
-            <div class="border-t border-blue-700 mt-4 pt-4">
-                <a href="/admin/" class="text-white hover:bg-blue-700 block px-3 py-2 rounded-md text-base font-medium">
-                    ⚙️ Admin
-                </a>
             </div>
         </div>
     </div>
 </nav>
-
-<!-- Mobile Navigation Toggle Script -->
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const mobileMenuButton = document.querySelector('.mobile-menu-button');
-    const mobileMenu = document.querySelector('.mobile-menu');
-    
-    if (mobileMenuButton && mobileMenu) {
-        mobileMenuButton.addEventListener('click', function() {
-            mobileMenu.classList.toggle('hidden');
-        });
-    }
-});
-</script>

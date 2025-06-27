@@ -57,16 +57,15 @@ INSTALLED_APPS = [
     "rest_framework",
     "crispy_forms",
     "crispy_tailwind",
-    # Project Apps
-    "authentifizierung",
-    "konten",
-    "buchungen",
-    "belege",
-    "auswertungen",
-    "einstellungen",
-    "dokumente",
+    # Project Apps (jetzt mit expliziten Pfaden)
+    "authentifizierung.apps.AuthentifizierungConfig",
+    "konten.apps.KontenConfig",
+    "buchungen.apps.BuchungenConfig",
+    "belege.apps.BelegeConfig",
+    "auswertungen.apps.AuswertungenConfig",
+    "einstellungen.apps.EinstellungenConfig",
+    "dokumente.apps.DokumenteConfig",
 ]
-
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",

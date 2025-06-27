@@ -68,7 +68,7 @@ addopts = "--reuse-db --nomigrations"
 testpaths = ["tests"]
 
 [tool.coverage.run]
-source = "."
+source = [ "." ]
 omit = [
     "*/migrations/*",
     "*/venv/*",

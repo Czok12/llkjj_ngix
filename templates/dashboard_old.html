@@ -4,26 +4,8 @@
 
 {% block content %}
 <div class="space-y-6">
-    <!-- Peter Zwegat Header -->
-    <div class="bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-lg shadow-lg p-6">
-        <div class="flex items-center">
-            <div class="flex-shrink-0">
-                <i class="fas fa-user-tie text-4xl text-blue-200"></i>
-            </div>
-            <div class="ml-4">
-                <h1 class="text-2xl font-bold">Willkommen bei llkjj_knut!</h1>
-                <p class="text-blue-100 mt-1">
-                    <i class="fas fa-quote-left mr-1"></i>
-                    {{ tagesspruch }}
-                    <i class="fas fa-quote-right ml-1"></i>
-                </p>
-                <p class="text-blue-200 text-sm mt-2">- Peter Zwegat</p>
-            </div>
-        </div>
-    </div>
-
     <!-- Schnellaktionen -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+    <div class="grid grid-cols-3 gap-6 mb-6">
         <!-- Eingangsrechnung hochladen -->
         <div class="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
             <div class="mb-4">
@@ -118,7 +100,7 @@
     </div>
 
     <!-- Statistik-Karten -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div class="grid grid-cols-4 gap-6">
         <!-- Konten -->
         <div class="bg-white rounded-lg shadow p-6">
             <div class="flex items-center">
@@ -226,24 +208,6 @@
             <a href="{% url 'admin:buchungen_buchungssatz_changelist' %}" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
                 Alle Buchungen anzeigen <i class="fas fa-arrow-right ml-1"></i>
             </a>
-        </div>
-    </div>
-    {% else %}
-    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
-        <div class="flex items-center">
-            <i class="fas fa-lightbulb text-yellow-600 text-2xl mr-4"></i>
-            <div>
-                <h3 class="text-lg font-medium text-yellow-800">Legen Sie los!</h3>
-                <p class="text-yellow-700 mt-1">
-                    Noch keine Buchungen vorhanden. Wie Peter Zwegat sagt: "Der erste Schritt ist der wichtigste!"
-                </p>
-                <div class="mt-4">
-                    <a href="{% url 'admin:buchungen_buchungssatz_add' %}" 
-                       class="bg-yellow-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-yellow-700">
-                        <i class="fas fa-plus mr-1"></i>Erste Buchung erstellen
-                    </a>
-                </div>
-            </div>
         </div>
     </div>
     {% endif %}

@@ -3,7 +3,6 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}llkjj_knut - Buchhaltung für Künstler{% endblock %}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -28,8 +27,8 @@
                     </a>
                 </div>
                 
-                <!-- Desktop Navigation -->
-                <div class="hidden md:flex items-center space-x-4">
+                <!-- Desktop Navigation (mobile entfernt) -->
+                <div class="flex items-center space-x-4">
                     <a href="{% url 'auswertungen:dashboard' %}" class="text-white hover:text-blue-200 px-3 py-2 rounded-md">
                         <i class="fas fa-home mr-1"></i>Dashboard
                     </a>
@@ -127,85 +126,8 @@
                         <a href="{% url 'authentifizierung:anmelden' %}" class="text-white hover:text-blue-200 px-3 py-2 rounded-md">
                             <i class="fas fa-sign-in-alt mr-1"></i>Anmelden
                         </a>
-                        <a href="{% url 'authentifizierung:register' %}" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md transition-colors">
-                            <i class="fas fa-user-plus mr-1"></i>Registrieren
-                        </a>
                     {% endif %}
                 </div>
-
-                <!-- Mobile menu button -->
-                <div class="md:hidden flex items-center">
-                    <button id="mobile-menu-button" class="text-white hover:text-blue-200 focus:outline-none">
-                        <i class="fas fa-bars text-xl"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Mobile Navigation -->
-        <div id="mobile-menu" class="md:hidden hidden bg-blue-800">
-            <div class="px-2 pt-2 pb-3 space-y-1">
-                <a href="{% url 'auswertungen:dashboard' %}" class="text-white block px-3 py-2 rounded-md hover:bg-blue-700">
-                    <i class="fas fa-home mr-2"></i>Dashboard
-                </a>
-                <a href="{% url 'konten:liste' %}" class="text-white block px-3 py-2 rounded-md hover:bg-blue-700">
-                    <i class="fas fa-list mr-2"></i>Konten
-                </a>
-                <a href="{% url 'belege:liste' %}" class="text-white block px-3 py-2 rounded-md hover:bg-blue-700">
-                    <i class="fas fa-receipt mr-2"></i>Belege
-                </a>
-                <a href="{% url 'auswertungen:dashboard' %}" class="text-white block px-3 py-2 rounded-md hover:bg-blue-700">
-                    <i class="fas fa-chart-pie mr-2"></i>Auswertungen Dashboard
-                </a>
-                <a href="{% url 'auswertungen:eur_offiziell' %}" class="text-white block px-3 py-2 rounded-md hover:bg-blue-700 ml-4">
-                    <i class="fas fa-file-invoice-dollar mr-2"></i>EÜR (Offiziell)
-                </a>
-                <a href="{% url 'auswertungen:eur' %}" class="text-white block px-3 py-2 rounded-md hover:bg-blue-700 ml-4">
-                    <i class="fas fa-list-alt mr-2"></i>EÜR (Einfach)
-                </a>
-                <a href="{% url 'belege:upload_dual' %}" class="bg-green-600 block px-3 py-2 rounded-md hover:bg-green-700">
-                    <i class="fas fa-columns mr-2"></i>Dual Upload
-                </a>
-                <a href="{% url 'belege:upload' %}" class="bg-green-500 block px-3 py-2 rounded-md hover:bg-green-600 ml-4">
-                    <i class="fas fa-upload mr-2"></i>Standard Upload
-                </a>
-                <a href="{% url 'dokumente:liste' %}" class="text-white block px-3 py-2 rounded-md hover:bg-blue-700">
-                    <i class="fas fa-folder mr-2"></i>Dokumente
-                </a>
-                
-                {% if user.is_authenticated %}
-                    <a href="{% url 'einstellungen:dashboard' %}" class="text-white block px-3 py-2 rounded-md hover:bg-blue-700">
-                        <i class="fas fa-user-cog mr-2"></i>Profil
-                    </a>
-                    {% if user.is_staff %}
-                        <a href="{% url 'admin:index' %}" class="text-white block px-3 py-2 rounded-md hover:bg-blue-700">
-                            <i class="fas fa-cog mr-2"></i>Admin
-                        </a>
-                    {% endif %}
-                    <div class="border-t border-blue-700 mt-2 pt-2">
-                        <div class="text-blue-200 px-3 py-1 text-sm">
-                            <i class="fas fa-user mr-1"></i>{{ user.first_name|default:user.username }}
-                        </div>
-                        <a href="{% url 'einstellungen:profil_detail' %}" class="text-white block px-3 py-2 rounded-md hover:bg-blue-700">
-                            <i class="fas fa-user mr-2"></i>Mein Profil
-                        </a>
-                        <a href="{% url 'einstellungen:profil_bearbeiten' %}" class="text-white block px-3 py-2 rounded-md hover:bg-blue-700">
-                            <i class="fas fa-edit mr-2"></i>Profil bearbeiten
-                        </a>
-                        <a href="{% url 'authentifizierung:logout' %}" class="text-red-300 block px-3 py-2 rounded-md hover:bg-red-600">
-                            <i class="fas fa-sign-out-alt mr-2"></i>Abmelden
-                        </a>
-                    </div>
-                {% else %}
-                    <div class="border-t border-blue-700 mt-2 pt-2">
-                        <a href="{% url 'authentifizierung:anmelden' %}" class="text-white block px-3 py-2 rounded-md hover:bg-blue-700">
-                            <i class="fas fa-sign-in-alt mr-2"></i>Anmelden
-                        </a>
-                        <a href="{% url 'authentifizierung:register' %}" class="bg-green-600 block px-3 py-2 rounded-md hover:bg-green-700 text-white">
-                            <i class="fas fa-user-plus mr-2"></i>Registrieren
-                        </a>
-                    </div>
-                {% endif %}
             </div>
         </div>
     </nav>
@@ -239,13 +161,5 @@
             </p>
         </div>
     </footer>
-
-    <!-- Mobile Menu JavaScript -->
-    <script>
-        document.getElementById('mobile-menu-button').addEventListener('click', function() {
-            const mobileMenu = document.getElementById('mobile-menu');
-            mobileMenu.classList.toggle('hidden');
-        });
-    </script>
 </body>
 </html>
