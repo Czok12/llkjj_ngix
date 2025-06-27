@@ -126,9 +126,17 @@ yarn-error.log*
 # Static files collection
 static/collected/
 
-# Media files (uploaded documents)
+# Media files (uploaded documents) - SENSIBLE DATEN!
 media/belege/
 media/uploads/
+media/dokumente/
+
+# Beleg-Verzeichnis komplett ausschließen - GESCHÄFTSDOKUMENTE!
+belege/
+belege/*/
+belege/**/*
+*.pdf
+*.PDF
 
 # Celery
 celerybeat-schedule
