@@ -30,7 +30,7 @@ def aufwand_konto_sonstige():
         nummer="4980",
         name="Sonstige Aufwendungen",
         kategorie="AUFWAND",
-        typ="BETRIEBSAUSGABEN",
+        typ="AUSGABEN",
     )
 
 

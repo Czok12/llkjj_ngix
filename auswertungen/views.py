@@ -454,6 +454,173 @@ def kontenblatt_view(request, konto_id):
     return render(request, "auswertungen/kontenblatt.html", context)
 
 
+@login_required
+def kontenblatt_excel_export(request, konto_id):
+    """
+    Excel-Export für Kontenblatt.
+    Peter Zwegat: "Excel ist des Buchhalters bester Freund!"
+    """
+    konto = get_object_or_404(Konto, id=konto_id)
+
+    # Zeitraum
+    jahr = int(request.GET.get("jahr", timezone.now().year))
+    monat = request.GET.get("monat")
+
+    jahr_start = timezone.now().date().replace(year=jahr, month=1, day=1)
+    jahr_ende = timezone.now().date().replace(year=jahr, month=12, day=31)
+
+    # Filter nach Monat wenn gewählt
+    if monat:
+        monat = int(monat)
+        jahr_start = jahr_start.replace(month=monat)
+        if monat == 12:
+            jahr_ende = jahr_start.replace(day=31)
+        else:
+            jahr_ende = jahr_start.replace(month=monat + 1, day=1) - timedelta(days=1)
+
+    # Buchungen für dieses Konto
+    soll_buchungen = (
+        Buchungssatz.objects.filter(
+            soll_konto=konto,
+            buchungsdatum__gte=jahr_start,
+            buchungsdatum__lte=jahr_ende,
+        )
+        .select_related("haben_konto", "geschaeftspartner", "beleg")
+        .order_by("buchungsdatum")
+    )
+
+    haben_buchungen = (
+        Buchungssatz.objects.filter(
+            haben_konto=konto,
+            buchungsdatum__gte=jahr_start,
+            buchungsdatum__lte=jahr_ende,
+        )
+        .select_related("soll_konto", "geschaeftspartner", "beleg")
+        .order_by("buchungsdatum")
+    )
+
+    # Excel-Datei erstellen
+    wb = Workbook()
+    ws = wb.active
+    ws.title = f"Kontenblatt {konto.nummer}"
+
+    # Header
+    ws.merge_cells("A1:G1")
+    ws["A1"] = f"Kontenblatt {konto.nummer} - {konto.name}"
+    ws["A1"].font = Font(bold=True, size=14)
+
+    ws.merge_cells("A2:G2")
+    periode = f"{jahr}" if not monat else f"{monat:02d}/{jahr}"
+    ws["A2"] = f"Periode: {periode}"
+    ws["A2"].font = Font(size=12)
+
+    # Spaltenkopf
+    headers = [
+        "Datum",
+        "Beleg",
+        "Buchungstext",
+        "Gegenkonto",
+        "Partner",
+        "Soll €",
+        "Haben €",
+    ]
+    for col, header in enumerate(headers, 1):
+        cell = ws.cell(row=4, column=col, value=header)
+        cell.font = Font(bold=True)
+        cell.fill = PatternFill(
+            start_color="DDDDDD", end_color="DDDDDD", fill_type="solid"
+        )
+
+    # Daten einfügen
+    row = 5
+    soll_summe = Decimal("0")
+    haben_summe = Decimal("0")
+
+    # Soll-Buchungen
+    for buchung in soll_buchungen:
+        ws.cell(row=row, column=1, value=buchung.buchungsdatum.strftime("%d.%m.%Y"))
+        ws.cell(
+            row=row, column=2, value=buchung.beleg.belegnummer if buchung.beleg else ""
+        )
+        ws.cell(row=row, column=3, value=buchung.buchungstext)
+        ws.cell(
+            row=row,
+            column=4,
+            value=f"{buchung.haben_konto.nummer} {buchung.haben_konto.name}",
+        )
+        ws.cell(
+            row=row,
+            column=5,
+            value=buchung.geschaeftspartner.name if buchung.geschaeftspartner else "",
+        )
+        ws.cell(row=row, column=6, value=float(buchung.betrag))
+        ws.cell(row=row, column=7, value="")
+        soll_summe += buchung.betrag
+        row += 1
+
+    # Haben-Buchungen
+    for buchung in haben_buchungen:
+        ws.cell(row=row, column=1, value=buchung.buchungsdatum.strftime("%d.%m.%Y"))
+        ws.cell(
+            row=row, column=2, value=buchung.beleg.belegnummer if buchung.beleg else ""
+        )
+        ws.cell(row=row, column=3, value=buchung.buchungstext)
+        ws.cell(
+            row=row,
+            column=4,
+            value=f"{buchung.soll_konto.nummer} {buchung.soll_konto.name}",
+        )
+        ws.cell(
+            row=row,
+            column=5,
+            value=buchung.geschaeftspartner.name if buchung.geschaeftspartner else "",
+        )
+        ws.cell(row=row, column=6, value="")
+        ws.cell(row=row, column=7, value=float(buchung.betrag))
+        haben_summe += buchung.betrag
+        row += 1
+
+    # Summenzeile
+    row += 1
+    ws.cell(row=row, column=5, value="Summen:").font = Font(bold=True)
+    ws.cell(row=row, column=6, value=float(soll_summe)).font = Font(bold=True)
+    ws.cell(row=row, column=7, value=float(haben_summe)).font = Font(bold=True)
+
+    # Saldo berechnen und anzeigen
+    if konto.nummer.startswith(("0", "1", "4", "5", "6")):  # Aktiv- und Aufwandskonten
+        saldo = soll_summe - haben_summe
+    else:  # Passiv- und Ertragskonten
+        saldo = haben_summe - soll_summe
+
+    row += 1
+    ws.cell(row=row, column=5, value="Saldo:").font = Font(bold=True)
+    ws.cell(row=row, column=6, value=float(saldo) if saldo > 0 else "").font = Font(
+        bold=True
+    )
+    ws.cell(row=row, column=7, value=float(abs(saldo)) if saldo < 0 else "").font = (
+        Font(bold=True)
+    )
+
+    # Spaltenbreiten anpassen
+    ws.column_dimensions["A"].width = 12
+    ws.column_dimensions["B"].width = 15
+    ws.column_dimensions["C"].width = 30
+    ws.column_dimensions["D"].width = 25
+    ws.column_dimensions["E"].width = 20
+    ws.column_dimensions["F"].width = 12
+    ws.column_dimensions["G"].width = 12
+
+    # Response erstellen
+    response = HttpResponse(
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+    filename = f"Kontenblatt_{konto.nummer}_{periode}.xlsx"
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
+
+    wb.save(response)
+    return response
+
+
 def eur_pdf_export(request):
     """
     PDF-Export der EÜR.

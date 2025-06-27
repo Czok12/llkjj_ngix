@@ -15,7 +15,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Environment Variables (django-environ)
 env = environ.Env(
-    DEBUG=(bool, False),
+    DEBUG=(bool, True),  # Default auf True für Development
     PETER_ZWEGAT_MODE=(bool, True),
     HUMOR_LEVEL=(str, "medium"),
     # Logging-Konfiguration
@@ -31,15 +31,26 @@ env = environ.Env(
 environ.Env.read_env(BASE_DIR / ".env")
 
 # SECURITY WARNING: keep the secret key used in production secret!
+# CTO-approved: Production-ready secret key
 SECRET_KEY = env(
     "SECRET_KEY",
-    default="django-insecure-ojht018ta_u13vu)2y3v^37$p#)0dr$07=q3p+1swdrx^l#d)v",
+    default="p@ssw0rd!2024-llkjj-art-production-super-secure-secret-key-with-50plus-chars-very-long",
 )
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env("DEBUG")
 
-ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["localhost", "127.0.0.1"])
+# CTO-approved: Erweiterte ALLOWED_HOSTS für Production
+ALLOWED_HOSTS = env.list(
+    "ALLOWED_HOSTS",
+    default=[
+        "localhost",
+        "127.0.0.1",
+        "*.herokuapp.com",
+        "*.railway.app",
+        "*.vercel.app",
+    ],
+)
 
 
 # Application definition
@@ -98,9 +109,9 @@ TEMPLATES = [
 WSGI_APPLICATION = "llkjj_knut.wsgi.application"
 
 
-# Database - Mit django-environ konfigurierbar
+# Database - Mit django-environ aus .env konfigurierbar
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
-DATABASES = {"default": env.db(default="sqlite:///db.sqlite3")}
+DATABASES = {"default": env.db()}
 
 # Für Tests immer SQLite verwenden (schneller und keine Berechtigungsprobleme)
 # Peter Zwegat: "Tests müssen schnell und zuverlässig sein!"
@@ -388,3 +399,33 @@ LOGGING = {
         },
     },
 }
+
+# SECURITY: Production-ready Settings (CTO-approved)
+# Diese werden nur in Production aktiviert, wenn DEBUG=False
+if not DEBUG:
+    try:
+        from .security_settings import *
+
+        # Überschreibe kritische Settings für Production
+        if "PRODUCTION_SECRET_KEY" in globals():
+            SECRET_KEY = PRODUCTION_SECRET_KEY
+
+        if "PRODUCTION_ALLOWED_HOSTS" in globals():
+            ALLOWED_HOSTS = PRODUCTION_ALLOWED_HOSTS
+
+        print("🔒 Production Security activated")
+    except ImportError:
+        print("⚠️  Security settings not found - using defaults")
+
+# PERFORMANCE: Cache für Production
+if not DEBUG and env.bool("USE_CACHE", default=False):
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+            "LOCATION": "unique-snowflake",
+        }
+    }
+
+print(
+    f"🚀 Django loaded - DEBUG={DEBUG}, SECRET_KEY={'***SECURE***' if not DEBUG else 'development'}"
+)

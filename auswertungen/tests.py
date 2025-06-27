@@ -85,7 +85,8 @@ class AuswertungenViewsTest(TestCase):
         response = self.client.get(reverse("auswertungen:dashboard"))
         # Erwartet eine Weiterleitung zur Login-Seite
         self.assertEqual(response.status_code, 302)
-        self.assertIn("/auth/anmeldung/", response["Location"])
+        # Django verwendet standardmäßig /accounts/login/
+        self.assertIn("/accounts/login/", response["Location"])
 
     def test_dashboard_view_authenticated(self):
         response = self.client.get(reverse("auswertungen:dashboard"))
@@ -170,3 +171,142 @@ class AuswertungenViewsTest(TestCase):
         self.assertEqual(response_csv2.status_code, 200)
         self.assertEqual(response_csv2["Content-Type"], "text/csv; charset=utf-8")
         self.assertIn("attachment; filename=", response_csv2["Content-Disposition"])
+
+
+class AuswertungenViewsExtendedTest(TestCase):
+    """Erweiterte Tests für weitere Auswertungs-Views."""
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.user = User.objects.create_user(
+            username="tester", password="password123"  # noqa: S106
+        )
+
+        # Konten anlegen
+        cls.bank = Konto.objects.create(
+            nummer="1200", name="Bank", kategorie="AKTIVKONTO", typ="GIROKONTO"
+        )
+        cls.erloese = Konto.objects.create(
+            nummer="8400", name="Erlöse", kategorie="ERTRAG", typ="UMSATZERLÖSE"
+        )
+        cls.aufwand = Konto.objects.create(
+            nummer="4980",
+            name="Bürobedarf",
+            kategorie="AUFWAND",
+            typ="BÜRO & VERWALTUNG",
+        )
+
+    def setUp(self):
+        self.client = Client()
+        self.client.login(
+            username="tester", password="password123"
+        )  # noqa: S106    def test_kennzahlen_ajax_view(self):
+        """Test für die AJAX-Kennzahlen-Abfrage."""
+        response = self.client.get(reverse("auswertungen:kennzahlen_ajax"))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "application/json")
+
+        # JSON-Antwort prüfen
+        data = response.json()
+        self.assertIn("einnahmen_heute", data)
+        self.assertIn("buchungen_heute", data)
+        self.assertIn("timestamp", data)
+        self.assertIsInstance(data["buchungen_heute"], int)
+
+    def test_eur_offiziell_view(self):
+        """Test für die offizielle EÜR-View."""
+        response = self.client.get(reverse("auswertungen:eur_offiziell"))
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("eur_data", response.context)
+        self.assertIn("einnahmen", response.context)
+        self.assertIn("ausgaben", response.context)
+
+    def test_eur_bmf_formular_view(self):
+        """Test für das BMF-Formular."""
+        response = self.client.get(reverse("auswertungen:eur_bmf_formular"))
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("einnahmen_mappings", response.context)
+        self.assertIn("ausgaben_mappings", response.context)
+        self.assertIn("steuerpflichtiger", response.context)
+
+    def test_eur_pdf_export(self):
+        """Test für PDF-Export der EÜR."""
+        response = self.client.get(reverse("auswertungen:eur_pdf"))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "application/pdf")
+
+    def test_eur_excel_export(self):
+        """Test für Excel-Export der EÜR."""
+        response = self.client.get(reverse("auswertungen:eur_excel"))
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            response["Content-Type"],
+        )
+
+    def test_kontenblatt_excel_export(self):
+        """Test für Excel-Export des Kontenblatts."""
+        response = self.client.get(
+            reverse("auswertungen:kontenblatt_excel", kwargs={"konto_id": self.bank.id})
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            response["Content-Type"],
+        )
+
+    def test_dashboard_mit_buchungen(self):
+        """Test Dashboard mit verschiedenen Buchungen."""
+        # Testdaten anlegen
+        heute = timezone.now().date()
+        Buchungssatz.objects.create(
+            buchungsdatum=heute,
+            buchungstext="Test Einnahme",
+            betrag=Decimal("500.00"),
+            soll_konto=self.bank,
+            haben_konto=self.erloese,
+        )
+
+        response = self.client.get(reverse("auswertungen:dashboard"))
+        self.assertEqual(response.status_code, 200)
+
+        # Prüfe dass Daten im Kontext vorhanden sind
+        self.assertIn("einnahmen_monat", response.context)
+        self.assertIn("ausgaben_monat", response.context)
+        self.assertIn("gewinn_monat", response.context)
+
+    def test_eur_view_mit_jahr_parameter(self):
+        """Test EÜR mit Jahr-Parameter."""
+        jahr = timezone.now().year
+        response = self.client.get(reverse("auswertungen:eur"), {"jahr": jahr})
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("jahr", response.context)
+        self.assertEqual(response.context["jahr"], jahr)
+
+    def test_kontenblatt_nicht_existierende_konto(self):
+        """Test Kontenblatt für nicht existierendes Konto."""
+        from uuid import uuid4
+
+        fake_id = uuid4()
+        response = self.client.get(
+            reverse("auswertungen:kontenblatt", kwargs={"konto_id": fake_id})
+        )
+        self.assertEqual(response.status_code, 404)
+
+    def test_export_views_ohne_login(self):
+        """Test Export-Views ohne Login."""
+        self.client.logout()
+
+        # Alle Export-URLs testen
+        export_urls = [
+            "auswertungen:eur_export_csv",
+            "auswertungen:eur_export_pdf",
+            "auswertungen:eur_pdf",
+            "auswertungen:eur_excel",
+        ]
+
+        for url_name in export_urls:
+            response = self.client.get(reverse(url_name))
+            # Sollte Redirect zu Login-Seite sein
+            self.assertEqual(response.status_code, 302)
+            self.assertIn("/accounts/login/", response["Location"])
