@@ -1,0 +1,659 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard - llkjj_knut{% endblock %}
+
+{% block extra_css %}
+<style>
+:root {
+    --primary-blue: #3b82f6;
+    --secondary-blue: #1e40af;
+    --accent-green: #10b981;
+    --accent-orange: #f59e0b;
+    --accent-red: #ef4444;
+    --bg-dark: #0f172a;
+    --bg-card: #1e293b;
+    --text-light: #e2e8f0;
+    --text-muted: #94a3b8;
+    --border-color: #334155;
+}
+
+body {
+    background: linear-gradient(135deg, var(--bg-dark) 0%, #1a202c 100%);
+    color: var(--text-light);
+    min-height: 100vh;
+}
+
+.dashboard-header {
+    background: linear-gradient(135deg, var(--primary-blue) 0%, var(--secondary-blue) 100%);
+    border-radius: 20px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.dashboard-header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 200px;
+    height: 200px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-20px) rotate(180deg); }
+}
+
+.metric-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.metric-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--primary-blue);
+    box-shadow: 0 10px 30px rgba(59, 130, 246, 0.2);
+}
+
+.metric-card .icon-wrapper {
+    width: 60px;
+    height: 60px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.metric-card .value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(135deg, var(--text-light) 0%, var(--primary-blue) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.metric-card .trend {
+    font-size: 0.875rem;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.trend.positive { color: var(--accent-green); }
+.trend.negative { color: var(--accent-red); }
+.trend.neutral { color: var(--text-muted); }
+
+.chart-container {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 1.5rem;
+    height: 400px;
+}
+
+.recent-activities {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 1.5rem;
+}
+
+.activity-item {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    margin: 0.5rem 0;
+    background: rgba(59, 130, 246, 0.05);
+    border-radius: 12px;
+    border-left: 4px solid var(--primary-blue);
+    transition: all 0.2s ease;
+}
+
+.activity-item:hover {
+    background: rgba(59, 130, 246, 0.1);
+    transform: translateX(5px);
+}
+
+.activity-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+    font-size: 1.1rem;
+}
+
+.zwegat-wisdom {
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    border-radius: 16px;
+    padding: 1.5rem;
+    color: #1f2937;
+    position: relative;
+    margin-bottom: 2rem;
+}
+
+.zwegat-wisdom::before {
+    content: '💡';
+    position: absolute;
+    top: -10px;
+    left: 20px;
+    background: #f59e0b;
+    padding: 8px;
+    border-radius: 50%;
+    font-size: 1.2rem;
+}
+
+.quick-actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.quick-action {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1rem;
+    text-decoration: none;
+    color: var(--text-light);
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.quick-action:hover {
+    color: var(--text-light);
+    transform: translateY(-3px);
+    border-color: var(--primary-blue);
+    box-shadow: 0 5px 20px rgba(59, 130, 246, 0.2);
+}
+
+.quick-action .icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+}
+
+.loading-spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-top: 3px solid var(--primary-blue);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.status-indicator {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 0.5rem;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+.live-update {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: var(--accent-green);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 25px;
+    font-size: 0.875rem;
+    z-index: 1000;
+    opacity: 0;
+    transform: translateY(-20px);
+    transition: all 0.3s ease;
+}
+
+.live-update.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Dashboard Header -->
+    <div class="dashboard-header">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="text-white mb-2">
+                    <i class="fas fa-chart-line me-3"></i>
+                    Dashboard
+                </h1>
+                <p class="text-white-50 mb-0 lead">
+                    Willkommen zurück! Hier ist Ihr aktueller Finanzüberblick.
+                </p>
+            </div>
+            <div class="col-md-4 text-end">
+                <div class="text-white-50 mb-1">Letztes Update</div>
+                <div class="text-white h5" id="lastUpdate">
+                    <div class="loading-spinner me-2"></div>
+                    Wird geladen...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tagesspruch -->
+    <div class="zwegat-wisdom">
+        <h4 class="mb-2">
+            <i class="fas fa-lightbulb me-2"></i>
+            Tipp des Tages:
+        </h4>
+        <p class="mb-0" id="motivational-quote">
+            "Eine strukturierte Buchhaltung spart Zeit und Nerven bei der Steuererklärung."
+        </p>
+    </div>
+
+    <!-- Schnellaktionen -->
+    <div class="quick-actions">
+        <a href="{% url 'belege:upload' %}" class="quick-action">
+            <div class="icon" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                <i class="fas fa-upload text-white"></i>
+            </div>
+            <div>
+                <div class="fw-bold">Beleg hochladen</div>
+                <small class="text-muted">PDF-Rechnung hinzufügen</small>
+            </div>
+        </a>
+        
+        <a href="{% url 'buchungen:erstellen' %}" class="quick-action">
+            <div class="icon" style="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);">
+                <i class="fas fa-plus text-white"></i>
+            </div>
+            <div>
+                <div class="fw-bold">Neue Buchung</div>
+                <small class="text-muted">Manuelle Eingabe</small>
+            </div>
+        </a>
+        
+        <a href="{% url 'auswertungen:eur_offiziell' %}" class="quick-action">
+            <div class="icon" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
+                <i class="fas fa-chart-bar text-white"></i>
+            </div>
+            <div>
+                <div class="fw-bold">EÜR generieren</div>
+                <small class="text-muted">Steuerbericht erstellen</small>
+            </div>
+        </a>
+        
+        <a href="{% url 'auswertungen:eur_bmf_formular' %}" class="quick-action">
+            <div class="icon" style="background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);">
+                <i class="fas fa-file-invoice text-white"></i>
+            </div>
+            <div>
+                <div class="fw-bold">BMF-Formular</div>
+                <small class="text-muted">Offizielle Anlage EÜR</small>
+            </div>
+        </a>
+        
+        <a href="{% url 'belege:liste_modern' %}" class="quick-action">
+            <div class="icon" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);">
+                <i class="fas fa-folder-open text-white"></i>
+            </div>
+            <div>
+                <div class="fw-bold">Belege verwalten</div>
+                <small class="text-muted">Alle Dokumente</small>
+            </div>
+        </a>
+    </div>
+
+    <!-- Kennzahlen Grid -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-3 col-md-6">
+            <div class="metric-card">
+                <div class="icon-wrapper" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                    <i class="fas fa-arrow-up text-white"></i>
+                </div>
+                <div class="value" id="einnahmen-monat">{{ einnahmen_monat|floatformat:0 }}€</div>
+                <div class="label text-muted mb-2">Einnahmen (Monat)</div>
+                <div class="trend positive">
+                    <i class="fas fa-arrow-up"></i>
+                    <span id="einnahmen-trend">{{ einnahmen_trend|floatformat:1 }}%</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6">
+            <div class="metric-card">
+                <div class="icon-wrapper" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">
+                    <i class="fas fa-arrow-down text-white"></i>
+                </div>
+                <div class="value" id="ausgaben-monat">{{ ausgaben_monat|floatformat:0 }}€</div>
+                <div class="label text-muted mb-2">Ausgaben (Monat)</div>
+                <div class="trend neutral">
+                    <i class="fas fa-minus"></i>
+                    <span>Konstant</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6">
+            <div class="metric-card">
+                <div class="icon-wrapper" style="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);">
+                    <i class="fas fa-chart-line text-white"></i>
+                </div>
+                <div class="value" id="gewinn-monat">{{ gewinn_monat|floatformat:0 }}€</div>
+                <div class="label text-muted mb-2">Gewinn (Monat)</div>
+                <div class="trend {% if gewinn_monat >= 0 %}positive{% else %}negative{% endif %}">
+                    <i class="fas fa-{% if gewinn_monat >= 0 %}arrow-up{% else %}arrow-down{% endif %}"></i>
+                    <span>{{ gewinn_monat|floatformat:0 }}€</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6">
+            <div class="metric-card">
+                <div class="icon-wrapper" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
+                    <i class="fas fa-file-alt text-white"></i>
+                </div>
+                <div class="value" id="belege-count">{{ stats.belege_count }}</div>
+                <div class="label text-muted mb-2">Offene Belege</div>
+                <div class="trend neutral">
+                    <span class="status-indicator bg-warning"></span>
+                    <span>{{ stats.belege_unbearbeitet }} zu bearbeiten</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts und Aktivitäten -->
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="chart-container">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="text-white mb-0">
+                        <i class="fas fa-chart-area me-2"></i>
+                        Finanztrend (12 Monate)
+                    </h5>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-outline-primary" data-period="6">6M</button>
+                        <button class="btn btn-sm btn-primary" data-period="12">12M</button>
+                    </div>
+                </div>
+                <canvas id="finanzChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="recent-activities">
+                <h5 class="text-white mb-3">
+                    <i class="fas fa-clock me-2"></i>
+                    Letzte Aktivitäten
+                </h5>
+                
+                <div id="activities-list">
+                    {% for buchung in letzte_buchungen %}
+                    <div class="activity-item">
+                        <div class="activity-icon" style="background: {% if buchung.haben_konto.nummer|slice:':1' == '8' %}var(--accent-green){% else %}var(--accent-red){% endif %};">
+                            <i class="fas fa-{% if buchung.haben_konto.nummer|slice:':1' == '8' %}arrow-up{% else %}arrow-down{% endif %} text-white"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="fw-bold">{{ buchung.buchungstext|truncatechars:30 }}</div>
+                            <div class="text-muted small">{{ buchung.buchungsdatum|date:"d.m.Y" }}</div>
+                        </div>
+                        <div class="text-end">
+                            <div class="fw-bold">{{ buchung.betrag|floatformat:2 }}€</div>
+                            {% if buchung.geschaeftspartner %}
+                            <div class="text-muted small">{{ buchung.geschaeftspartner.name|truncatechars:15 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-inbox fa-2x mb-2"></i>
+                        <div>Noch keine Buchungen vorhanden</div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <div class="text-center mt-3">
+                    <a href="{% url 'buchungen:liste' %}" class="btn btn-outline-primary btn-sm">
+                        Alle Buchungen anzeigen
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Live Update Indikator -->
+<div id="liveUpdateIndicator" class="live-update">
+    <i class="fas fa-sync-alt me-1"></i>
+    Daten aktualisiert
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+class DashboardManager {
+    constructor() {
+        this.updateInterval = 30000; // 30 Sekunden
+        this.chart = null;
+        this.lastUpdateTime = new Date();
+        
+        this.initializeChart();
+        this.startLiveUpdates();
+        this.updateLastUpdateTime();
+    }
+    
+    initializeChart() {
+        const ctx = document.getElementById('finanzChart').getContext('2d');
+        
+        this.chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: {{ chart_data|safe }}.map(item => item.monat),
+                datasets: [{
+                    label: 'Einnahmen',
+                    data: {{ chart_data|safe }}.map(item => item.einnahmen),
+                    borderColor: '#10b981',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }, {
+                    label: 'Ausgaben',
+                    data: {{ chart_data|safe }}.map(item => item.ausgaben),
+                    borderColor: '#ef4444',
+                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }, {
+                    label: 'Gewinn',
+                    data: {{ chart_data|safe }}.map(item => item.gewinn),
+                    borderColor: '#3b82f6',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    tension: 0.4,
+                    fill: false
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: '#e2e8f0'
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: { color: '#94a3b8' },
+                        grid: { color: '#334155' }
+                    },
+                    y: {
+                        ticks: { 
+                            color: '#94a3b8',
+                            callback: function(value) {
+                                return value.toLocaleString() + '€';
+                            }
+                        },
+                        grid: { color: '#334155' }
+                    }
+                },
+                interaction: {
+                    intersect: false,
+                    mode: 'index'
+                }
+            }
+        });
+    }
+    
+    async startLiveUpdates() {
+        setInterval(() => {
+            this.updateKennzahlen();
+        }, this.updateInterval);
+        
+        // Erste Aktualisierung nach 5 Sekunden
+        setTimeout(() => {
+            this.updateKennzahlen();
+        }, 5000);
+    }
+    
+    async updateKennzahlen() {
+        try {
+            const response = await fetch('{% url "auswertungen:kennzahlen_ajax" %}');
+            const data = await response.json();
+            
+            // Kennzahlen aktualisieren
+            if (data.einnahmen_heute !== undefined) {
+                this.animateValue('einnahmen-monat', data.einnahmen_heute);
+            }
+            
+            if (data.buchungen_heute !== undefined) {
+                document.getElementById('belege-count').textContent = data.buchungen_heute;
+            }
+            
+            // Live-Update-Indikator zeigen
+            this.showLiveUpdate();
+            
+            // Update-Zeit aktualisieren
+            this.lastUpdateTime = new Date();
+            this.updateLastUpdateTime();
+            
+        } catch (error) {
+            console.warn('Live-Update fehlgeschlagen:', error);
+        }
+    }
+    
+    animateValue(elementId, newValue) {
+        const element = document.getElementById(elementId);
+        if (!element) return;
+        
+        const currentValue = parseFloat(element.textContent.replace(/[€,]/g, '')) || 0;
+        const targetValue = parseFloat(newValue) || 0;
+        
+        if (Math.abs(currentValue - targetValue) < 0.01) return;
+        
+        const duration = 1000; // 1 Sekunde
+        const startTime = performance.now();
+        
+        const animate = (currentTime) => {
+            const elapsed = currentTime - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            
+            const currentAnimatedValue = currentValue + (targetValue - currentValue) * this.easeOutCubic(progress);
+            element.textContent = Math.round(currentAnimatedValue).toLocaleString() + '€';
+            
+            if (progress < 1) {
+                requestAnimationFrame(animate);
+            }
+        };
+        
+        requestAnimationFrame(animate);
+    }
+    
+    easeOutCubic(t) {
+        return 1 - Math.pow(1 - t, 3);
+    }
+    
+    showLiveUpdate() {
+        const indicator = document.getElementById('liveUpdateIndicator');
+        indicator.classList.add('show');
+        
+        setTimeout(() => {
+            indicator.classList.remove('show');
+        }, 2000);
+    }
+    
+    updateLastUpdateTime() {
+        const element = document.getElementById('lastUpdate');
+        const now = this.lastUpdateTime;
+        const timeString = now.toLocaleTimeString('de-DE', {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        });
+        
+        element.innerHTML = `
+            <i class="fas fa-sync-alt me-1"></i>
+            ${timeString}
+        `;
+    }
+}
+
+// Dashboard initialisieren
+document.addEventListener('DOMContentLoaded', function() {
+    const dashboard = new DashboardManager();
+    
+    // Motivierende Sprüche rotieren
+    const motivational_quotes = [
+        "Eine strukturierte Buchhaltung spart Zeit und Nerven bei der Steuererklärung.",
+        "Regelmäßige Buchführung erleichtert die Finanzplanung erheblich.",
+        "Digitale Belege sind schneller auffindbar und umweltfreundlich.",
+        "Automatisierung reduziert Fehler in der Buchhaltung.",
+        "Ein übersichtliches Dashboard zeigt den aktuellen Finanzstatus.",
+        "Backup Ihrer Finanzdaten schützt vor Datenverlust.",
+        "Kategorisierte Ausgaben helfen beim Sparen und Optimieren."
+    ];
+    
+    setInterval(() => {
+        const randomQuote = motivational_quotes[Math.floor(Math.random() * motivational_quotes.length)];
+        document.getElementById('motivational-quote').textContent = randomQuote;
+    }, 15000); // Alle 15 Sekunden neuer Tipp
+});
+</script>
+{% endblock %}

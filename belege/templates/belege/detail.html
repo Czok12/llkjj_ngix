@@ -126,9 +126,14 @@
                         <i class="fas fa-edit"></i> Bearbeiten
                     </a>
                     {% if beleg.datei %}
-                    <a href="{% url 'belege:pdf_viewer' beleg.id %}" class="btn btn-info" target="_blank">
+                    <a href="{% url 'belege:pdf_viewer_modern' beleg.id %}" class="btn btn-info" target="_blank">
                         <i class="fas fa-file-pdf"></i> PDF öffnen
                     </a>
+                    {% if not beleg.ocr_verarbeitet %}
+                    <button type="button" id="ocrButton" class="btn btn-success" data-beleg-id="{{ beleg.id }}">
+                        <i class="fas fa-robot"></i> OCR verarbeiten
+                    </button>
+                    {% endif %}
                     {% endif %}
                     <a href="{% url 'belege:liste' %}" class="btn btn-secondary">
                         <i class="fas fa-list"></i> Zur Liste
@@ -416,6 +421,110 @@ document.addEventListener('DOMContentLoaded', function() {
         
         deleteModal.hide();
     });
+    
+    // OCR functionality
+    const ocrButton = document.getElementById('ocrButton');
+    if (ocrButton) {
+        ocrButton.addEventListener('click', function() {
+            const belegId = this.dataset.belegId;
+            
+            // Button-Status ändern
+            this.disabled = true;
+            this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verarbeite...';
+            
+            fetch(`/belege/${belegId}/ocr/process/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Erfolg anzeigen
+                    this.innerHTML = '<i class="fas fa-check"></i> OCR erfolgreich';
+                    this.classList.remove('btn-success');
+                    this.classList.add('btn-success');
+                    
+                    // Peter Zwegat Notification
+                    showOcrSuccess(data.data);
+                    
+                    // Seite nach 2 Sekunden neu laden
+                    setTimeout(() => {
+                        location.reload();
+                    }, 2000);
+                } else {
+                    // Fehler anzeigen
+                    this.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Fehler';
+                    this.classList.remove('btn-success');
+                    this.classList.add('btn-danger');
+                    
+                    alert('OCR-Fehler: ' + data.error);
+                    
+                    // Button nach 3 Sekunden zurücksetzen
+                    setTimeout(() => {
+                        this.disabled = false;
+                        this.innerHTML = '<i class="fas fa-robot"></i> OCR verarbeiten';
+                        this.classList.remove('btn-danger');
+                        this.classList.add('btn-success');
+                    }, 3000);
+                }
+            })
+            .catch(error => {
+                console.error('OCR Error:', error);
+                this.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Fehler';
+                this.classList.remove('btn-success');
+                this.classList.add('btn-danger');
+                
+                alert('Netzwerk-Fehler bei OCR-Verarbeitung');
+                
+                // Button zurücksetzen
+                setTimeout(() => {
+                    this.disabled = false;
+                    this.innerHTML = '<i class="fas fa-robot"></i> OCR verarbeiten';
+                    this.classList.remove('btn-danger');
+                    this.classList.add('btn-success');
+                }, 3000);
+            });
+        });
+    }
+    
+    function showOcrSuccess(data) {
+        // Erfolgs-Toast erstellen
+        const toast = document.createElement('div');
+        toast.className = 'toast position-fixed top-0 end-0 m-3';
+        toast.setAttribute('role', 'alert');
+        toast.style.zIndex = '1050';
+        
+        toast.innerHTML = `
+            <div class="toast-header bg-success text-white">
+                <i class="fas fa-robot me-2"></i>
+                <strong class="me-auto">Peter Zwegat OCR</strong>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+            </div>
+            <div class="toast-body">
+                <strong>OCR erfolgreich abgeschlossen!</strong><br>
+                ${data.betrag ? `💰 Betrag: ${data.betrag} €<br>` : ''}
+                ${data.datum ? `📅 Datum: ${data.datum}<br>` : ''}
+                ${data.geschaeftspartner ? `🏢 Partner: ${data.geschaeftspartner}<br>` : ''}
+                <small class="text-muted">Vertrauen: ${Math.round(data.confidence)}%</small>
+            </div>
+        `;
+        
+        document.body.appendChild(toast);
+        
+        const bsToast = new bootstrap.Toast(toast, {
+            autohide: true,
+            delay: 5000
+        });
+        bsToast.show();
+        
+        // Toast nach dem Verbergen entfernen
+        toast.addEventListener('hidden.bs.toast', () => {
+            toast.remove();
+        });
+    }
 });
 </script>
 {% endblock %}

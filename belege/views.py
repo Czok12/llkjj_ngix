@@ -1,8 +1,7 @@
 """
 Views für die Belege-App - PDF-Upload und automatische Datenextraktion.
 
-Peter Zwegat würde sagen: "Hier wird aus Chaos Ordnung gemacht -
-wie ich es liebe!"
+Zentrale Funktionen für die Verwaltung und Verarbeitung von Geschäftsbelegen.
 """
 
 import logging
@@ -36,7 +35,7 @@ def beleg_liste(request):
     """
     Zeigt eine Liste aller Belege mit Suchfunktion.
 
-    Peter Zwegat: "Überblick verschaffen - das ist der erste Schritt!"
+    Ermöglicht Filterung und Suche in allen relevanten Belegdaten.
     """
     form = BelegSucheForm(request.GET)
     belege = Beleg.objects.all()
@@ -89,11 +88,66 @@ def beleg_liste(request):
     )
 
 
+def beleg_liste_modern(request):
+    """
+    Moderne Beleg-Liste mit Grid-Ansicht und Thumbnails.
+
+    Bietet eine verbesserte Benutzeroberfläche für die Belegverwaltung.
+    """
+    from django.core.paginator import Paginator
+    from django.db.models import Q
+
+    # Alle Belege abrufen
+    belege = Beleg.objects.all().order_by("-hochgeladen_am")
+
+    # Such-Filter
+    search = request.GET.get("search", "").strip()
+    if search:
+        belege = belege.filter(
+            Q(original_dateiname__icontains=search)
+            | Q(beschreibung__icontains=search)
+            | Q(geschaeftspartner__name__icontains=search)
+        )
+
+    # Status-Filter
+    status = request.GET.get("status", "").strip()
+    if status:
+        belege = belege.filter(status=status)
+
+    # Typ-Filter
+    beleg_typ = request.GET.get("beleg_typ", "").strip()
+    if beleg_typ:
+        belege = belege.filter(beleg_typ=beleg_typ)
+
+    # Statistiken berechnen
+    stats = {
+        "gesamt": Beleg.objects.count(),
+        "neu": Beleg.objects.filter(status="NEU").count(),
+        "geprueft": Beleg.objects.filter(status="GEPRUEFT").count(),
+        "verbucht": Beleg.objects.filter(status="VERBUCHT").count(),
+        "fehler": Beleg.objects.filter(status="FEHLER").count(),
+    }
+
+    # Pagination
+    paginator = Paginator(belege, 20)  # 20 Belege pro Seite
+    page_number = request.GET.get("page")
+    belege_page = paginator.get_page(page_number)
+
+    context = {
+        "belege": belege_page,
+        "belege_count": belege.count(),
+        "stats": stats,
+        "page_title": "Belege-Verwaltung",
+    }
+
+    return render(request, "belege/liste_modern.html", context)
+
+
 def beleg_upload(request):
     """
     Upload-Seite für neue PDF-Belege mit automatischer Datenextraktion.
 
-    Peter Zwegat: "Rein mit dem PDF - raus mit den Daten!"
+    Verarbeitet hochgeladene PDFs und extrahiert automatisch relevante Daten.
     """
     # Vorauswahl des Beleg-Typs aus URL-Parameter
     initial_data = {}
@@ -139,13 +193,13 @@ def beleg_upload(request):
                     logger.info("Temporäre Datei erstellt: %s", temp_file_path)
 
                     # PDF-Daten extrahieren BEVOR wir das Beleg-Objekt speichern
-                    extrahierte_daten = extrahiere_pdf_daten(temp_file_path)
-                    logger.info("PDF-Daten extrahiert: %s", extrahierte_daten.keys())
+                    extrahiierte_daten = extrahiere_pdf_daten(temp_file_path)
+                    logger.info("PDF-Daten extrahiert: %s", extrahiierte_daten.keys())
 
                     # Extrahierte Daten in Beleg-Objekt übernehmen
-                    if extrahierte_daten.get("rechnungsdatum"):
+                    if extrahiierte_daten.get("rechnungsdatum"):
                         try:
-                            rechnungsdatum_str = extrahierte_daten["rechnungsdatum"]
+                            rechnungsdatum_str = extrahiierte_daten["rechnungsdatum"]
                             if rechnungsdatum_str:
                                 beleg.rechnungsdatum = datetime.fromisoformat(
                                     rechnungsdatum_str
@@ -153,24 +207,24 @@ def beleg_upload(request):
                         except (ValueError, TypeError):
                             pass
 
-                    if extrahierte_daten.get("gesamtbetrag"):
+                    if extrahiierte_daten.get("gesamtbetrag"):
                         try:
-                            gesamtbetrag_str = extrahierte_daten["gesamtbetrag"]
+                            gesamtbetrag_str = extrahiierte_daten["gesamtbetrag"]
                             if gesamtbetrag_str:
                                 beleg.betrag = Decimal(gesamtbetrag_str)
                         except (InvalidOperation, ValueError, TypeError):
                             pass
 
                     # OCR-Text und Rechnungsnummer speichern
-                    beleg.ocr_text = extrahierte_daten.get("ocr_text", "")
+                    beleg.ocr_text = extrahiierte_daten.get("ocr_text", "")
                     beleg.ocr_verarbeitet = True
 
                     # Rechnungsnummer aus extrahierten Daten übernehmen
-                    if extrahierte_daten.get("rechnungsnummer"):
-                        beleg.rechnungsnummer = extrahierte_daten["rechnungsnummer"]
+                    if extrahiierte_daten.get("rechnungsnummer"):
+                        beleg.rechnungsnummer = extrahiierte_daten["rechnungsnummer"]
 
                     # Geschäftspartner suchen/erstellen
-                    lieferant_name = extrahierte_daten.get("lieferant")
+                    lieferant_name = extrahiierte_daten.get("lieferant")
                     if lieferant_name:
                         partner, created = Geschaeftspartner.objects.get_or_create(
                             name__iexact=lieferant_name,
@@ -189,8 +243,8 @@ def beleg_upload(request):
                             )
 
                     # Automatische Beleg-Typ-Erkennung
-                    if extrahierte_daten.get("beleg_typ"):
-                        beleg.beleg_typ = extrahierte_daten["beleg_typ"]
+                    if extrahiierte_daten.get("beleg_typ"):
+                        beleg.beleg_typ = extrahiierte_daten["beleg_typ"]
 
                     # Jetzt intelligenten Dateinamen generieren mit den verfügbaren Daten
                     from .models import generiere_intelligenten_dateinamen
@@ -212,7 +266,7 @@ def beleg_upload(request):
                     logger.info("Datei erfolgreich kopiert nach: %s", final_path)
 
                     # Erfolgreiche Extraktion bewerten
-                    vertrauen = extrahierte_daten.get("vertrauen", 0.0)
+                    vertrauen = extrahiierte_daten.get("vertrauen", 0.0)
                     vertrauen_wert = float(vertrauen) if vertrauen is not None else 0.0
 
                     if vertrauen_wert > 0.7:
@@ -346,16 +400,16 @@ def beleg_upload_dual(request):
                     )
 
                     # PDF-Daten extrahieren
-                    extrahierte_daten = extrahiere_pdf_daten(temp_file_path)
+                    extrahiierte_daten = extrahiere_pdf_daten(temp_file_path)
                     logger.info(
                         "Dual Upload: PDF-Daten extrahiert: %s",
-                        extrahierte_daten.keys(),
+                        extrahiierte_daten.keys(),
                     )
 
                     # Extrahierte Daten in Beleg-Objekt übernehmen
-                    if extrahierte_daten.get("rechnungsdatum"):
+                    if extrahiierte_daten.get("rechnungsdatum"):
                         try:
-                            datum_str = extrahierte_daten["rechnungsdatum"]
+                            datum_str = extrahiierte_daten["rechnungsdatum"]
                             if datum_str:
                                 beleg.rechnungsdatum = datetime.fromisoformat(
                                     datum_str
@@ -363,24 +417,24 @@ def beleg_upload_dual(request):
                         except (ValueError, TypeError):
                             pass
 
-                    if extrahierte_daten.get("gesamtbetrag"):
+                    if extrahiierte_daten.get("gesamtbetrag"):
                         try:
-                            betrag_str = extrahierte_daten["gesamtbetrag"]
+                            betrag_str = extrahiierte_daten["gesamtbetrag"]
                             if betrag_str:
                                 beleg.betrag = Decimal(betrag_str)
                         except (InvalidOperation, ValueError, TypeError):
                             pass
 
                     # OCR-Text und Rechnungsnummer speichern
-                    beleg.ocr_text = extrahierte_daten.get("ocr_text", "")
+                    beleg.ocr_text = extrahiierte_daten.get("ocr_text", "")
                     beleg.ocr_verarbeitet = True
 
                     # Rechnungsnummer aus extrahierten Daten übernehmen
-                    if extrahierte_daten.get("rechnungsnummer"):
-                        beleg.rechnungsnummer = extrahierte_daten["rechnungsnummer"]
+                    if extrahiierte_daten.get("rechnungsnummer"):
+                        beleg.rechnungsnummer = extrahiierte_daten["rechnungsnummer"]
 
                     # Geschäftspartner suchen/erstellen
-                    partner_name = extrahierte_daten.get("lieferant")
+                    partner_name = extrahiierte_daten.get("lieferant")
                     if partner_name:
                         partner_typ = (
                             "LIEFERANT" if upload_typ == "eingang" else "KUNDE"
@@ -402,8 +456,8 @@ def beleg_upload_dual(request):
                             )
 
                     # Automatische Beleg-Typ-Erkennung
-                    if extrahierte_daten.get("beleg_typ"):
-                        beleg.beleg_typ = extrahierte_daten["beleg_typ"]
+                    if extrahiierte_daten.get("beleg_typ"):
+                        beleg.beleg_typ = extrahiierte_daten["beleg_typ"]
 
                     # Intelligenten Dateinamen generieren
                     from .models import generiere_intelligenten_dateinamen
@@ -427,7 +481,7 @@ def beleg_upload_dual(request):
                     )
 
                     # Erfolgreiche Extraktion bewerten
-                    vertrauen = extrahierte_daten.get("vertrauen", 0.0)
+                    vertrauen = extrahiierte_daten.get("vertrauen", 0.0)
                     vertrauen_wert = float(vertrauen) if vertrauen is not None else 0.0
 
                     if vertrauen_wert > 0.7:
@@ -481,6 +535,99 @@ def beleg_upload_dual(request):
             "form_ausgang": form_ausgang,
             "titel": "Belege hochladen",
         },
+    )
+
+
+def beleg_bulk_upload(request):
+    """
+    Bulk-Upload für mehrere Belege gleichzeitig.
+
+    Peter Zwegat: "Manchmal hat man viele Belege auf einmal -
+    das muss auch schnell gehen!"
+    """
+    if request.method == "POST":
+        uploaded_files = request.FILES.getlist("belege")
+        upload_typ = request.POST.get("upload_typ", "eingang")
+        erfolgreiche_uploads = []
+        fehlerhafte_uploads = []
+
+        for datei in uploaded_files:
+            try:
+                # Validierung
+                if not datei.name.lower().endswith(".pdf"):
+                    fehlerhafte_uploads.append(
+                        {"datei": datei.name, "fehler": "Nur PDF-Dateien sind erlaubt"}
+                    )
+                    continue
+
+                if datei.size > 10 * 1024 * 1024:  # 10MB Limit
+                    fehlerhafte_uploads.append(
+                        {"datei": datei.name, "fehler": "Datei zu groß (max. 10MB)"}
+                    )
+                    continue
+
+                # Beleg erstellen
+                beleg = Beleg(
+                    original_dateiname=datei.name,
+                    datei=datei,
+                    beleg_typ=(
+                        "RECHNUNG_EINGANG"
+                        if upload_typ == "eingang"
+                        else "RECHNUNG_AUSGANG"
+                    ),
+                    status="NEU",
+                    beschreibung=f"Bulk-Upload: {datei.name}",
+                )
+                beleg.save()
+
+                # OCR im Hintergrund starten (optional)
+                try:
+                    from .ocr_service import OCRService
+
+                    ocr_service = OCRService()
+                    ocr_result = ocr_service.extract_text_from_pdf(beleg.datei.path)
+
+                    if ocr_result.get("success"):
+                        beleg.ocr_text = ocr_result.get("text", "")
+                        beleg.erkannter_betrag = ocr_result.get("betrag")
+                        beleg.erkanntes_datum = ocr_result.get("datum")
+                        beleg.save()
+                except Exception:
+                    # OCR-Fehler ignorieren, Beleg ist trotzdem gespeichert
+                    pass
+
+                erfolgreiche_uploads.append(
+                    {"datei": datei.name, "beleg_id": beleg.id, "beleg": beleg}
+                )
+
+            except Exception as e:
+                fehlerhafte_uploads.append({"datei": datei.name, "fehler": str(e)})
+
+        # JSON Response für AJAX
+        if request.headers.get("Accept") == "application/json":
+            return JsonResponse(
+                {
+                    "erfolgreiche_uploads": len(erfolgreiche_uploads),
+                    "fehlerhafte_uploads": len(fehlerhafte_uploads),
+                    "erfolgreich": [upload["datei"] for upload in erfolgreiche_uploads],
+                    "fehler": fehlerhafte_uploads,
+                }
+            )
+
+        # Normale HTTP Response
+        messages.success(
+            request, f"{len(erfolgreiche_uploads)} Belege erfolgreich hochgeladen!"
+        )
+        if fehlerhafte_uploads:
+            for fehler in fehlerhafte_uploads:
+                messages.error(request, f"{fehler['datei']}: {fehler['fehler']}")
+
+        return redirect("belege:liste")
+
+    return render(
+        request,
+        "belege/bulk_upload.html",
+        {"titel": "Bulk-Upload - Mehrere Belege hochladen"},
     )
 
 
@@ -598,6 +745,26 @@ def beleg_pdf_viewer(request, beleg_id):
         return redirect("belege:detail", beleg_id=beleg_id)
 
 
+def beleg_pdf_viewer_modern(request, beleg_id):
+    """
+    Moderner PDF-Viewer mit PDF.js Integration.
+
+    Peter Zwegat: "Innovation ist gut - aber nur wenn sie funktioniert!"
+    """
+    beleg = get_object_or_404(Beleg, id=beleg_id)
+
+    if not beleg.datei:
+        messages.error(request, "❌ Keine PDF-Datei vorhanden!")
+        return redirect("belege:detail", beleg_id=beleg_id)
+
+    context = {
+        "beleg": beleg,
+        "page_title": f"PDF Viewer - {beleg.original_dateiname}",
+    }
+
+    return render(request, "belege/pdf_viewer.html", context)
+
+
 def dashboard(request):
     """
     Dashboard mit Überblick über alle Belege.
@@ -623,7 +790,7 @@ def dashboard(request):
 
     return render(
         request,
-        "belege/dashboard.html",
+        "dashboard/dashboard_modern.html",
         {
             "stats": stats,
             "neueste_belege": neueste_belege,
@@ -631,3 +798,112 @@ def dashboard(request):
             "titel": "Belege-Dashboard",
         },
     )
+
+
+def beleg_thumbnail(request, beleg_id):
+    """
+    Generiert und liefert ein Thumbnail für PDF-Belege.
+
+    Peter Zwegat: "Ein Bild sagt mehr als tausend Zahlen!"
+    """
+    beleg = get_object_or_404(Beleg, id=beleg_id)
+
+    if not beleg.datei:
+        return HttpResponse(status=404)
+
+    try:
+        import io
+
+        import fitz  # PyMuPDF
+        from PIL import Image
+
+        # PDF öffnen und erste Seite als Bild rendern
+        doc = fitz.open(beleg.datei.path)
+        page = doc[0]  # Erste Seite
+
+        # Als Pixmap rendern (150 DPI für gute Qualität)
+        mat = fitz.Matrix(1.0, 1.0)  # Skalierung
+        pix = page.get_pixmap(matrix=mat)
+
+        # PIL Image erstellen
+        img_data = pix.tobytes("ppm")
+        img = Image.open(io.BytesIO(img_data))
+
+        # Thumbnail erstellen (max 200x300 Pixel)
+        img.thumbnail((200, 300), Image.Resampling.LANCZOS)
+
+        # Als JPEG ausgeben
+        output = io.BytesIO()
+        img.save(output, format="JPEG", quality=85, optimize=True)
+        output.seek(0)
+
+        response = HttpResponse(output.getvalue(), content_type="image/jpeg")
+        response["Cache-Control"] = "public, max-age=3600"  # 1 Stunde Cache
+
+        doc.close()
+        return response
+
+    except Exception as e:
+        logger.error(f"Thumbnail-Generierung fehlgeschlagen für {beleg_id}: {e}")
+        return HttpResponse(status=500)
+
+
+def beleg_ocr_process(request, beleg_id):
+    """
+    AJAX-Endpoint für OCR-Verarbeitung eines Belegs.
+
+    Peter Zwegat: "Technik soll uns helfen, nicht ärgern!"
+    """
+    if request.method != "POST":
+        return JsonResponse({"success": False, "error": "Nur POST erlaubt"})
+
+    beleg = get_object_or_404(Beleg, id=beleg_id)
+
+    if not beleg.datei:
+        return JsonResponse({"success": False, "error": "Keine PDF-Datei vorhanden"})
+
+    try:
+        from .ocr_service import process_beleg_ocr
+
+        # OCR-Verarbeitung starten
+        result = process_beleg_ocr(beleg)
+
+        if result["success"]:
+            return JsonResponse(
+                {
+                    "success": True,
+                    "message": "OCR-Verarbeitung erfolgreich!",
+                    "data": {
+                        "betrag": str(beleg.betrag) if beleg.betrag else None,
+                        "datum": (
+                            beleg.rechnungsdatum.strftime("%d.%m.%Y")
+                            if beleg.rechnungsdatum
+                            else None
+                        ),
+                        "geschaeftspartner": (
+                            beleg.geschaeftspartner.name
+                            if beleg.geschaeftspartner
+                            else None
+                        ),
+                        "ocr_text_preview": (
+                            beleg.ocr_text[:200] + "..."
+                            if beleg.ocr_text and len(beleg.ocr_text) > 200
+                            else beleg.ocr_text
+                        ),
+                        "confidence": result.get("confidence", 0),
+                    },
+                }
+            )
+        else:
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error": f"OCR-Fehler: {result.get('error', 'Unbekannter Fehler')}",
+                }
+            )
+
+    except Exception as e:
+        logger.error(f"OCR-Endpoint-Fehler für Beleg {beleg_id}: {str(e)}")
+        return JsonResponse(
+            {"success": False, "error": f"Unerwarteter Fehler: {str(e)}"}
+        )

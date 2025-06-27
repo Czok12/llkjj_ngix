@@ -1,0 +1,441 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Belege - llkjj_knut{% endblock %}
+
+{% block extra_css %}
+<style>
+.beleg-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    border: 1px solid #e5e7eb;
+}
+
+.beleg-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    border-color: #3b82f6;
+}
+
+.beleg-thumbnail {
+    width: 80px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 2px solid #e5e7eb;
+    background: #f9fafb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #9ca3af;
+    font-size: 2rem;
+}
+
+.beleg-thumbnail img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 6px;
+}
+
+.status-badge {
+    padding: 4px 12px;
+    border-radius: 16px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.status-neu { background: #dbeafe; color: #1e40af; }
+.status-geprueft { background: #d1fae5; color: #065f46; }
+.status-verbucht { background: #f3e8ff; color: #6b21a8; }
+.status-fehler { background: #fee2e2; color: #dc2626; }
+
+.search-filter-panel {
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 24px;
+    border: 1px solid #e2e8f0;
+}
+
+.zwegat-motivator {
+    background: linear-gradient(135deg, #fef3c7 0%, #fcd34d 100%);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 24px;
+    border-left: 4px solid #f59e0b;
+}
+
+.grid-toggle {
+    display: inline-flex;
+    background: #f1f5f9;
+    border-radius: 8px;
+    padding: 4px;
+}
+
+.grid-toggle button {
+    padding: 8px 12px;
+    border: none;
+    background: transparent;
+    border-radius: 4px;
+    color: #64748b;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.grid-toggle button.active {
+    background: white;
+    color: #0f172a;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <!-- Header mit Actions -->
+    <div class="mb-8">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900 mb-2 flex items-center">
+                    <i class="fas fa-receipt mr-3 text-blue-500"></i>
+                    Belege-Verwaltung
+                </h1>
+                <p class="text-gray-600">Verwalten Sie Ihre Rechnungen und Belege mit Überblick</p>
+            </div>
+            <div class="flex items-center space-x-3">
+                <!-- Ansicht umschalten -->
+                <div class="grid-toggle">
+                    <button type="button" id="gridView" class="active">
+                        <i class="fas fa-th-large"></i>
+                    </button>
+                    <button type="button" id="listView">
+                        <i class="fas fa-list"></i>
+                    </button>
+                </div>
+                
+                <a href="{% url 'belege:upload' %}" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-3 rounded-lg font-medium flex items-center transition-colors">
+                    <i class="fas fa-plus mr-2"></i>
+                    Neuer Beleg
+                </a>
+                
+                <a href="{% url 'belege:bulk_upload' %}" class="bg-green-500 hover:bg-green-600 text-white px-4 py-3 rounded-lg font-medium flex items-center transition-colors">
+                    <i class="fas fa-upload mr-2"></i>
+                    Bulk-Upload
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Peter Zwegat Motivator -->
+    <div class="zwegat-motivator">
+        <div class="flex items-center">
+            <div class="text-3xl mr-4">💼</div>
+            <div>
+                <p class="font-semibold text-gray-800 mb-1">Peter Zwegat sagt:</p>
+                <p class="text-gray-700">
+                    {% if belege_count > 0 %}
+                        "{{ belege_count }} Belege gefunden! Ordnung ist das halbe Leben - Sie sind auf dem richtigen Weg!"
+                    {% else %}
+                        "Noch keine Belege? Kein Problem! Laden Sie Ihre ersten Rechnungen hoch und ich helfe Ihnen dabei, Ordnung zu schaffen!"
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistiken Dashboard -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-blue-100 text-blue-600">
+                    <i class="fas fa-file-alt text-xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm text-gray-600 font-medium">Gesamt</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ stats.gesamt }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-yellow-100 text-yellow-600">
+                    <i class="fas fa-clock text-xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm text-gray-600 font-medium">Neu</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ stats.neu }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-green-100 text-green-600">
+                    <i class="fas fa-check text-xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm text-gray-600 font-medium">Verbucht</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ stats.verbucht }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-red-100 text-red-600">
+                    <i class="fas fa-exclamation-triangle text-xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm text-gray-600 font-medium">Fehler</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ stats.fehler }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Such- und Filterbereich -->
+    <div class="search-filter-panel">
+        <form method="GET" class="space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Suche</label>
+                    <div class="relative">
+                        <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        <input type="text" 
+                               name="search" 
+                               value="{{ request.GET.search }}" 
+                               placeholder="Belegnummer, Geschäftspartner, Beschreibung..." 
+                               class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                    <select name="status" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="">Alle Status</option>
+                        <option value="NEU" {% if request.GET.status == 'NEU' %}selected{% endif %}>Neu</option>
+                        <option value="GEPRUEFT" {% if request.GET.status == 'GEPRUEFT' %}selected{% endif %}>Geprüft</option>
+                        <option value="VERBUCHT" {% if request.GET.status == 'VERBUCHT' %}selected{% endif %}>Verbucht</option>
+                        <option value="FEHLER" {% if request.GET.status == 'FEHLER' %}selected{% endif %}>Fehler</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Typ</label>
+                    <select name="beleg_typ" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="">Alle Typen</option>
+                        <option value="RECHNUNG_EINGANG" {% if request.GET.beleg_typ == 'RECHNUNG_EINGANG' %}selected{% endif %}>Eingangsrechnung</option>
+                        <option value="RECHNUNG_AUSGANG" {% if request.GET.beleg_typ == 'RECHNUNG_AUSGANG' %}selected{% endif %}>Ausgangsrechnung</option>
+                        <option value="QUITTUNG" {% if request.GET.beleg_typ == 'QUITTUNG' %}selected{% endif %}>Quittung</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg font-medium transition-colors">
+                        <i class="fas fa-search mr-2"></i>
+                        Suchen
+                    </button>
+                    <a href="{% url 'belege:liste' %}" class="text-gray-600 hover:text-gray-800 font-medium">
+                        <i class="fas fa-times mr-1"></i>
+                        Filter zurücksetzen
+                    </a>
+                </div>
+                <div class="text-sm text-gray-600">
+                    {{ belege_count }} Beleg{{ belege_count|pluralize:"e" }} gefunden
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Beleg-Grid (Standard-Ansicht) -->
+    <div id="belegGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {% for beleg in belege %}
+        <div class="beleg-card">
+            <div class="p-4">
+                <!-- Thumbnail und Basis-Info -->
+                <div class="flex items-start space-x-4 mb-4">
+                    <div class="beleg-thumbnail">
+                        {% if beleg.datei %}
+                            <img src="{% url 'belege:thumbnail' beleg.id %}" 
+                                 alt="Thumbnail" 
+                                 loading="lazy"
+                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                            <div style="display: none;" class="w-full h-full flex items-center justify-center">
+                                <i class="fas fa-file-pdf text-red-500"></i>
+                            </div>
+                        {% else %}
+                            <i class="fas fa-file-alt"></i>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="flex-1 min-w-0">
+                        <h3 class="text-sm font-medium text-gray-900 truncate">
+                            {{ beleg.original_dateiname|default:"Ohne Titel" }}
+                        </h3>
+                        <p class="text-xs text-gray-500 mt-1">
+                            {{ beleg.hochgeladen_am|date:"d.m.Y H:i" }}
+                        </p>
+                        
+                        <!-- Status Badge -->
+                        <span class="inline-block mt-2 status-badge status-{{ beleg.status|lower }}">
+                            {{ beleg.get_status_display }}
+                        </span>
+                    </div>
+                </div>
+                
+                <!-- Details -->
+                <div class="space-y-2 text-sm">
+                    {% if beleg.rechnungsdatum %}
+                    <div class="flex items-center">
+                        <i class="fas fa-calendar text-gray-400 w-4"></i>
+                        <span class="ml-2 text-gray-600">{{ beleg.rechnungsdatum|date:"d.m.Y" }}</span>
+                    </div>
+                    {% endif %}
+                    
+                    {% if beleg.betrag %}
+                    <div class="flex items-center">
+                        <i class="fas fa-euro-sign text-gray-400 w-4"></i>
+                        <span class="ml-2 font-medium text-gray-900">{{ beleg.betrag_formatiert }}</span>
+                    </div>
+                    {% endif %}
+                    
+                    {% if beleg.geschaeftspartner %}
+                    <div class="flex items-center">
+                        <i class="fas fa-building text-gray-400 w-4"></i>
+                        <span class="ml-2 text-gray-600 truncate">{{ beleg.geschaeftspartner.name }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Actions -->
+                <div class="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
+                    <div class="flex items-center space-x-2">
+                        {% if beleg.datei %}
+                        <a href="{% url 'belege:pdf_viewer_modern' beleg.id %}" 
+                           target="_blank"
+                           class="text-blue-500 hover:text-blue-600 text-sm"
+                           title="PDF öffnen">
+                            <i class="fas fa-file-pdf"></i>
+                        </a>
+                        {% endif %}
+                        
+                        <a href="{% url 'belege:detail' beleg.id %}" 
+                           class="text-gray-500 hover:text-gray-600 text-sm"
+                           title="Details">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                        
+                        <a href="{% url 'belege:bearbeiten' beleg.id %}" 
+                           class="text-green-500 hover:text-green-600 text-sm"
+                           title="Bearbeiten">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                    </div>
+                    
+                    {% if beleg.ocr_verarbeitet %}
+                    <span class="text-xs text-green-600 font-medium flex items-center">
+                        <i class="fas fa-robot mr-1"></i>
+                        OCR
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-span-full text-center py-12">
+            <div class="text-gray-400 text-6xl mb-4">
+                <i class="fas fa-inbox"></i>
+            </div>
+            <h3 class="text-xl font-medium text-gray-900 mb-2">Keine Belege gefunden</h3>
+            <p class="text-gray-600 mb-6">
+                {% if request.GET.search or request.GET.status or request.GET.beleg_typ %}
+                    Ihre Suchkriterien haben keine Ergebnisse geliefert. Versuchen Sie es mit anderen Filtern.
+                {% else %}
+                    Laden Sie Ihren ersten Beleg hoch, um zu beginnen.
+                {% endif %}
+            </p>
+            <a href="{% url 'belege:upload' %}" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-medium inline-flex items-center">
+                <i class="fas fa-plus mr-2"></i>
+                Ersten Beleg hochladen
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if belege.has_other_pages %}
+    <div class="mt-8 flex items-center justify-center">
+        <nav class="flex items-center space-x-2">
+            {% if belege.has_previous %}
+                <a href="?{% if request.GET.search %}search={{ request.GET.search }}&{% endif %}{% if request.GET.status %}status={{ request.GET.status }}&{% endif %}{% if request.GET.beleg_typ %}beleg_typ={{ request.GET.beleg_typ }}&{% endif %}page={{ belege.previous_page_number }}" 
+                   class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+                    <i class="fas fa-chevron-left"></i>
+                </a>
+            {% endif %}
+            
+            <span class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md">
+                Seite {{ belege.number }} von {{ belege.paginator.num_pages }}
+            </span>
+            
+            {% if belege.has_next %}
+                <a href="?{% if request.GET.search %}search={{ request.GET.search }}&{% endif %}{% if request.GET.status %}status={{ request.GET.status }}&{% endif %}{% if request.GET.beleg_typ %}beleg_typ={{ request.GET.beleg_typ }}&{% endif %}page={{ belege.next_page_number }}" 
+                   class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+                    <i class="fas fa-chevron-right"></i>
+                </a>
+            {% endif %}
+        </nav>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // View Toggle Functionality
+    const gridViewBtn = document.getElementById('gridView');
+    const listViewBtn = document.getElementById('listView');
+    const belegGrid = document.getElementById('belegGrid');
+    
+    // Grid View (default)
+    gridViewBtn.addEventListener('click', function() {
+        gridViewBtn.classList.add('active');
+        listViewBtn.classList.remove('active');
+        belegGrid.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6';
+    });
+    
+    // List View
+    listViewBtn.addEventListener('click', function() {
+        listViewBtn.classList.add('active');
+        gridViewBtn.classList.remove('active');
+        belegGrid.className = 'grid grid-cols-1 gap-4';
+    });
+    
+    // Lazy Loading für Thumbnails
+    if ('IntersectionObserver' in window) {
+        const imageObserver = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const img = entry.target;
+                    img.src = img.dataset.src;
+                    img.classList.remove('lazy');
+                    imageObserver.unobserve(img);
+                }
+            });
+        });
+
+        document.querySelectorAll('img[data-src]').forEach(img => {
+            imageObserver.observe(img);
+        });
+    }
+});
+</script>
+{% endblock %}

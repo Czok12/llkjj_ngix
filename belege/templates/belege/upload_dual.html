@@ -491,7 +491,7 @@ document.addEventListener('DOMContentLoaded', function() {
         return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
     }
     
-    // Form Submit Handler
+    // Form Submit Handler mit Progress
     const forms = document.querySelectorAll('.upload-form');
     forms.forEach(form => {
         form.addEventListener('submit', function(e) {
@@ -510,6 +510,22 @@ document.addEventListener('DOMContentLoaded', function() {
             const button = this.querySelector('.btn-upload');
             button.disabled = true;
             button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Lade hoch...';
+            
+            // Fortschritts-Simulation (da normales Form-Submit keinen echten Progress hat)
+            let progress = 0;
+            const progressInterval = setInterval(() => {
+                progress += Math.random() * 20;
+                if (progress >= 90) {
+                    clearInterval(progressInterval);
+                    progress = 90; // Bei 90% stoppen bis Upload fertig
+                }
+                
+                // Falls ein Progress-Element vorhanden ist
+                const progressBar = overlay.querySelector('.progress-bar');
+                if (progressBar) {
+                    progressBar.style.width = progress + '%';
+                }
+            }, 200);
         });
     });
 });

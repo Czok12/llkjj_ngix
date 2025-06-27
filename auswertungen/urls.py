@@ -15,6 +15,7 @@ urlpatterns = [
     path("eur/", views.eur_view, name="eur"),
     # Offizielle EÜR (neu)
     path("eur-offiziell/", views.eur_offiziell_view, name="eur_offiziell"),
+    path("eur-bmf/", views.eur_bmf_formular_view, name="eur_bmf_formular"),
     path("eur-offiziell/csv/", views.eur_export_csv, name="eur_export_csv"),
     path("eur-offiziell/pdf/", views.eur_export_pdf, name="eur_export_pdf"),
     path(
@@ -26,6 +27,9 @@ urlpatterns = [
     path("eur/pdf/", views.eur_pdf_export, name="eur_pdf"),
     path("eur/excel/", views.eur_excel_export, name="eur_excel"),
     path("eur/elster-xml/", views.eur_elster_xml, name="eur_elster_xml"),
+    path(
+        "eur-bmf/elster-xml/", views.eur_elster_xml_export, name="eur_elster_xml_export"
+    ),
     # Kontenblätter
     path("kontenblatt/<uuid:konto_id>/", views.kontenblatt_view, name="kontenblatt"),
     path(

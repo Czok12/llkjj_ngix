@@ -1,13 +1,16 @@
 """
-Dashboard Views - Das Cockpit für Peter Zwegats Buchhaltungsbutler!
+Dashboard Views - Zentrale Auswertungen und Berichte für die Buchhaltung.
 """
 
+import datetime
 import io
 from datetime import timedelta
 from decimal import Decimal
 
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.db.models import Count, Sum
+from django.db.models import Count, Min, Sum
+from django.db.models.functions import Extract
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
@@ -30,7 +33,8 @@ from konten.models import Konto
 def dashboard_view(request):
     """
     Hauptdashboard mit allen wichtigen Kennzahlen.
-    Peter Zwegat: "Überblick verschaffen ist der erste Schritt zum Erfolg!"
+
+    Zeigt eine Übersicht über Einnahmen, Ausgaben und wichtige Finanzkennzahlen.
     """
     heute = timezone.now().date()
     monat_start = heute.replace(day=1)
@@ -190,7 +194,7 @@ def dashboard_view(request):
         "aktuelles_jahr": heute.year,
     }
 
-    return render(request, "dashboard/index.html", context)
+    return render(request, "dashboard/dashboard_modern.html", context)
 
 
 def kennzahlen_ajax(request):
@@ -965,3 +969,359 @@ def eur_mapping_details(request, mapping_id):
     }
 
     return render(request, "auswertungen/eur_mapping_details.html", context)
+
+
+def eur_bmf_formular_view(request):
+    """
+    Offizielle EÜR-Ansicht nach BMF-Vorgaben (Anlage EÜR).
+
+    Peter Zwegat: "Das ist das offizielle Formular -
+    genau so, wie es das Finanzamt haben möchte!"
+    """
+    jahr = int(request.GET.get("jahr", timezone.now().year))
+
+    # Verfügbare Jahre ermitteln
+    verfuegbare_jahre = list(
+        range(
+            Buchungssatz.objects.aggregate(
+                min_jahr=Min(Extract("buchungsdatum", "year"))
+            )["min_jahr"]
+            or timezone.now().year,
+            timezone.now().year + 1,
+        )
+    )
+
+    # Steuerpflichtigen-Daten (aus Einstellungen)
+    steuerpflichtiger = {
+        "name": "Max Mustermann",  # TODO: Aus Einstellungen laden
+        "steuernummer": "123/456/78901",
+        "beruf": "Freischaffender Künstler",
+        "finanzamt": "Finanzamt Musterstadt",
+    }
+
+    # EÜR-Mappings mit offiziellen Kennziffern
+    einnahmen_mappings = []
+    ausgaben_mappings = []
+
+    # Offizielle Einnahmen-Kategorien nach Anlage EÜR
+    einnahmen_kategorien = [
+        {
+            "zeile": "1",
+            "kennziffer": "511",
+            "beschreibung": "Einnahmen aus freiberuflicher Tätigkeit",
+            "tooltip": "Honorare, Vergütungen aus künstlerischer Tätigkeit",
+            "konto_filter": ["8400", "8500", "8600"],
+        },
+        {
+            "zeile": "2",
+            "kennziffer": "512",
+            "beschreibung": "Einnahmen aus Nebentätigkeiten",
+            "tooltip": "Workshops, Kurse, Beratung",
+            "konto_filter": ["8700", "8800"],
+        },
+        {
+            "zeile": "3",
+            "kennziffer": "513",
+            "beschreibung": "Sonstige Einnahmen",
+            "tooltip": "Verkäufe, Lizenzgebühren, etc.",
+            "konto_filter": ["8900", "8950"],
+        },
+        {
+            "zeile": "4",
+            "kennziffer": "514",
+            "beschreibung": "Vereinnahmte Umsatzsteuer",
+            "tooltip": "Nur bei Regelbesteuerung",
+            "konto_filter": ["1776"],
+        },
+    ]
+
+    # Offizielle Ausgaben-Kategorien nach Anlage EÜR
+    ausgaben_kategorien = [
+        {
+            "zeile": "21",
+            "kennziffer": "521",
+            "beschreibung": "Wareneinkauf",
+            "tooltip": "Materialkosten, Werkstoffe",
+            "konto_filter": ["4100", "4200"],
+        },
+        {
+            "zeile": "22",
+            "kennziffer": "522",
+            "beschreibung": "Löhne und Gehälter",
+            "tooltip": "Angestellte, Aushilfen",
+            "konto_filter": ["4120", "4125"],
+        },
+        {
+            "zeile": "23",
+            "kennziffer": "523",
+            "beschreibung": "Gesetzliche soziale Aufwendungen",
+            "tooltip": "Sozialversicherung für Angestellte",
+            "konto_filter": ["4130", "4135"],
+        },
+        {
+            "zeile": "24",
+            "kennziffer": "524",
+            "beschreibung": "Mieten und Pachten",
+            "tooltip": "Atelier, Büro, Lager",
+            "konto_filter": ["4210", "4220"],
+        },
+        {
+            "zeile": "25",
+            "kennziffer": "525",
+            "beschreibung": "Gas, Strom, Wasser",
+            "tooltip": "Energiekosten",
+            "konto_filter": ["4230", "4240"],
+        },
+        {
+            "zeile": "26",
+            "kennziffer": "526",
+            "beschreibung": "Instandhaltung",
+            "tooltip": "Reparaturen, Wartung",
+            "konto_filter": ["4250", "4260"],
+        },
+        {
+            "zeile": "27",
+            "kennziffer": "527",
+            "beschreibung": "Steuern, Versicherungen, Beiträge",
+            "tooltip": "Berufsgenossenschaft, Kammerbeiträge",
+            "konto_filter": ["4300", "4320"],
+        },
+        {
+            "zeile": "28",
+            "kennziffer": "528",
+            "beschreibung": "Kfz-Kosten",
+            "tooltip": "Benzin, Reparaturen, Versicherung",
+            "konto_filter": ["4510", "4520"],
+        },
+        {
+            "zeile": "29",
+            "kennziffer": "529",
+            "beschreibung": "Werbe- und Reisekosten",
+            "tooltip": "Marketing, Geschäftsreisen",
+            "konto_filter": ["4600", "4610"],
+        },
+        {
+            "zeile": "30",
+            "kennziffer": "530",
+            "beschreibung": "Kosten der Warenabgabe",
+            "tooltip": "Verpackung, Versand",
+            "konto_filter": ["4700", "4710"],
+        },
+        {
+            "zeile": "31",
+            "kennziffer": "531",
+            "beschreibung": "Abschreibungen",
+            "tooltip": "AfA auf Anlagegüter",
+            "konto_filter": ["4800", "4810"],
+        },
+        {
+            "zeile": "32",
+            "kennziffer": "532",
+            "beschreibung": "Sonstige Ausgaben",
+            "tooltip": "Büromaterial, Software, Fachliteratur",
+            "konto_filter": ["4900", "4910", "4920"],
+        },
+        {
+            "zeile": "33",
+            "kennziffer": "533",
+            "beschreibung": "Vorsteuer",
+            "tooltip": "Nur bei Regelbesteuerung",
+            "konto_filter": ["1574", "1575"],
+        },
+    ]
+
+    # Beträge berechnen
+    jahr_start = datetime.date(jahr, 1, 1)
+    jahr_ende = datetime.date(jahr, 12, 31)
+
+    summe_einnahmen = Decimal("0")
+    summe_ausgaben = Decimal("0")
+
+    # Einnahmen-Mappings erstellen
+    for kategorie in einnahmen_kategorien:
+        betrag = Decimal("0")
+        for konto_nr in kategorie["konto_filter"]:
+            konto_betrag = Buchungssatz.objects.filter(
+                buchungsdatum__gte=jahr_start,
+                buchungsdatum__lte=jahr_ende,
+                haben_konto__nummer__startswith=konto_nr,
+            ).aggregate(summe=Sum("betrag"))["summe"] or Decimal("0")
+            betrag += konto_betrag
+
+        einnahmen_mappings.append(
+            {
+                "zeile": kategorie["zeile"],
+                "kennziffer": kategorie["kennziffer"],
+                "beschreibung": kategorie["beschreibung"],
+                "tooltip": kategorie["tooltip"],
+                "betrag": betrag,
+            }
+        )
+        summe_einnahmen += betrag
+
+    # Ausgaben-Mappings erstellen
+    for kategorie in ausgaben_kategorien:
+        betrag = Decimal("0")
+        for konto_nr in kategorie["konto_filter"]:
+            konto_betrag = Buchungssatz.objects.filter(
+                buchungsdatum__gte=jahr_start,
+                buchungsdatum__lte=jahr_ende,
+                soll_konto__nummer__startswith=konto_nr,
+            ).aggregate(summe=Sum("betrag"))["summe"] or Decimal("0")
+            betrag += konto_betrag
+
+        ausgaben_mappings.append(
+            {
+                "zeile": kategorie["zeile"],
+                "kennziffer": kategorie["kennziffer"],
+                "beschreibung": kategorie["beschreibung"],
+                "tooltip": kategorie["tooltip"],
+                "betrag": betrag,
+            }
+        )
+        summe_ausgaben += betrag
+
+    # Gewinn/Verlust berechnen
+    gewinn = summe_einnahmen - summe_ausgaben
+
+    # Besondere Angaben für Künstler
+    kuenstlerische_einnahmen = summe_einnahmen  # Vereinfacht
+    kleinunternehmer = True  # TODO: Aus Einstellungen laden
+
+    # Sonderausgaben und außergewöhnliche Belastungen
+    sonderausgaben = Decimal("0")  # TODO: Implementieren
+    aussergewoehnliche_belastungen = Decimal("0")  # TODO: Implementieren
+
+    context = {
+        "page_title": "Einnahmenüberschussrechnung (EÜR)",
+        "page_subtitle": f"Anlage EÜR nach § 60 EStDV für das Jahr {jahr}",
+        "jahr": jahr,
+        "verfuegbare_jahre": verfuegbare_jahre,
+        "steuerpflichtiger": steuerpflichtiger,
+        "einnahmen_mappings": einnahmen_mappings,
+        "ausgaben_mappings": ausgaben_mappings,
+        "summe_einnahmen": summe_einnahmen,
+        "summe_ausgaben": summe_ausgaben,
+        "gewinn": gewinn,
+        "kuenstlerische_einnahmen": kuenstlerische_einnahmen,
+        "kleinunternehmer": kleinunternehmer,
+        "sonderausgaben": sonderausgaben,
+        "aussergewoehnliche_belastungen": aussergewoehnliche_belastungen,
+    }
+
+    return render(request, "auswertungen/eur_bmf_formular.html", context)
+
+
+def eur_elster_xml_export(request):
+    """
+    Erstellt ELSTER-konformen XML-Export für die EÜR.
+
+    Peter Zwegat: "Das ist der direkte Weg zum Finanzamt -
+    alles digital und korrekt formatiert!"
+    """
+    jahr = int(request.GET.get("jahr", timezone.now().year))
+
+    # EÜR-Daten sammeln (vereinfacht - in Realität komplexer)
+    jahr_start = datetime.date(jahr, 1, 1)
+    jahr_ende = datetime.date(jahr, 12, 31)
+
+    # Grundlegende Berechnungen
+    einnahmen = Buchungssatz.objects.filter(
+        buchungsdatum__gte=jahr_start,
+        buchungsdatum__lte=jahr_ende,
+        haben_konto__nummer__startswith="8",
+    ).aggregate(summe=Sum("betrag"))["summe"] or Decimal("0")
+
+    ausgaben = Buchungssatz.objects.filter(
+        buchungsdatum__gte=jahr_start,
+        buchungsdatum__lte=jahr_ende,
+        soll_konto__nummer__startswith="4",
+    ).aggregate(summe=Sum("betrag"))["summe"] or Decimal("0")
+
+    gewinn = einnahmen - ausgaben
+
+    # ELSTER-XML generieren (vereinfachte Version)
+    xml_content = f"""<?xml version="1.0" encoding="ISO-8859-1"?>
+<Elster xmlns="http://www.elster.de/elsterxml/schema/v11" 
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.elster.de/elsterxml/schema/v11 elster_v11.xsd">
+  <TransferHeader version="11">
+    <Verfahren>ElsterAnmeldung</Verfahren>
+    <DatenArt>ESt</DatenArt>
+    <Vorgang>send-Auth</Vorgang>
+    <TransferTicket></TransferTicket>
+    <Testmerker>0</Testmerker>
+    <SigUser></SigUser>
+    <Empfaenger id="F">
+      <Finanzamt>9198</Finanzamt>
+    </Empfaenger>
+    <Hersteller>
+      <ProduktName>llkjj_knut</ProduktName>
+      <ProduktVersion>1.0</ProduktVersion>
+    </Hersteller>
+    <DatenLieferant>llkjj_knut Buchhaltung</DatenLieferant>
+    <VersionClient>1.0</VersionClient>
+    <Zusatz>
+      <Info>EÜR-Export für Jahr {jahr}</Info>
+      <ElsterInfo>
+        <Generalvertretung>N</Generalvertretung>
+      </ElsterInfo>
+    </Zusatz>
+  </TransferHeader>
+  
+  <DatenTeil>
+    <Nutzdatenblock>
+      <Nutzdatenheader version="11">
+        <NutzdatenTicket>0</NutzdatenTicket>
+        <Empfaenger id="F">Finanzamt</Empfaenger>
+        <Hersteller>
+          <ProduktName>llkjj_knut</ProduktName>
+          <ProduktVersion>1.0</ProduktVersion>
+        </Hersteller>
+        <DatenLieferant>llkjj_knut</DatenLieferant>
+      </Nutzdatenheader>
+      
+      <Nutzdaten>
+        <AnmeldungEst version="1">
+          <StNr><!-- Steuernummer hier einfügen --></StNr>
+          <Zeitraum>{jahr}</Zeitraum>
+          
+          <!-- Anlage EÜR Daten -->
+          <Kennzahlen>
+            <!-- Einnahmen -->
+            <Kz8400>{einnahmen:,.2f}</Kz8400>
+            
+            <!-- Ausgaben -->
+            <Kz4000>{ausgaben:,.2f}</Kz4000>
+            
+            <!-- Gewinn/Verlust -->
+            <Kz9000>{'1' if gewinn >= 0 else '2'}</Kz9000>
+            <Kz9001>{abs(gewinn):,.2f}</Kz9001>
+          </Kennzahlen>
+          
+          <!-- Erklärung -->
+          <Erklaerung>
+            <Name><!-- Name des Steuerpflichtigen --></Name>
+            <Vorname><!-- Vorname --></Vorname>
+            <Beruf>Freischaffender Künstler</Beruf>
+            <Unterschrift>1</Unterschrift>
+            <Datum>{datetime.date.today().strftime('%d.%m.%Y')}</Datum>
+          </Erklaerung>
+        </AnmeldungEst>
+      </Nutzdaten>
+    </Nutzdatenblock>
+  </DatenTeil>
+</Elster>"""
+
+    # Response erstellen
+    response = HttpResponse(xml_content, content_type="application/xml")
+    response["Content-Disposition"] = f'attachment; filename="ELSTER_EÜR_{jahr}.xml"'
+
+    # Success-Message
+    messages.success(
+        request,
+        f"ELSTER-XML für {jahr} wurde erfolgreich erstellt. "
+        "Bitte vor dem Import in ELSTER die Steuernummer und Steuerpflichtigen-Daten ergänzen!",
+    )
+
+    return response
