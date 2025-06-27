@@ -1,242 +1,234 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="de">
+<html lang="de" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}llkjj_knut - Buchhaltung für Künstler{% endblock %}</title>
-    <link href="{% static 'css/output.css' %}" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        'primary': {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            200: '#bfdbfe',
+                            300: '#93c5fd',
+                            400: '#60a5fa',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a',
+                        },
+                        'dark': {
+                            50: '#f9fafb',
+                            100: '#f3f4f6',
+                            200: '#e5e7eb',
+                            300: '#d1d5db',
+                            400: '#9ca3af',
+                            500: '#6b7280',
+                            600: '#4b5563',
+                            700: '#374151',
+                            800: '#1f2937',
+                            900: '#111827',
+                            950: '#0a0e1a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+        .sidebar-icon {
+            width: 1.5rem;
+            text-align: center;
+        }
+        .glass-effect {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .sidebar-gradient {
+            background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+        }
+        .sidebar-item {
+            transition: all 0.2s ease-in-out;
+        }
+        .sidebar-item:hover {
+            transform: translateX(4px);
+        }
+        .card-shadow {
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
-<body class="bg-gray-50 min-h-screen">
-    <!-- Navigation -->
-    <nav class="bg-blue-900 shadow-lg">
-        <div class="max-w-7xl mx-auto px-4">
-            <div class="flex justify-between h-16">
-                <div class="flex items-center">
-                    <a href="{% url 'auswertungen:dashboard' %}" class="text-white text-xl font-bold">
-                        <i class="fas fa-calculator mr-2"></i>llkjj_knut
-                    </a>
-                </div>
-                
-                <!-- Desktop Navigation -->
-                <div class="hidden md:flex items-center space-x-4">
-                    <a href="{% url 'auswertungen:dashboard' %}" class="text-white hover:text-blue-200 px-3 py-2 rounded-md">
-                        <i class="fas fa-home mr-1"></i>Dashboard
-                    </a>
-                    <a href="{% url 'konten:liste' %}" class="text-white hover:text-blue-200 px-3 py-2 rounded-md">
-                        <i class="fas fa-list mr-1"></i>Konten
-                    </a>
-                    <a href="{% url 'belege:liste' %}" class="text-white hover:text-blue-200 px-3 py-2 rounded-md">
-                        <i class="fas fa-receipt mr-1"></i>Belege
-                    </a>
-                    
-                    <!-- Auswertungen Dropdown -->
-                    <div class="relative group">
-                        <button class="text-white hover:text-blue-200 px-3 py-2 rounded-md flex items-center">
-                            <i class="fas fa-chart-line mr-1"></i>Auswertungen
-                            <i class="fas fa-chevron-down ml-1 text-xs"></i>
-                        </button>
-                        <div class="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-                            <div class="py-2">
-                                <a href="{% url 'auswertungen:dashboard' %}" class="block px-4 py-2 text-gray-800 hover:bg-blue-50 hover:text-blue-600">
-                                    <i class="fas fa-chart-pie mr-2 text-blue-500"></i>
-                                    <span class="font-semibold">Dashboard</span>
-                                    <div class="text-xs text-gray-500">Kennzahlen & Übersicht</div>
-                                </a>
-                                <a href="{% url 'auswertungen:eur_offiziell' %}" class="block px-4 py-2 text-gray-800 hover:bg-green-50 hover:text-green-600">
-                                    <i class="fas fa-file-invoice-dollar mr-2 text-green-500"></i>
-                                    <span class="font-semibold">EÜR (Offiziell)</span>
-                                    <div class="text-xs text-gray-500">Steuerformular-konforme EÜR</div>
-                                </a>
-                                <a href="{% url 'auswertungen:eur' %}" class="block px-4 py-2 text-gray-800 hover:bg-orange-50 hover:text-orange-600">
-                                    <i class="fas fa-list-alt mr-2 text-orange-500"></i>
-                                    <span>EÜR (Einfach)</span>
-                                    <div class="text-xs text-gray-500">Grundlegende Übersicht</div>
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Upload Dropdown -->
-                    <div class="relative group">
-                        <button class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-md flex items-center">
-                            <i class="fas fa-upload mr-1"></i>Upload
-                            <i class="fas fa-chevron-down ml-1 text-xs"></i>
-                        </button>
-                        <div class="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-                            <div class="py-2">
-                                <a href="{% url 'belege:upload_dual' %}" class="block px-4 py-2 text-gray-800 hover:bg-green-50 hover:text-green-600">
-                                    <i class="fas fa-columns mr-2 text-green-500"></i>
-                                    <span class="font-semibold">Dual Upload</span>
-                                    <div class="text-xs text-gray-500">Eingang & Ausgang getrennt</div>
-                                </a>
-                                <a href="{% url 'belege:upload' %}" class="block px-4 py-2 text-gray-800 hover:bg-blue-50 hover:text-blue-600">
-                                    <i class="fas fa-upload mr-2 text-blue-500"></i>
-                                    <span>Standard Upload</span>
-                                    <div class="text-xs text-gray-500">Einzelner Beleg</div>
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                    <a href="{% url 'dokumente:liste' %}" class="text-white hover:text-blue-200 px-3 py-2 rounded-md">
-                        <i class="fas fa-folder mr-1"></i>Dokumente
-                    </a>
-                    
-                    {% if user.is_authenticated %}
-                        <a href="{% url 'einstellungen:dashboard' %}" class="text-white hover:text-blue-200 px-3 py-2 rounded-md">
-                            <i class="fas fa-user-cog mr-1"></i>Profil
-                        </a>
-                        {% if user.is_staff %}
-                            <a href="{% url 'admin:index' %}" class="text-white hover:text-blue-200 px-3 py-2 rounded-md">
-                                <i class="fas fa-cog mr-1"></i>Admin
-                            </a>
-                        {% endif %}
-                        
-                        <!-- Benutzer-Dropdown -->
-                        <div class="relative group">
-                            <button class="text-white hover:text-blue-200 px-3 py-2 rounded-md flex items-center">
-                                <i class="fas fa-user mr-1"></i>{{ user.first_name|default:user.username }}
-                                <i class="fas fa-chevron-down ml-1 text-xs"></i>
-                            </button>
-                            <div class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-                                <div class="py-2">
-                                    <a href="{% url 'einstellungen:profil_detail' %}" class="block px-4 py-2 text-gray-800 hover:bg-blue-50">
-                                        <i class="fas fa-user mr-2"></i>Mein Profil
-                                    </a>
-                                    <a href="{% url 'einstellungen:profil_bearbeiten' %}" class="block px-4 py-2 text-gray-800 hover:bg-blue-50">
-                                        <i class="fas fa-edit mr-2"></i>Profil bearbeiten
-                                    </a>
-                                    <hr class="my-1">
-                                    <a href="{% url 'authentifizierung:logout' %}" class="block px-4 py-2 text-red-600 hover:bg-red-50">
-                                        <i class="fas fa-sign-out-alt mr-2"></i>Abmelden
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    {% else %}
-                        <a href="{% url 'authentifizierung:login' %}" class="text-white hover:text-blue-200 px-3 py-2 rounded-md">
-                            <i class="fas fa-sign-in-alt mr-1"></i>Anmelden
-                        </a>
-                        <a href="{% url 'authentifizierung:register' %}" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md transition-colors">
-                            <i class="fas fa-user-plus mr-1"></i>Registrieren
-                        </a>
-                    {% endif %}
-                </div>
+<body class="bg-dark-950 text-gray-100 antialiased">
 
-                <!-- Mobile menu button -->
-                <div class="md:hidden flex items-center">
-                    <button id="mobile-menu-button" class="text-white hover:text-blue-200 focus:outline-none">
-                        <i class="fas fa-bars text-xl"></i>
-                    </button>
+    <div class="flex h-screen overflow-hidden">
+        <!-- Moderne Sidebar Navigation -->
+        <aside class="w-72 flex-shrink-0 sidebar-gradient shadow-2xl flex flex-col relative">
+            <!-- Gradient Overlay -->
+            <div class="absolute inset-0 bg-gradient-to-b from-primary-600/20 to-transparent pointer-events-none"></div>
+            
+            <!-- Header -->
+            <div class="relative z-10 h-20 flex items-center justify-center px-6 border-b border-slate-700/50">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-700 rounded-xl flex items-center justify-center shadow-lg">
+                        <i class="fas fa-palette text-white text-lg"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold text-white">llkjj_knut</h1>
+                        <p class="text-xs text-slate-400">Künstler Buchhaltung</p>
+                    </div>
                 </div>
             </div>
-        </div>
-
-        <!-- Mobile Navigation -->
-        <div id="mobile-menu" class="md:hidden hidden bg-blue-800">
-            <div class="px-2 pt-2 pb-3 space-y-1">
-                <a href="{% url 'auswertungen:dashboard' %}" class="text-white block px-3 py-2 rounded-md hover:bg-blue-700">
-                    <i class="fas fa-home mr-2"></i>Dashboard
+            
+            <!-- Navigation -->
+            <nav class="relative z-10 flex-1 px-4 py-6 space-y-2">
+                <a href="{% url 'auswertungen:dashboard' %}" class="sidebar-item flex items-center px-4 py-3 {% if request.resolver_match.url_name == 'dashboard' %}bg-primary-600/20 text-primary-300 border-r-2 border-primary-500{% else %}text-slate-300 hover:bg-slate-800/50 hover:text-white{% endif %} rounded-lg group">
+                    <div class="sidebar-icon mr-4 p-2 rounded-lg {% if request.resolver_match.url_name == 'dashboard' %}bg-primary-600/30{% else %}group-hover:bg-slate-700/50{% endif %}">
+                        <i class="fas fa-tachometer-alt"></i>
+                    </div>
+                    <span class="font-medium">Dashboard</span>
                 </a>
-                <a href="{% url 'konten:liste' %}" class="text-white block px-3 py-2 rounded-md hover:bg-blue-700">
-                    <i class="fas fa-list mr-2"></i>Konten
+                
+                <a href="{% url 'belege:liste' %}" class="sidebar-item flex items-center px-4 py-3 {% if 'belege' in request.resolver_match.app_name|default:'' %}bg-primary-600/20 text-primary-300 border-r-2 border-primary-500{% else %}text-slate-300 hover:bg-slate-800/50 hover:text-white{% endif %} rounded-lg group">
+                    <div class="sidebar-icon mr-4 p-2 rounded-lg {% if 'belege' in request.resolver_match.app_name|default:'' %}bg-primary-600/30{% else %}group-hover:bg-slate-700/50{% endif %}">
+                        <i class="fas fa-receipt"></i>
+                    </div>
+                    <span class="font-medium">Belege</span>
                 </a>
-                <a href="{% url 'belege:liste' %}" class="text-white block px-3 py-2 rounded-md hover:bg-blue-700">
-                    <i class="fas fa-receipt mr-2"></i>Belege
+                
+                <a href="{% url 'buchungen:liste' %}" class="sidebar-item flex items-center px-4 py-3 {% if 'buchungen' in request.resolver_match.app_name|default:'' %}bg-primary-600/20 text-primary-300 border-r-2 border-primary-500{% else %}text-slate-300 hover:bg-slate-800/50 hover:text-white{% endif %} rounded-lg group">
+                    <div class="sidebar-icon mr-4 p-2 rounded-lg {% if 'buchungen' in request.resolver_match.app_name|default:'' %}bg-primary-600/30{% else %}group-hover:bg-slate-700/50{% endif %}">
+                        <i class="fas fa-file-invoice-dollar"></i>
+                    </div>
+                    <span class="font-medium">Buchungen</span>
                 </a>
-                <a href="{% url 'auswertungen:dashboard' %}" class="text-white block px-3 py-2 rounded-md hover:bg-blue-700">
-                    <i class="fas fa-chart-pie mr-2"></i>Auswertungen Dashboard
+                
+                <a href="{% url 'auswertungen:eur_offiziell' %}" class="sidebar-item flex items-center px-4 py-3 {% if 'auswertungen' in request.resolver_match.app_name|default:'' and request.resolver_match.url_name != 'dashboard' %}bg-primary-600/20 text-primary-300 border-r-2 border-primary-500{% else %}text-slate-300 hover:bg-slate-800/50 hover:text-white{% endif %} rounded-lg group">
+                    <div class="sidebar-icon mr-4 p-2 rounded-lg {% if 'auswertungen' in request.resolver_match.app_name|default:'' and request.resolver_match.url_name != 'dashboard' %}bg-primary-600/30{% else %}group-hover:bg-slate-700/50{% endif %}">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <span class="font-medium">Auswertungen</span>
                 </a>
-                <a href="{% url 'auswertungen:eur_offiziell' %}" class="text-white block px-3 py-2 rounded-md hover:bg-blue-700 ml-4">
-                    <i class="fas fa-file-invoice-dollar mr-2"></i>EÜR (Offiziell)
+                
+                <a href="{% url 'dokumente:liste' %}" class="sidebar-item flex items-center px-4 py-3 {% if 'dokumente' in request.resolver_match.app_name|default:'' %}bg-primary-600/20 text-primary-300 border-r-2 border-primary-500{% else %}text-slate-300 hover:bg-slate-800/50 hover:text-white{% endif %} rounded-lg group">
+                    <div class="sidebar-icon mr-4 p-2 rounded-lg {% if 'dokumente' in request.resolver_match.app_name|default:'' %}bg-primary-600/30{% else %}group-hover:bg-slate-700/50{% endif %}">
+                        <i class="fas fa-folder-open"></i>
+                    </div>
+                    <span class="font-medium">Dokumente</span>
                 </a>
-                <a href="{% url 'auswertungen:eur' %}" class="text-white block px-3 py-2 rounded-md hover:bg-blue-700 ml-4">
-                    <i class="fas fa-list-alt mr-2"></i>EÜR (Einfach)
+                
+                <a href="{% url 'konten:liste' %}" class="sidebar-item flex items-center px-4 py-3 {% if 'konten' in request.resolver_match.app_name|default:'' %}bg-primary-600/20 text-primary-300 border-r-2 border-primary-500{% else %}text-slate-300 hover:bg-slate-800/50 hover:text-white{% endif %} rounded-lg group">
+                    <div class="sidebar-icon mr-4 p-2 rounded-lg {% if 'konten' in request.resolver_match.app_name|default:'' %}bg-primary-600/30{% else %}group-hover:bg-slate-700/50{% endif %}">
+                        <i class="fas fa-list-alt"></i>
+                    </div>
+                    <span class="font-medium">Konten</span>
                 </a>
-                <a href="{% url 'belege:upload_dual' %}" class="bg-green-600 block px-3 py-2 rounded-md hover:bg-green-700">
-                    <i class="fas fa-columns mr-2"></i>Dual Upload
-                </a>
-                <a href="{% url 'belege:upload' %}" class="bg-green-500 block px-3 py-2 rounded-md hover:bg-green-600 ml-4">
-                    <i class="fas fa-upload mr-2"></i>Standard Upload
-                </a>
-                <a href="{% url 'dokumente:liste' %}" class="text-white block px-3 py-2 rounded-md hover:bg-blue-700">
-                    <i class="fas fa-folder mr-2"></i>Dokumente
+            </nav>
+            
+            <!-- Bottom Section -->
+            <div class="relative z-10 px-4 py-4 border-t border-slate-700/50 space-y-2">
+                <a href="{% url 'einstellungen:dashboard' %}" class="sidebar-item flex items-center px-4 py-3 {% if 'einstellungen' in request.resolver_match.app_name|default:'' %}bg-primary-600/20 text-primary-300 border-r-2 border-primary-500{% else %}text-slate-300 hover:bg-slate-800/50 hover:text-white{% endif %} rounded-lg group">
+                    <div class="sidebar-icon mr-4 p-2 rounded-lg {% if 'einstellungen' in request.resolver_match.app_name|default:'' %}bg-primary-600/30{% else %}group-hover:bg-slate-700/50{% endif %}">
+                        <i class="fas fa-cog"></i>
+                    </div>
+                    <span class="font-medium">Einstellungen</span>
                 </a>
                 
                 {% if user.is_authenticated %}
-                    <a href="{% url 'einstellungen:dashboard' %}" class="text-white block px-3 py-2 rounded-md hover:bg-blue-700">
-                        <i class="fas fa-user-cog mr-2"></i>Profil
-                    </a>
-                    {% if user.is_staff %}
-                        <a href="{% url 'admin:index' %}" class="text-white block px-3 py-2 rounded-md hover:bg-blue-700">
-                            <i class="fas fa-cog mr-2"></i>Admin
-                        </a>
-                    {% endif %}
-                    <div class="border-t border-blue-700 mt-2 pt-2">
-                        <div class="text-blue-200 px-3 py-1 text-sm">
-                            <i class="fas fa-user mr-1"></i>{{ user.first_name|default:user.username }}
-                        </div>
-                        <a href="{% url 'einstellungen:profil_detail' %}" class="text-white block px-3 py-2 rounded-md hover:bg-blue-700">
-                            <i class="fas fa-user mr-2"></i>Mein Profil
-                        </a>
-                        <a href="{% url 'einstellungen:profil_bearbeiten' %}" class="text-white block px-3 py-2 rounded-md hover:bg-blue-700">
-                            <i class="fas fa-edit mr-2"></i>Profil bearbeiten
-                        </a>
-                        <a href="{% url 'authentifizierung:logout' %}" class="text-red-300 block px-3 py-2 rounded-md hover:bg-red-600">
-                            <i class="fas fa-sign-out-alt mr-2"></i>Abmelden
-                        </a>
-                    </div>
+                    <form method="post" action="{% url 'authentifizierung:abmelden' %}">
+                        {% csrf_token %}
+                        <button type="submit" class="sidebar-item w-full flex items-center px-4 py-3 text-slate-300 hover:bg-red-900/20 hover:text-red-300 rounded-lg group transition-colors">
+                            <div class="sidebar-icon mr-4 p-2 rounded-lg group-hover:bg-red-800/30">
+                                <i class="fas fa-sign-out-alt"></i>
+                            </div>
+                            <span class="font-medium">Abmelden</span>
+                        </button>
+                    </form>
                 {% else %}
-                    <div class="border-t border-blue-700 mt-2 pt-2">
-                        <a href="{% url 'authentifizierung:login' %}" class="text-white block px-3 py-2 rounded-md hover:bg-blue-700">
-                            <i class="fas fa-sign-in-alt mr-2"></i>Anmelden
-                        </a>
-                        <a href="{% url 'authentifizierung:register' %}" class="bg-green-600 block px-3 py-2 rounded-md hover:bg-green-700 text-white">
-                            <i class="fas fa-user-plus mr-2"></i>Registrieren
-                        </a>
-                    </div>
+                    <a href="{% url 'authentifizierung:anmelden' %}" class="sidebar-item flex items-center px-4 py-3 text-slate-300 hover:bg-slate-800/50 hover:text-white rounded-lg group">
+                        <div class="sidebar-icon mr-4 p-2 rounded-lg group-hover:bg-slate-700/50">
+                            <i class="fas fa-sign-in-alt"></i>
+                        </div>
+                        <span class="font-medium">Anmelden</span>
+                    </a>
                 {% endif %}
             </div>
-        </div>
-    </nav>
+        </aside>
 
-    <!-- Main Content -->
-    <main class="max-w-7xl mx-auto py-6 px-4">
-        <!-- Peter Zwegat Motivation -->
-        {% if messages %}
-            <div class="mb-4">
-                {% for message in messages %}
-                    <div class="bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4 rounded mb-2">
-                        <div class="flex items-center">
-                            <i class="fas fa-info-circle mr-2"></i>
-                            <span>{{ message }}</span>
+        <!-- Hauptinhalt -->
+        <div class="flex-1 flex flex-col overflow-hidden bg-dark-900">
+            <!-- Moderner Header -->
+            <header class="h-20 bg-dark-800/50 backdrop-blur-sm border-b border-slate-700/50 flex items-center justify-between px-8">
+                <div class="flex items-center space-x-6">
+                    <div class="relative w-80">
+                        <div class="absolute inset-y-0 left-0 flex items-center pl-4">
+                            <i class="fas fa-search text-slate-400"></i>
                         </div>
+                        <input type="search" 
+                               placeholder="Suche nach Buchungen, Belegen..." 
+                               class="w-full pl-12 pr-4 py-3 bg-dark-700/50 border border-slate-600/30 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-100 placeholder-slate-400 transition-all">
                     </div>
-                {% endfor %}
-            </div>
-        {% endif %}
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <a href="{% url 'belege:upload' %}" class="bg-gradient-to-r from-primary-600 to-primary-700 text-white px-6 py-3 rounded-xl font-semibold hover:from-primary-700 hover:to-primary-800 transition-all duration-200 flex items-center shadow-lg hover:shadow-primary-500/25">
+                        <i class="fas fa-plus mr-2"></i>
+                        Neuer Beleg
+                    </a>
+                    
+                    {% if user.is_authenticated %}
+                        <div class="flex items-center space-x-3 bg-dark-700/30 rounded-xl px-4 py-2 border border-slate-600/20">
+                            <div class="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-700 rounded-full flex items-center justify-center shadow-md">
+                                <i class="fas fa-user text-white text-sm"></i>
+                            </div>
+                            <div>
+                                <span class="text-gray-100 font-medium text-sm">{{ user.first_name|default:user.username }}</span>
+                                <div class="text-xs text-slate-400">Künstler</div>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </header>
 
-        {% block content %}
-        {% endblock %}
-    </main>
+            <!-- Main Content Area -->
+            <main class="flex-1 overflow-y-auto bg-dark-900">
+                <!-- Messages -->
+                {% if messages %}
+                    <div class="px-8 pt-6">
+                        {% for message in messages %}
+                            <div class="bg-primary-900/20 border border-primary-500/30 text-primary-200 p-4 rounded-xl mb-4 backdrop-blur-sm">
+                                <div class="flex items-center">
+                                    <div class="w-8 h-8 bg-primary-500/20 rounded-full flex items-center justify-center mr-3">
+                                        <i class="fas fa-info-circle text-primary-400"></i>
+                                    </div>
+                                    <span class="font-medium">{{ message }}</span>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
 
-    <!-- Footer -->
-    <footer class="bg-gray-800 text-white mt-auto">
-        <div class="max-w-7xl mx-auto py-4 px-4 text-center">
-            <p class="text-sm">
-                <i class="fas fa-heart text-red-500 mr-1"></i>
-                llkjj_knut - "Ordnung ist das halbe Leben!" - Peter Zwegat
-            </p>
+                <div class="p-8">
+                    {% block content %}{% endblock %}
+                </div>
+            </main>
         </div>
-    </footer>
+    </div>
 
-    <!-- Mobile Menu JavaScript -->
-    <script>
-        document.getElementById('mobile-menu-button').addEventListener('click', function() {
-            const mobileMenu = document.getElementById('mobile-menu');
-            mobileMenu.classList.toggle('hidden');
-        });
-    </script>
 </body>
 </html>

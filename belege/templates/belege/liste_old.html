@@ -1,0 +1,419 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Alle Belege{% endblock %}
+
+{% block extra_css %}
+<style>
+.search-card {
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border: none;
+}
+
+.beleg-row {
+    transition: all 0.3s ease;
+    border-left: 4px solid transparent;
+}
+
+.beleg-row:hover {
+    background-color: #f8f9fa;
+    border-left-color: #007bff;
+}
+
+.status-badge {
+    font-size: 0.8em;
+}
+
+.table-actions {
+    white-space: nowrap;
+}
+
+.filter-summary {
+    background-color: #e9ecef;
+    border-radius: 5px;
+    padding: 10px;
+    margin-bottom: 20px;
+}
+
+.ocr-indicator {
+    color: #28a745;
+    font-size: 0.8em;
+}
+
+.pagination-info {
+    color: #6c757d;
+    font-size: 0.9em;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>📋 Alle Belege</h1>
+                <div>
+                    <a href="{% url 'belege:upload' %}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Neuer Beleg
+                    </a>
+                    <a href="{% url 'belege:dashboard' %}" class="btn btn-secondary">
+                        <i class="fas fa-tachometer-alt"></i> Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Suchfilter -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card search-card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-search"></i> Suche und Filter
+                        <button class="btn btn-sm btn-outline-secondary float-end" 
+                                type="button" data-bs-toggle="collapse" 
+                                data-bs-target="#searchForm">
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                    </h5>
+                </div>
+                <div class="collapse show" id="searchForm">
+                    <div class="card-body">
+                        <form method="get" class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label">Suchbegriff</label>
+                                {{ form.suchbegriff }}
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">Typ</label>
+                                {{ form.beleg_typ }}
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">Status</label>
+                                {{ form.status }}
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">Datum von</label>
+                                {{ form.datum_von }}
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">Datum bis</label>
+                                {{ form.datum_bis }}
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">Betrag von</label>
+                                {{ form.betrag_von }}
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">Betrag bis</label>
+                                {{ form.betrag_bis }}
+                            </div>
+                            <div class="col-md-8 d-flex align-items-end gap-2">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-search"></i> Suchen
+                                </button>
+                                <a href="{% url 'belege:liste' %}" class="btn btn-outline-secondary">
+                                    <i class="fas fa-times"></i> Zurücksetzen
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter-Zusammenfassung -->
+    {% if request.GET %}
+    <div class="row">
+        <div class="col-12">
+            <div class="filter-summary">
+                <strong>Aktive Filter:</strong>
+                {% for key, value in request.GET.items %}
+                    {% if value %}
+                        <span class="badge bg-info me-1">{{ key }}: {{ value }}</span>
+                    {% endif %}
+                {% endfor %}
+                <a href="{% url 'belege:liste' %}" class="btn btn-sm btn-outline-danger ms-2">
+                    Alle Filter entfernen
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Ergebnisse -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            Gefundene Belege ({{ belege.paginator.count }})
+                        </h5>
+                        <div class="pagination-info">
+                            Seite {{ belege.number }} von {{ belege.paginator.num_pages }}
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    {% if belege %}
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Datum</th>
+                                        <th>Geschäftspartner</th>
+                                        <th>Betrag</th>
+                                        <th>Typ</th>
+                                        <th>Status</th>
+                                        <th>Datei</th>
+                                        <th class="text-center">Aktionen</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for beleg in belege %}
+                                    <tr class="beleg-row">
+                                        <td>
+                                            {% if beleg.rechnungsdatum %}
+                                                {{ beleg.rechnungsdatum|date:"d.m.Y" }}
+                                            {% else %}
+                                                <span class="text-muted">—</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if beleg.geschaeftspartner %}
+                                                {{ beleg.geschaeftspartner.name }}
+                                                {% if beleg.ocr_verarbeitet %}
+                                                    <i class="fas fa-robot ocr-indicator" 
+                                                       title="Automatisch erkannt"></i>
+                                                {% endif %}
+                                            {% else %}
+                                                <span class="text-muted">Unbekannt</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if beleg.betrag %}
+                                                <strong>{{ beleg.betrag_formatiert }}</strong>
+                                                {% if beleg.ocr_verarbeitet %}
+                                                    <i class="fas fa-robot ocr-indicator" 
+                                                       title="Automatisch erkannt"></i>
+                                                {% endif %}
+                                            {% else %}
+                                                <span class="text-muted">—</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-secondary">
+                                                {{ beleg.get_beleg_typ_display }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="badge status-badge 
+                                                {% if beleg.status == 'NEU' %}bg-info
+                                                {% elif beleg.status == 'GEPRUEFT' %}bg-success
+                                                {% elif beleg.status == 'VERBUCHT' %}bg-secondary
+                                                {% elif beleg.status == 'FEHLER' %}bg-danger
+                                                {% else %}bg-warning{% endif %}">
+                                                {{ beleg.get_status_display }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <small class="text-muted">
+                                                📄 {{ beleg.dateiname|truncatechars:20 }}
+                                                <br>
+                                                <span class="text-muted">{{ beleg.dateigröße_formatiert }}</span>
+                                            </small>
+                                        </td>
+                                        <td class="text-center table-actions">
+                                            <div class="btn-group btn-group-sm" role="group">
+                                                <a href="{% url 'belege:detail' beleg.id %}" 
+                                                   class="btn btn-outline-info" title="Ansehen">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                <a href="{% url 'belege:bearbeiten' beleg.id %}" 
+                                                   class="btn btn-outline-primary" title="Bearbeiten">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                {% if beleg.datei %}
+                                                <a href="{% url 'belege:pdf_viewer' beleg.id %}" 
+                                                   class="btn btn-outline-secondary" title="PDF anzeigen" 
+                                                   target="_blank">
+                                                    <i class="fas fa-file-pdf"></i>
+                                                </a>
+                                                {% endif %}
+                                                <button type="button" 
+                                                        class="btn btn-outline-danger delete-btn" 
+                                                        title="Löschen"
+                                                        data-beleg-id="{{ beleg.id }}"
+                                                        data-beleg-name="{{ beleg }}">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Pagination -->
+                        {% if belege.has_other_pages %}
+                        <div class="card-footer">
+                            <nav>
+                                <ul class="pagination justify-content-center mb-0">
+                                    {% if belege.has_previous %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                                <i class="fas fa-angle-double-left"></i>
+                                            </a>
+                                        </li>
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ belege.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                                <i class="fas fa-angle-left"></i>
+                                            </a>
+                                        </li>
+                                    {% endif %}
+
+                                    {% for page_num in belege.paginator.page_range %}
+                                        {% if page_num == belege.number %}
+                                            <li class="page-item active">
+                                                <span class="page-link">{{ page_num }}</span>
+                                            </li>
+                                        {% elif page_num > belege.number|add:'-3' and page_num < belege.number|add:'3' %}
+                                            <li class="page-item">
+                                                <a class="page-link" href="?page={{ page_num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                                    {{ page_num }}
+                                                </a>
+                                            </li>
+                                        {% endif %}
+                                    {% endfor %}
+
+                                    {% if belege.has_next %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ belege.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                                <i class="fas fa-angle-right"></i>
+                                            </a>
+                                        </li>
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ belege.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                                <i class="fas fa-angle-double-right"></i>
+                                            </a>
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                            </nav>
+                        </div>
+                        {% endif %}
+
+                    {% else %}
+                        <div class="p-5 text-center">
+                            <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                            <h5>Keine Belege gefunden</h5>
+                            <p class="text-muted">
+                                {% if request.GET %}
+                                    Versuchen Sie andere Suchkriterien oder 
+                                    <a href="{% url 'belege:liste' %}">entfernen Sie die Filter</a>.
+                                {% else %}
+                                    Peter Zwegat sagt: "Der erste Beleg wartet auf Sie!"
+                                {% endif %}
+                            </p>
+                            {% if not request.GET %}
+                                <a href="{% url 'belege:upload' %}" class="btn btn-primary">
+                                    <i class="fas fa-plus"></i> Ersten Beleg hochladen
+                                </a>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Beleg löschen</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Möchten Sie den Beleg <strong id="delete-beleg-name"></strong> wirklich löschen?</p>
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>Achtung:</strong> Diese Aktion kann nicht rückgängig gemacht werden!
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    Abbrechen
+                </button>
+                <button type="button" class="btn btn-danger" id="confirm-delete">
+                    <i class="fas fa-trash"></i> Löschen
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Delete functionality
+    const deleteButtons = document.querySelectorAll('.delete-btn');
+    const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    const deleteBelegName = document.getElementById('delete-beleg-name');
+    const confirmDeleteBtn = document.getElementById('confirm-delete');
+    let currentBelegId = null;
+    
+    deleteButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            currentBelegId = this.dataset.belegId;
+            const belegName = this.dataset.belegName;
+            deleteBelegName.textContent = belegName;
+            deleteModal.show();
+        });
+    });
+    
+    confirmDeleteBtn.addEventListener('click', function() {
+        if (currentBelegId) {
+            fetch(`/belege/${currentBelegId}/loeschen/`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Fehler beim Löschen: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Ein Fehler ist aufgetreten.');
+            });
+        }
+        deleteModal.hide();
+    });
+    
+    // Auto-submit search form on enter
+    const searchInput = document.getElementById('id_suchbegriff');
+    if (searchInput) {
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                this.form.submit();
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

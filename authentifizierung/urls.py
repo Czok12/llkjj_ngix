@@ -21,8 +21,8 @@ urlpatterns = [
         name="registrierung_erfolg",
     ),
     # Anmeldung/Abmeldung
-    path("anmeldung/", views.BenutzerAnmeldungView.as_view(), name="login"),
-    path("abmeldung/", views.abmelden_view, name="logout"),
+    path("anmeldung/", views.BenutzerAnmeldungView.as_view(), name="anmelden"),
+    path("abmeldung/", views.abmelden_view, name="abmelden"),
     # Passwort-Reset
     path(
         "passwort-vergessen/",

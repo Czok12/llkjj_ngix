@@ -273,7 +273,7 @@ def abmelden_view(request):
             "Peter Zwegat und llkjj_knut freuen sich auf Ihr nächstes Login!",
         )
 
-    return redirect("authentifizierung:login")
+    return redirect("authentifizierung:anmelden")
 
 
 def willkommen_view(request):

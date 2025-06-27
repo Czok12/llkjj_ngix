@@ -1,168 +1,224 @@
 {
     "folders": [
         {
-            "name": "🎨 llkjj_knut (Root)",
+            "name": "🎨 llkjj_knut (Buchhaltung)",
             "path": "."
         },
         {
-            "name": "� AI Export (für Google AI Studio)",
+            "name": "🤖 AI Export",
             "path": "./ai_export"
         },
         {
-            "name": "�🧠 Models (Datenmodelle)",
-            "path": "."
-        },
-        {
-            "name": "🔄 Views & Services",
-            "path": "."
-        },
-        {
-            "name": "📋 Forms & Admin",
-            "path": "."
-        },
-        {
-            "name": "📚 Dokumentation",
-            "path": "./internes"
-        },
-        {
-            "name": "⚙️ Core (Django Settings)",
-            "path": "./llkjj_knut"
-        },
-        {
-            "name": "💰 Konten (SKR03)",
-            "path": "./konten"
-        },
-        {
-            "name": "📝 Buchungen",
-            "path": "./buchungen"
-        },
-        {
-            "name": "📄 Belege",
-            "path": "./belege"
-        },
-        {
-            "name": "📊 Auswertungen",
-            "path": "./auswertungen"
-        },
-        {
-            "name": "🧾 Steuer",
-            "path": "./steuer"
-        },
-        {
-            "name": "🔧 Einstellungen",
-            "path": "./einstellungen"
+            "name": "📄 Dokumentation",
+            "path": "./Dokumentation"
         }
     ],
     "settings": {
+        // === Python & Django Konfiguration ===
         "python.defaultInterpreterPath": "/Users/czok/Skripte/venv_llkjj/bin/python",
         "python.terminal.activateEnvironment": true,
         "python.terminal.activateEnvInCurrentTerminal": true,
-        "python.terminal.executeInFileDir": false,
-        "terminal.integrated.cwd": "${workspaceFolder}",
-        "terminal.integrated.env.osx": {
-            "VIRTUAL_ENV": "/Users/czok/Skripte/venv_llkjj",
-            "PATH": "/Users/czok/Skripte/venv_llkjj/bin:${env:PATH}",
-            "PYTHONPATH": "${workspaceFolder}"
+        "python.analysis.typeCheckingMode": "strict",
+        "python.analysis.autoImportCompletions": true,
+        "python.analysis.include": [
+            "**/*.py"
+        ],
+        "python.analysis.exclude": [
+            "**/migrations/**",
+            "**/__pycache__/**",
+            "**/venv/**"
+        ],
+        // === Django Spezifische Einstellungen ===
+        "python.defaultInterpreterPath": "/Users/czok/Skripte/venv_llkjj/bin/python",
+        "django.snippets.exclude": [
+            "migrations"
+        ],
+        // === Terminal Optimierung ===
+        "terminal.integrated.cwd": "/Users/czok/Skripte/llkjj_art",
+        "terminal.integrated.defaultLocation": "view",
+        "terminal.integrated.profiles.osx": {
+            "llkjj-django": {
+                "path": "/bin/zsh",
+                "args": [
+                    "-l"
+                ],
+                "env": {
+                    "VIRTUAL_ENV": "/Users/czok/Skripte/venv_llkjj",
+                    "PATH": "/Users/czok/Skripte/venv_llkjj/bin:${env:PATH}",
+                    "PYTHONPATH": "${workspaceFolder}",
+                    "DJANGO_SETTINGS_MODULE": "llkjj_knut.settings",
+                    "DJANGO_DEBUG": "True"
+                }
+            }
         },
+        "terminal.integrated.defaultProfile.osx": "llkjj-django",
+        // === Dateizuordnungen & Templates ===
         "files.associations": {
             "*.html": "django-html",
             "*.txt": "log",
-            "logs/*.txt": "log"
+            "*.env*": "properties",
+            "Dockerfile*": "dockerfile",
+            "docker-compose*.yml": "dockercompose"
         },
         "emmet.includeLanguages": {
             "django-html": "html"
         },
-        "github.copilot.enable": {
-            "*": true,
-            "python": true,
-            "django-html": true,
-            "html": true,
-            "css": true,
-            "javascript": true
+        // === Explorer Optimierung ===
+        "explorer.sortOrder": "type",
+        "explorer.fileNesting.enabled": true,
+        "explorer.fileNesting.patterns": {
+            // Django App Struktur
+            "models.py": "admin.py,apps.py,forms.py,serializers.py,views.py,urls.py,services.py,tasks.py,tests.py",
+            "settings.py": "wsgi.py,asgi.py,urls.py,celery.py",
+            "manage.py": "requirements*.txt,pyproject.toml,.env*,docker-compose*.yml,setup_*.sh,start*.sh,start.py",
+            // Frontend Assets
+            "package.json": "postcss.config.js,tailwind.config.js,package-lock.json,yarn.lock",
+            // Konfigurationsdateien
+            "pyproject.toml": ".ruff_cache,.mypy_cache",
+            "docker-compose.yml": "Dockerfile,.dockerignore"
         },
-        "github.copilot.chat.localeOverride": "de",
+        // === Code-Qualität & Formatierung ===
         "editor.formatOnSave": true,
         "editor.codeActionsOnSave": {
             "source.organizeImports": "explicit",
             "source.fixAll.ruff": "explicit"
         },
-        "explorer.sortOrder": "type",
-        "explorer.fileNesting.enabled": true,
-        "explorer.fileNesting.expand": false,
-        "explorer.fileNesting.patterns": {
-            "*.py": "${capture}.pyc",
-            "models.py": "admin.py,apps.py,forms.py,serializers.py,views.py,urls.py,services.py,tasks.py",
-            "settings.py": "wsgi.py,asgi.py,urls.py,celery.py",
-            "manage.py": "requirements*.txt,pyproject.toml,.env*,docker-compose.yml",
-            "views.py": "forms.py,serializers.py",
-            "admin.py": "forms.py",
-            "__init__.py": "apps.py"
+        "[python]": {
+            "editor.defaultFormatter": "ms-python.black-formatter",
+            "editor.formatOnSave": true,
+            "editor.codeActionsOnSave": {
+                "source.organizeImports": "explicit"
+            }
         },
-        "terminal.integrated.defaultProfile.osx": "zsh",
+        "[django-html]": {
+            "editor.defaultFormatter": "vscode.html-language-features",
+            "editor.formatOnSave": true
+        },
+        "[json]": {
+            "editor.defaultFormatter": "vscode.json-language-features"
+        },
+        // === Ruff Konfiguration ===
+        "ruff.configuration": "${workspaceFolder}/pyproject.toml",
+        "ruff.showNotifications": "onError",
+        // === Ausschlüsse (Performance) ===
         "files.exclude": {
             "**/__pycache__": true,
             "**/*.pyc": true,
             "**/venv": true,
             "**/.pytest_cache": true,
             "**/node_modules": true,
-            "**/logs/*.log": true
+            "**/logs/*.log": true,
+            "**/.ruff_cache": true,
+            "**/.mypy_cache": true,
+            "**/staticfiles": true,
+            "**/celerybeat-schedule": true
         },
         "search.exclude": {
             "**/__pycache__": true,
             "**/*.pyc": true,
             "**/venv": true,
             "**/node_modules": true,
-            "**/staticfiles": true
+            "**/staticfiles": true,
+            "**/migrations": true,
+            "**/logs": true
         },
         "files.watcherExclude": {
             "**/__pycache__/**": true,
             "**/venv/**": true,
-            "**/node_modules/**": true
+            "**/node_modules/**": true,
+            "**/.ruff_cache/**": true,
+            "**/.mypy_cache/**": true
         },
-        "workbench.tree.renderIndentGuides": "always",
-        "workbench.tree.indent": 20,
+        // === Copilot & KI ===
+        "github.copilot.enable": {
+            "*": true,
+            "python": true,
+            "django-html": true,
+            "html": true,
+            "css": true,
+            "javascript": true,
+            "json": true
+        },
+        "github.copilot.chat.localeOverride": "de",
+        // === Git Integration ===
+        "git.ignoreLimitWarning": true,
         "git.autofetch": true,
-        "git.confirmSync": false,
-        "python.analysis.autoImportCompletions": true,
-        "python.analysis.typeCheckingMode": "basic"
+        // === Tailwind CSS ===
+        "tailwindCSS.includeLanguages": {
+            "django-html": "html"
+        },
+        "tailwindCSS.experimental.configFile": "${workspaceFolder}/tailwind.config.js"
     },
     "tasks": {
         "version": "2.0.0",
         "tasks": [
             {
-                "label": "🚀 Django: Vollstart (Migration + Server)",
+                "label": "🚀 Django: Server starten",
                 "type": "shell",
-                "command": "python manage.py migrate && python manage.py runserver 8000",
-                "group": "build",
+                "command": "python manage.py runserver 8000",
+                "group": {
+                    "kind": "build",
+                    "isDefault": true
+                },
+                "isBackground": true,
                 "presentation": {
                     "echo": true,
                     "reveal": "always",
                     "panel": "new"
                 },
-                "isBackground": true,
                 "problemMatcher": []
             },
             {
-                "label": "📦 Setup: Projekt initialisieren",
+                "label": "📊 Django: Migration erstellen & ausführen",
                 "type": "shell",
-                "command": "python3 -m venv /Users/czok/Skripte/venv_llkjj && source /Users/czok/Skripte/venv_llkjj/bin/activate && pip install -r requirements.txt && python manage.py migrate && python manage.py import_skr03",
+                "command": "python manage.py makemigrations && python manage.py migrate",
                 "group": "build",
                 "presentation": {
                     "echo": true,
                     "reveal": "always",
-                    "panel": "new"
+                    "panel": "shared"
                 }
             },
             {
                 "label": "💰 SKR03: Konten importieren",
                 "type": "shell",
                 "command": "python manage.py import_skr03",
-                "group": "build"
+                "group": "build",
+                "presentation": {
+                    "echo": true,
+                    "reveal": "always",
+                    "panel": "shared"
+                }
             },
             {
-                "label": "🧪 Tests: Alle Apps",
+                "label": "🏗️ Projekt: Vollständiges Setup",
                 "type": "shell",
-                "command": "python manage.py test --verbosity=2",
+                "command": "python manage.py migrate && python manage.py import_skr03 && python manage.py collectstatic --noinput && echo '✅ Projekt bereit!'",
+                "group": "build",
+                "presentation": {
+                    "echo": true,
+                    "reveal": "always",
+                    "panel": "new"
+                }
+            },
+            {
+                "label": "🧪 Tests: Alle ausführen",
+                "type": "shell",
+                "command": "python manage.py test --verbosity=2 --keepdb",
+                "group": {
+                    "kind": "test",
+                    "isDefault": true
+                },
+                "presentation": {
+                    "echo": true,
+                    "reveal": "always",
+                    "panel": "shared"
+                }
+            },
+            {
+                "label": "🔍 Code-Qualität: Vollständige Prüfung",
+                "type": "shell",
+                "command": "ruff check . && ruff format --check . && mypy .",
                 "group": "test",
                 "presentation": {
                     "echo": true,
@@ -171,42 +227,9 @@
                 }
             },
             {
-                "label": "🔍 Code-Qualität: Vollcheck",
+                "label": "🛠️ Code: Formatieren & Reparieren",
                 "type": "shell",
-                "command": "ruff check . && mypy . && black --check .",
-                "group": "test",
-                "presentation": {
-                    "echo": true,
-                    "reveal": "always",
-                    "panel": "shared"
-                }
-            },
-            {
-                "label": "📝 Logging: Test durchführen",
-                "type": "shell",
-                "command": "python manage.py shell -c \"import logging; logger=logging.getLogger('llkjj_knut'); logger.info('🎯 Peter Zwegat Logging-Test'); logger.warning('⚠️ Test-Warnung'); logger.error('❌ Test-Fehler'); print('✅ Logging-Test abgeschlossen - prüfen Sie logs/llkjj_knut.txt')\"",
-                "group": "test",
-                "presentation": {
-                    "echo": true,
-                    "reveal": "always",
-                    "panel": "shared"
-                }
-            },
-            {
-                "label": "📄 Logging: .txt-Datei öffnen",
-                "type": "shell",
-                "command": "code logs/llkjj_knut.txt",
-                "group": "build",
-                "presentation": {
-                    "echo": true,
-                    "reveal": "silent",
-                    "panel": "shared"
-                }
-            },
-            {
-                "label": "🤖 AI: Backend-Dateien sammeln",
-                "type": "shell",
-                "command": "mkdir -p ai_export && find . -name 'models.py' -o -name 'views.py' -o -name 'services.py' -o -name 'forms.py' -o -name 'admin.py' -o -name 'urls.py' -o -name 'tasks.py' -o -name 'settings.py' | grep -v __pycache__ | xargs -I {} cp {} ai_export/ && echo '✅ Backend-Dateien in ai_export/ gesammelt'",
+                "command": "ruff format . && ruff check --fix .",
                 "group": "build",
                 "presentation": {
                     "echo": true,
@@ -215,9 +238,9 @@
                 }
             },
             {
-                "label": "🤖 AI: Backend-Code in eine Datei",
+                "label": "🗄️ PostgreSQL: Container starten",
                 "type": "shell",
-                "command": "echo '# === LLKJJ_KNUT BACKEND CODE EXPORT ===' > ai_export_all.py && echo '# Generiert am: $(date)' >> ai_export_all.py && echo '' >> ai_export_all.py && find . -name 'models.py' -o -name 'views.py' -o -name 'services.py' -o -name 'forms.py' -o -name 'admin.py' -o -name 'urls.py' -o -name 'tasks.py' -o -name 'settings.py' | grep -v __pycache__ | while read file; do echo \"# === $file ===\" >> ai_export_all.py; cat \"$file\" >> ai_export_all.py; echo '' >> ai_export_all.py; echo '' >> ai_export_all.py; done && echo '✅ Alle Backend-Dateien in ai_export_all.py zusammengefasst'",
+                "command": "docker-compose up -d postgres",
                 "group": "build",
                 "presentation": {
                     "echo": true,
@@ -226,13 +249,24 @@
                 }
             },
             {
-                "label": "🤖 AI: Export-Ordner öffnen",
+                "label": "🤖 AI: Projekt-Export erstellen",
                 "type": "shell",
-                "command": "code ai_export/ && code ai_export_all.py",
+                "command": "mkdir -p ai_export && find . -name '*.py' -not -path './*/__pycache__/*' -not -path './venv/*' -not -path './.venv/*' | head -50 | xargs -I {} cp {} ai_export/ 2>/dev/null || true && echo '✅ Python-Dateien in ai_export/ exportiert'",
                 "group": "build",
                 "presentation": {
                     "echo": true,
-                    "reveal": "silent",
+                    "reveal": "always",
+                    "panel": "shared"
+                }
+            },
+            {
+                "label": "📦 Requirements: Aktualisieren",
+                "type": "shell",
+                "command": "pip install -r requirements.txt --upgrade && pip freeze > requirements-freeze.txt",
+                "group": "build",
+                "presentation": {
+                    "echo": true,
+                    "reveal": "always",
                     "panel": "shared"
                 }
             }
@@ -254,70 +288,75 @@
                 "django": true,
                 "console": "integratedTerminal",
                 "env": {
-                    "DJANGO_DEBUG": "True"
-                }
+                    "DJANGO_DEBUG": "True",
+                    "PYTHONPATH": "${workspaceFolder}"
+                },
+                "justMyCode": false
             },
             {
-                "name": "🧪 Django: Debug Tests",
+                "name": "🧪 Django: Debug Tests (Aktuelle Datei)",
                 "type": "debugpy",
                 "request": "launch",
                 "program": "${workspaceFolder}/manage.py",
                 "args": [
                     "test",
-                    "${input:testApp}"
+                    "${relativeFileDirname}",
+                    "--verbosity=2",
+                    "--keepdb"
                 ],
                 "django": true,
-                "console": "integratedTerminal"
+                "console": "integratedTerminal",
+                "justMyCode": false
             },
             {
-                "name": "📝 Django: Debug mit Logging",
+                "name": "⚙️ Django: Debug Management Command",
                 "type": "debugpy",
                 "request": "launch",
                 "program": "${workspaceFolder}/manage.py",
                 "args": [
-                    "runserver",
-                    "8000",
-                    "--noreload"
+                    "${input:managementCommand}"
                 ],
                 "django": true,
-                "console": "integratedTerminal",
-                "env": {
-                    "DJANGO_DEBUG": "True",
-                    "LOG_LEVEL": "DEBUG",
-                    "ENABLE_FILE_LOGGING": "True"
-                }
+                "console": "integratedTerminal"
             }
         ],
         "inputs": [
             {
-                "id": "testApp",
-                "description": "Django App zum Testen",
-                "type": "pickString",
-                "options": [
-                    "konten",
-                    "buchungen",
-                    "belege",
-                    "auswertungen",
-                    "steuer",
-                    "einstellungen"
-                ]
+                "id": "managementCommand",
+                "description": "Django Management Command",
+                "type": "promptString",
+                "default": "shell"
             }
         ]
     },
     "extensions": {
         "recommendations": [
+            // Python Essentials
             "ms-python.python",
             "ms-python.debugpy",
             "ms-python.black-formatter",
             "charliermarsh.ruff",
             "ms-python.mypy-type-checker",
+            // Django Spezifisch
             "batisteo.vscode-django",
+            // Frontend & Styling
+            "bradlc.vscode-tailwindcss",
+            // KI & Produktivität
             "github.copilot",
             "github.copilot-chat",
-            "bradlc.vscode-tailwindcss",
+            // Datenbank
             "ms-ossdata.vscode-postgresql",
+            "ckolkman.vscode-postgres",
+            // DevOps & Tools
+            "ms-vscode-remote.remote-containers",
+            "ms-azuretools.vscode-docker",
+            // Dokumentation & Logs
             "yzhang.markdown-all-in-one",
-            "emilast.logfilehighlighter"
+            "emilast.logfilehighlighter",
+            // Nützliche Erweiterungen
+            "ms-vscode.vscode-json",
+            "redhat.vscode-yaml",
+            "ms-vscode.vscode-typescript-next"
         ]
     }
 }

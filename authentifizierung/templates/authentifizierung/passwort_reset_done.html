@@ -125,7 +125,7 @@
 
         <!-- Action Buttons -->
         <div class="action-buttons">
-            <a href="{% url 'authentifizierung:login' %}" class="btn btn-outline-primary">
+            <a href="{% url 'authentifizierung:anmelden' %}" class="btn btn-outline-primary">
                 <i class="fas fa-sign-in-alt"></i> Zur Anmeldung
             </a>
             <a href="{% url 'authentifizierung:password_reset' %}" class="btn btn-outline-secondary">
@@ -201,7 +201,7 @@ function startCountdown() {
         
         if (seconds <= 0) {
             clearInterval(interval);
-            window.location.href = "{% url 'authentifizierung:login' %}";
+            window.location.href = "{% url 'authentifizierung:anmelden' %}";
         }
     }, 1000);
 }

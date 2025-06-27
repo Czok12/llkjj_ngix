@@ -129,7 +129,7 @@ class BenutzerRegistrierungForm(UserCreationForm):
             HTML(
                 '<div class="text-center mt-3">'
                 "<p>Haben Sie bereits ein Konto? "
-                "<a href=\"{% url 'authentifizierung:login' %}\">Hier anmelden</a></p>"
+                "<a href=\"{% url 'authentifizierung:anmelden' %}\">Hier anmelden</a></p>"
                 "</div>"
             ),
         )
@@ -271,7 +271,7 @@ class PasswortZuruecksetzenForm(forms.Form):
             ),
             HTML(
                 '<div class="text-center mt-3">'
-                "<p><a href=\"{% url 'authentifizierung:login' %}\">Zurück zur Anmeldung</a></p>"
+                "<p><a href=\"{% url 'authentifizierung:anmelden' %}\">Zurück zur Anmeldung</a></p>"
                 "</div>"
             ),
         )

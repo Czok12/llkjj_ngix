@@ -7,27 +7,32 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
 .dashboard-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
     color: white;
-    border-radius: 15px;
-    padding: 2rem;
+    border-radius: 20px;
+    padding: 3rem;
     margin-bottom: 2rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
 }
 
 .stats-card {
-    background: white;
-    border-radius: 15px;
-    padding: 1.5rem;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-    border: none;
+    background: rgba(30, 41, 59, 0.6);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(100, 116, 139, 0.2);
+    border-radius: 20px;
+    padding: 2rem;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
     transition: all 0.3s ease;
     position: relative;
     overflow: hidden;
 }
 
 .stats-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    transform: translateY(-8px);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+    border-color: rgba(59, 130, 246, 0.3);
 }
 
 .stats-card::before {
@@ -37,45 +42,52 @@
     left: 0;
     right: 0;
     height: 4px;
-    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(90deg, #3b82f6 0%, #8b5cf6 100%);
 }
 
 .stats-icon {
-    font-size: 2.5rem;
+    font-size: 3rem;
     margin-bottom: 1rem;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
 .stats-value {
-    font-size: 2rem;
+    font-size: 2.5rem;
     font-weight: bold;
     margin: 0;
+    color: #f1f5f9;
 }
 
 .stats-label {
-    color: #6c757d;
-    font-size: 0.9rem;
+    color: #94a3b8;
+    font-size: 1rem;
     margin: 0;
+    font-weight: 500;
 }
 
 .trend-positive {
-    color: #28a745;
+    color: #10b981;
 }
 
 .trend-negative {
-    color: #dc3545;
+    color: #ef4444;
 }
 
 .trend-neutral {
-    color: #6c757d;
+    color: #6b7280;
 }
 
 .zwegat-card {
-    background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
-    border: 2px solid #ffc107;
-    border-radius: 15px;
-    padding: 1.5rem;
+    background: linear-gradient(135deg, rgba(251, 191, 36, 0.1) 0%, rgba(245, 158, 11, 0.1) 100%);
+    border: 2px solid rgba(251, 191, 36, 0.3);
+    border-radius: 20px;
+    padding: 2rem;
     position: relative;
     margin-bottom: 2rem;
+    backdrop-filter: blur(10px);
 }
 
 .zwegat-card::before {
@@ -83,71 +95,143 @@
     position: absolute;
     top: -15px;
     left: 20px;
-    background: #ffc107;
-    padding: 5px 10px;
+    background: linear-gradient(135deg, #fbbf24, #f59e0b);
+    padding: 8px 12px;
     border-radius: 50%;
     font-size: 1.5rem;
+    box-shadow: 0 4px 15px rgba(251, 191, 36, 0.3);
 }
 
 .chart-container {
-    background: white;
-    border-radius: 15px;
-    padding: 1.5rem;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    background: rgba(30, 41, 59, 0.6);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(100, 116, 139, 0.2);
+    border-radius: 20px;
+    padding: 2rem;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
     margin-bottom: 2rem;
 }
 
 .activity-item {
-    padding: 0.75rem;
-    border-left: 3px solid #e9ecef;
-    margin-bottom: 0.5rem;
-    background: white;
-    border-radius: 0 8px 8px 0;
+    padding: 1rem;
+    border-left: 4px solid rgba(100, 116, 139, 0.3);
+    margin-bottom: 0.75rem;
+    background: rgba(30, 41, 59, 0.4);
+    backdrop-filter: blur(5px);
+    border-radius: 0 12px 12px 0;
     transition: all 0.3s ease;
+    border: 1px solid rgba(100, 116, 139, 0.1);
 }
 
 .activity-item:hover {
-    border-left-color: #667eea;
-    background: #f8f9fa;
+    border-left-color: #3b82f6;
+    background: rgba(30, 41, 59, 0.6);
+    transform: translateX(4px);
 }
 
 .activity-item.einnahme {
-    border-left-color: #28a745;
+    border-left-color: #10b981;
 }
 
 .activity-item.ausgabe {
-    border-left-color: #dc3545;
+    border-left-color: #ef4444;
 }
 
 .beleg-item {
-    background: white;
-    border-radius: 8px;
-    padding: 1rem;
-    border: 1px solid #e9ecef;
-    margin-bottom: 0.5rem;
+    background: rgba(30, 41, 59, 0.4);
+    backdrop-filter: blur(5px);
+    border-radius: 12px;
+    padding: 1.25rem;
+    border: 1px solid rgba(100, 116, 139, 0.2);
+    margin-bottom: 0.75rem;
     transition: all 0.3s ease;
 }
 
 .beleg-item:hover {
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    border-color: rgba(59, 130, 246, 0.3);
+    transform: translateY(-2px);
 }
 
 .status-badge {
-    padding: 4px 12px;
-    border-radius: 20px;
+    padding: 6px 16px;
+    border-radius: 25px;
     font-size: 0.8rem;
     font-weight: 600;
+    backdrop-filter: blur(5px);
 }
 
-.status-neu { background: #e3f2fd; color: #1976d2; }
-.status-geprueft { background: #e8f5e8; color: #2e7d32; }
+.status-neu { 
+    background: rgba(59, 130, 246, 0.2); 
+    color: #93c5fd; 
+    border: 1px solid rgba(59, 130, 246, 0.3);
+}
+.status-geprueft { 
+    background: rgba(16, 185, 129, 0.2); 
+    color: #6ee7b7; 
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
 
 .quick-actions {
-    background: white;
-    border-radius: 15px;
-    padding: 1.5rem;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    background: rgba(30, 41, 59, 0.6);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(100, 116, 139, 0.2);
+    border-radius: 20px;
+    padding: 2rem;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
 }
+
+.section-title {
+    color: #f1f5f9;
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+}
+
+.section-title i {
+    margin-right: 0.75rem;
+    color: #3b82f6;
+}
+
+.dark-card {
+    background: rgba(30, 41, 59, 0.6);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(100, 116, 139, 0.2);
+    border-radius: 16px;
+    transition: all 0.3s ease;
+}
+
+.dark-card:hover {
+    border-color: rgba(59, 130, 246, 0.3);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+.text-dark-primary {
+    color: #e2e8f0;
+}
+
+.text-dark-secondary {
+    color: #94a3b8;
+}
+
+.btn-dark-primary {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+}
+
+.btn-dark-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+}
+</style>
 
 .quick-action-btn {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -185,135 +269,144 @@
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid">
+<div class="space-y-8">
     <!-- Dashboard Header -->
     <div class="dashboard-header">
-        <div class="row align-items-center">
-            <div class="col-md-8">
-                <h1 class="mb-2">🏠 {{ page_title }}</h1>
-                <p class="mb-0 opacity-75">{{ page_subtitle }}</p>
+        <div class="flex justify-between items-center">
+            <div>
+                <h1 class="text-4xl font-bold mb-2 flex items-center">
+                    <i class="fas fa-home mr-4 text-white/80"></i>
+                    {{ page_title }}
+                </h1>
+                <p class="text-white/70 text-lg">{{ page_subtitle }}</p>
             </div>
-            <div class="col-md-4 text-end">
-                <div class="h4 mb-0" id="live-time"></div>
-                <small class="opacity-75">Live-Daten</small>
+            <div class="text-right">
+                <div class="text-2xl font-bold text-white" id="live-time"></div>
+                <small class="text-white/70">Live-Daten</small>
             </div>
         </div>
     </div>
 
     <!-- Peter Zwegat Spruch -->
     <div class="zwegat-card">
-        <h5 class="mb-2">💡 Peter Zwegat sagt heute:</h5>
-        <p class="mb-0 fst-italic">"{{ zwegat_spruch }}"</p>
+        <h5 class="text-xl font-bold mb-3 text-amber-800 dark:text-amber-200 flex items-center">
+            <i class="fas fa-lightbulb mr-2"></i>
+            Peter Zwegat sagt heute:
+        </h5>
+        <p class="text-amber-700 dark:text-amber-300 italic text-lg font-medium">"{{ zwegat_spruch }}"</p>
     </div>
 
     <!-- Kennzahlen Cards -->
-    <div class="row g-4 mb-4">
-        <div class="col-lg-3 col-md-6">
-            <div class="stats-card">
-                <div class="stats-icon">💰</div>
-                <h3 class="stats-value text-success">{{ einnahmen_monat|floatformat:0 }}€</h3>
-                <p class="stats-label">Einnahmen {{ aktueller_monat }}</p>
-                {% if einnahmen_trend != 0 %}
-                <small class="{% if einnahmen_trend > 0 %}trend-positive{% else %}trend-negative{% endif %}">
-                    {% if einnahmen_trend > 0 %}↗{% else %}↘{% endif %} {{ einnahmen_trend|floatformat:1 }}% vs. Vormonat
-                </small>
-                {% endif %}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="stats-card group">
+            <div class="stats-icon text-emerald-400">💰</div>
+            <h3 class="stats-value text-emerald-400">{{ einnahmen_monat|floatformat:0 }}€</h3>
+            <p class="stats-label">Einnahmen {{ aktueller_monat }}</p>
+            {% if einnahmen_trend != 0 %}
+            <div class="mt-2 flex items-center">
+                <div class="{% if einnahmen_trend > 0 %}trend-positive{% else %}trend-negative{% endif %} text-sm font-medium">
+                    <i class="fas {% if einnahmen_trend > 0 %}fa-arrow-up{% else %}fa-arrow-down{% endif %} mr-1"></i>
+                    {{ einnahmen_trend|floatformat:1 }}% vs. Vormonat
+                </div>
             </div>
+            {% endif %}
         </div>
         
-        <div class="col-lg-3 col-md-6">
-            <div class="stats-card">
-                <div class="stats-icon">💸</div>
-                <h3 class="stats-value text-danger">{{ ausgaben_monat|floatformat:0 }}€</h3>
-                <p class="stats-label">Ausgaben {{ aktueller_monat }}</p>
-            </div>
+        <div class="stats-card group">
+            <div class="stats-icon text-red-400">💸</div>
+            <h3 class="stats-value text-red-400">{{ ausgaben_monat|floatformat:0 }}€</h3>
+            <p class="stats-label">Ausgaben {{ aktueller_monat }}</p>
         </div>
         
-        <div class="col-lg-3 col-md-6">
-            <div class="stats-card">
-                <div class="stats-icon">{% if gewinn_monat >= 0 %}📈{% else %}📉{% endif %}</div>
-                <h3 class="stats-value {% if gewinn_monat >= 0 %}text-success{% else %}text-danger{% endif %}">
-                    {{ gewinn_monat|floatformat:0 }}€
-                </h3>
-                <p class="stats-label">Gewinn {{ aktueller_monat }}</p>
+        <div class="stats-card group">
+            <div class="stats-icon {% if gewinn_monat >= 0 %}text-emerald-400{% else %}text-red-400{% endif %}">
+                {% if gewinn_monat >= 0 %}📈{% else %}📉{% endif %}
             </div>
+            <h3 class="stats-value {% if gewinn_monat >= 0 %}text-emerald-400{% else %}text-red-400{% endif %}">
+                {{ gewinn_monat|floatformat:0 }}€
+            </h3>
+            <p class="stats-label">Gewinn {{ aktueller_monat }}</p>
         </div>
         
-        <div class="col-lg-3 col-md-6">
-            <div class="stats-card">
-                <div class="stats-icon">📊</div>
-                <h3 class="stats-value text-primary">{{ einnahmen_jahr|floatformat:0 }}€</h3>
-                <p class="stats-label">Einnahmen {{ aktuelles_jahr }}</p>
-            </div>
+        <div class="stats-card group">
+            <div class="stats-icon text-blue-400">📊</div>
+            <h3 class="stats-value text-blue-400">{{ einnahmen_jahr|floatformat:0 }}€</h3>
+            <p class="stats-label">Einnahmen {{ aktuelles_jahr }}</p>
         </div>
     </div>
 
     <!-- Weitere Statistiken -->
-    <div class="row g-4 mb-4">
-        <div class="col-lg-3 col-md-6">
-            <div class="stats-card">
-                <div class="stats-icon">📝</div>
-                <h3 class="stats-value">{{ stats.buchungen_monat }}</h3>
-                <p class="stats-label">Buchungen diesen Monat</p>
-                <small class="text-muted">Gesamt: {{ stats.buchungen_gesamt }}</small>
-            </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="stats-card group">
+            <div class="stats-icon text-purple-400">📝</div>
+            <h3 class="stats-value text-dark-primary">{{ stats.buchungen_monat }}</h3>
+            <p class="stats-label">Buchungen diesen Monat</p>
+            <small class="text-dark-secondary">Gesamt: {{ stats.buchungen_gesamt }}</small>
         </div>
         
-        <div class="col-lg-3 col-md-6">
-            <div class="stats-card">
-                <div class="stats-icon">📄</div>
-                <h3 class="stats-value {% if stats.belege_unbearbeitet > 0 %}text-warning{% else %}text-success{% endif %}">
-                    {{ stats.belege_unbearbeitet }}
-                </h3>
-                <p class="stats-label">Offene Belege</p>
-            </div>
+        <div class="stats-card group">
+            <div class="stats-icon {% if stats.belege_unbearbeitet > 0 %}text-amber-400{% else %}text-emerald-400{% endif %}">📄</div>
+            <h3 class="stats-value {% if stats.belege_unbearbeitet > 0 %}text-amber-400{% else %}text-emerald-400{% endif %}">
+                {{ stats.belege_unbearbeitet }}
+            </h3>
+            <p class="stats-label">Offene Belege</p>
+            {% if stats.belege_unbearbeitet > 0 %}
+            <small class="text-amber-400">Benötigen Bearbeitung</small>
+            {% else %}
+            <small class="text-emerald-400">Alle bearbeitet ✓</small>
+            {% endif %}
         </div>
         
-        <div class="col-lg-3 col-md-6">
-            <div class="stats-card">
-                <div class="stats-icon">🤝</div>
-                <h3 class="stats-value">{{ stats.geschaeftspartner_aktiv }}</h3>
-                <p class="stats-label">Geschäftspartner</p>
-            </div>
+        <div class="stats-card group">
+            <div class="stats-icon text-cyan-400">🤝</div>
+            <h3 class="stats-value text-dark-primary">{{ stats.geschaeftspartner_aktiv }}</h3>
+            <p class="stats-label">Geschäftspartner</p>
         </div>
         
-        <div class="col-lg-3 col-md-6">
-            <div class="stats-card">
-                <div class="stats-icon">{% if gewinn_jahr >= 0 %}🎯{% else %}⚠️{% endif %}</div>
-                <h3 class="stats-value {% if gewinn_jahr >= 0 %}text-success{% else %}text-danger{% endif %}">
-                    {{ gewinn_jahr|floatformat:0 }}€
-                </h3>
-                <p class="stats-label">Jahresgewinn {{ aktuelles_jahr }}</p>
-            </div>
+        <div class="stats-card group">
+            <div class="stats-icon {% if gewinn_jahr >= 0 %}text-emerald-400{% else %}text-red-400{% endif %}">{% if gewinn_jahr >= 0 %}🎯{% else %}⚠️{% endif %}</div>
+            <h3 class="stats-value {% if gewinn_jahr >= 0 %}text-emerald-400{% else %}text-red-400{% endif %}">
+                {{ gewinn_jahr|floatformat:0 }}€
+            </h3>
+            <p class="stats-label">Jahresgewinn {{ aktuelles_jahr }}</p>
         </div>
     </div>
 
     <!-- Charts und Aktivitäten -->
-    <div class="row g-4">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <!-- Einnahmen/Ausgaben Chart -->
-        <div class="col-lg-8">
+        <div class="lg:col-span-2">
             <div class="chart-container">
-                <h5 class="mb-3">📊 Einnahmen vs. Ausgaben (12 Monate)</h5>
-                <canvas id="einnahmenChart" height="100"></canvas>
+                <h5 class="section-title">
+                    <i class="fas fa-chart-line"></i>
+                    Einnahmen vs. Ausgaben (12 Monate)
+                </h5>
+                <div class="bg-dark-800 rounded-xl p-4">
+                    <canvas id="einnahmenChart" height="100"></canvas>
+                </div>
             </div>
         </div>
 
         <!-- Quick Actions -->
-        <div class="col-lg-4">
+        <div class="lg:col-span-1">
             <div class="quick-actions">
-                <h5 class="mb-3">⚡ Schnellaktionen</h5>
+                <h5 class="section-title">
+                    <i class="fas fa-bolt"></i>
+                    Schnellaktionen
+                </h5>
                 
-                <a href="{% url 'auswertungen:eur_offiziell' %}" class="quick-action-btn" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
-                    <i class="fas fa-file-invoice-dollar fa-lg mb-2"></i><br>
-                    EÜR (Offiziell)
-                </a>
-                
-                <a href="{% url 'buchungen:schnellbuchung' %}" class="quick-action-btn">
-                    <i class="fas fa-bolt fa-lg mb-2"></i><br>
-                    Schnellbuchung
-                </a>
-                
-                <a href="{% url 'belege:upload' %}" class="quick-action-btn">
+                <div class="space-y-3">
+                    <a href="{% url 'auswertungen:eur_offiziell' %}" class="btn-dark-primary w-full flex items-center justify-center space-x-2 hover:scale-105 transition-transform">
+                        <i class="fas fa-file-invoice-dollar text-lg"></i>
+                        <span>EÜR (Offiziell)</span>
+                    </a>
+                    
+                    <a href="{% url 'buchungen:schnellbuchung' %}" class="btn-dark-primary w-full flex items-center justify-center space-x-2 hover:scale-105 transition-transform">
+                        <i class="fas fa-bolt text-lg"></i>
+                        <span>Schnellbuchung</span>
+                    </a>
+                    
+                    <a href="{% url 'belege:upload' %}" class="btn-dark-primary w-full flex items-center justify-center space-x-2 hover:scale-105 transition-transform">
                     <i class="fas fa-upload fa-lg mb-2"></i><br>
                     Beleg hochladen
                 </a>
