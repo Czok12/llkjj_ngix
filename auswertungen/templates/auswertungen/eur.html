@@ -116,11 +116,7 @@
                     <td>{{ position }}</td>
                     <td class="amount">{{ betrag|floatformat:2 }}</td>
                     <td class="amount">
-                        {% if gesamte_einnahmen > 0 %}
-                            {{ betrag|mul:100|div:gesamte_einnahmen|floatformat:1 }}%
-                        {% else %}
-                            0.0%
-                        {% endif %}
+                        {{ einnahmen_anteile.position|default_if_none:0|floatformat:1 }}%
                     </td>
                 </tr>
                 {% empty %}
@@ -155,11 +151,7 @@
                     <td>{{ position }}</td>
                     <td class="amount">{{ betrag|floatformat:2 }}</td>
                     <td class="amount">
-                        {% if gesamte_ausgaben > 0 %}
-                            {{ betrag|mul:100|div:gesamte_ausgaben|floatformat:1 }}%
-                        {% else %}
-                            0.0%
-                        {% endif %}
+                        {{ ausgaben_anteile.position|default_if_none:0|floatformat:1 }}%
                     </td>
                 </tr>
                 {% empty %}

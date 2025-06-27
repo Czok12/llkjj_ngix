@@ -50,21 +50,32 @@ class BelegParser:
         self.text = ""
         self.doc = None
 
-        # spaCy-Model laden
+        # spaCy-Model laden - bevorzugt Large-Modell, dann Small-Modell
         if SPACY_AVAILABLE:
             try:
-                self.nlp = spacy.load("de_core_news_sm")
-            except OSError:
-                logger.warning(
-                    "Deutsches spaCy-Model nicht gefunden, verwende en_core_web_sm"
+                # Zuerst versuchen das große deutsche Modell zu laden
+                self.nlp = spacy.load("de_core_news_lg")
+                logger.info(
+                    "Deutsches spaCy-Modell 'de_core_news_lg' erfolgreich geladen"
                 )
+            except OSError:
                 try:
-                    self.nlp = spacy.load("en_core_web_sm")
+                    # Fallback auf das kleinere deutsche Modell
+                    self.nlp = spacy.load("de_core_news_sm")
+                    logger.info(
+                        "Deutsches spaCy-Modell 'de_core_news_sm' erfolgreich geladen"
+                    )
                 except OSError:
-                    logger.error("Kein spaCy-Model verfügbar")
-                    self.nlp = None
+                    logger.error("Kein deutsches spaCy-Modell gefunden")
+                    raise RuntimeError(
+                        "Ein deutsches spaCy-Modell ist erforderlich. "
+                        "Installieren Sie eines mit: python -m spacy download de_core_news_lg "
+                        "oder python -m spacy download de_core_news_sm"
+                    )
         else:
-            self.nlp = None
+            raise RuntimeError(
+                "spaCy ist nicht installiert. Installieren Sie es mit: pip install spacy"
+            )
 
         # Regex-Patterns für die Extraktion
         self.patterns = {
@@ -233,9 +244,31 @@ class BelegParser:
         organizations = []
         for ent in self.doc.ents:
             if ent.label_ in ["ORG", "PERSON"]:
-                organizations.append(ent.text.strip())
+                org_text = ent.text.strip()
+                # Filtere BIC-Codes und IBANs aus, die als ORG erkannt werden könnten
+                # BIC: 11 Zeichen, nur Großbuchstaben und Zahlen
+                is_bic = (len(org_text) == 11 and org_text.isalnum() and org_text.isupper())
+                # IBAN: beginnt mit DE und ist 22 Zeichen lang
+                is_iban = (org_text.startswith("DE") and len(org_text) == 22 and org_text.isalnum())
+                # Enthält "IBAN" oder "BIC" im Text
+                contains_bank_terms = ("IBAN" in org_text.upper() or "BIC" in org_text.upper())
+                
+                if not (is_bic or is_iban or contains_bank_terms):
+                    organizations.append(org_text)
 
-        # Die erste gefundene Organisation zurückgeben
+        # Wenn spaCy nichts gefunden hat, versuche Regex-Pattern
+        if not organizations:
+            # Suche nach Firmennamen am Anfang des Texts (erste Zeilen)
+            lines = self.text.split('\n')[:5]  # Erste 5 Zeilen
+            for line in lines:
+                line = line.strip()
+                # Typische Firmenendungen
+                if any(ending in line.upper() for ending in ['GMBH', 'GBMH & CO', 'KG', 'AG', 'UG']):
+                    if line and not any(word in line.upper() for word in ['AN', 'RECHNUNG', 'DATUM', 'STRASSE']):
+                        organizations.append(line)
+                        break
+
+        # Die erste gefundene sinnvolle Organisation zurückgeben
         if organizations:
             return organizations[0]
 

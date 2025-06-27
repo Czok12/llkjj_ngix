@@ -308,32 +308,38 @@ class Buchungssatz(models.Model):
         super().clean()
 
         # Soll und Haben dürfen nicht identisch sein
-        if self.soll_konto and self.haben_konto:
-            try:
-                if self.soll_konto.id == self.haben_konto.id:
-                    raise ValidationError(
-                        {
-                            "haben_konto": "Soll- und Haben-Konto dürfen nicht identisch sein!"
-                        }
-                    )
-            except AttributeError:
-                # Falls die Konten noch nicht geladen sind, überspringen
-                pass
+        soll_konto_id = getattr(self, "soll_konto_id", None)
+        haben_konto_id = getattr(self, "haben_konto_id", None)
+
+        if soll_konto_id and haben_konto_id and soll_konto_id == haben_konto_id:
+            raise ValidationError(
+                {"haben_konto": "Soll- und Haben-Konto dürfen nicht identisch sein!"}
+            )
 
         # Betrag muss positiv sein
         if self.betrag is not None and self.betrag <= 0:
             raise ValidationError({"betrag": "Der Betrag muss größer als 0 sein!"})
 
         # Konten müssen aktiv sein
-        if self.soll_konto and not self.soll_konto.aktiv:
-            raise ValidationError(
-                {"soll_konto": f"Das Soll-Konto {self.soll_konto} ist nicht aktiv!"}
-            )
+        try:
+            if self.soll_konto and not self.soll_konto.aktiv:
+                raise ValidationError(
+                    {"soll_konto": f"Das Soll-Konto {self.soll_konto} ist nicht aktiv!"}
+                )
+        except AttributeError:
+            # Wenn das Konto noch nicht geladen ist, überspringen
+            pass
 
-        if self.haben_konto and not self.haben_konto.aktiv:
-            raise ValidationError(
-                {"haben_konto": f"Das Haben-Konto {self.haben_konto} ist nicht aktiv!"}
-            )
+        try:
+            if self.haben_konto and not self.haben_konto.aktiv:
+                raise ValidationError(
+                    {
+                        "haben_konto": f"Das Haben-Konto {self.haben_konto} ist nicht aktiv!"
+                    }
+                )
+        except AttributeError:
+            # Wenn das Konto noch nicht geladen ist, überspringen
+            pass
 
     def save(self, *args, **kwargs):
         """Überschriebene Save-Methode mit Validierung"""
@@ -349,6 +355,11 @@ class Buchungssatz(models.Model):
     def betrag_formatiert(self):
         """Gibt den Betrag formatiert zurück"""
         return f"{self.betrag:.2f}€"
+
+    @property
+    def betrag_nur_zahl(self):
+        """Gibt nur den Betrag ohne Währungszeichen zurück"""
+        return f"{self.betrag:.2f}".replace(".", ",")
 
     @property
     def ist_einnahme(self):

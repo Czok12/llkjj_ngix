@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block title %}Buchung {{ buchung.id|truncatechars:8 }}{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-lg shadow-lg p-6">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold text-gray-900">Buchungsdetails</h1>
+        <div class="flex space-x-2">
+            <a href="{% url 'buchungen:bearbeiten' pk=buchung.pk %}" 
+               class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors">
+                <i class="fas fa-edit mr-2"></i>Bearbeiten
+            </a>
+        </div>
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-6">
+        <!-- Buchungsdaten -->
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Buchungsdatum</label>
+                <p class="text-lg text-gray-900">{{ buchung.buchungsdatum|date:"d.m.Y" }}</p>
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Buchungstext</label>
+                <p class="text-lg text-gray-900">{{ buchung.buchungstext }}</p>
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Betrag</label>
+                <p class="text-2xl font-bold text-green-600">{{ buchung.betrag_nur_zahl }}€</p>
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Buchungszeile</label>
+                <p class="text-lg text-gray-900 font-mono">{{ buchung.buchungszeile }}</p>
+            </div>
+        </div>
+
+        <!-- Konten -->
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Soll-Konto</label>
+                <p class="text-lg text-gray-900">{{ buchung.soll_konto.nummer }} - {{ buchung.soll_konto.name }}</p>
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Haben-Konto</label>
+                <p class="text-lg text-gray-900">{{ buchung.haben_konto.nummer }} - {{ buchung.haben_konto.name }}</p>
+            </div>
+            
+            {% if buchung.geschaeftspartner %}
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Geschäftspartner</label>
+                <p class="text-lg text-gray-900">{{ buchung.geschaeftspartner.name }}</p>
+            </div>
+            {% endif %}
+            
+            {% if buchung.referenz %}
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Referenz</label>
+                <p class="text-lg text-gray-900">{{ buchung.referenz }}</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if buchung.notizen %}
+    <div class="mt-6">
+        <label class="block text-sm font-medium text-gray-700 mb-2">Notizen</label>
+        <div class="bg-gray-50 rounded-lg p-4">
+            <p class="text-gray-900">{{ buchung.notizen|linebreaks }}</p>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Metadaten -->
+    <div class="mt-6 pt-6 border-t border-gray-200">
+        <div class="grid md:grid-cols-3 gap-4 text-sm text-gray-600">
+            <div>
+                <span class="font-medium">Erstellt:</span> {{ buchung.erstellt_am|date:"d.m.Y H:i" }}
+            </div>
+            <div>
+                <span class="font-medium">Geändert:</span> {{ buchung.geaendert_am|date:"d.m.Y H:i" }}
+            </div>
+            <div>
+                <span class="font-medium">Status:</span> 
+                {% if buchung.validiert %}
+                    <span class="text-green-600">✓ Validiert</span>
+                {% else %}
+                    <span class="text-yellow-600">⚠ Nicht validiert</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

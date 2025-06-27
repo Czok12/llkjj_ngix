@@ -1,6 +1,11 @@
+import uuid
+
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
+from django.db.models.signals import post_save
 from django.test import TestCase
+
+from authentifizierung.signals import create_or_update_user_profile
 
 from .models import Benutzerprofil
 
@@ -13,9 +18,17 @@ class BenutzerprofilModelTest(TestCase):
 
     def setUp(self):
         """Erstellt für jeden Test einen neuen User"""
+        # Signal komplett deaktivieren für diese TestCase
+        post_save.disconnect(create_or_update_user_profile, sender=User)
+
+        self.test_id = str(uuid.uuid4()).replace("-", "")[:8]
         self.user = User.objects.create_user(
-            username=f"testuser_{self.id()}", password="password"  # noqa: S106
+            username=f"testuser_{self.test_id}", password="password"  # noqa: S106
         )
+
+    def tearDown(self):
+        """Signal nach jedem Test wieder aktivieren"""
+        post_save.connect(create_or_update_user_profile, sender=User)
 
     def test_profil_erstellung(self):
         profil = Benutzerprofil.objects.create(
@@ -26,21 +39,23 @@ class BenutzerprofilModelTest(TestCase):
             strasse="Schuldenweg 1",
             plz="12345",
             ort="Berlin",
-            steuer_id="12345678901",
+            steuer_id=f"123456789{self.test_id[:2]}1",  # eindeutige steuer_id
             beruf="Schuldenberater",
         )
-        self.assertEqual(str(profil), "Peter Zwegat (12345678901)")
+        self.assertEqual(str(profil), "Peter Zwegat (" + profil.steuer_id + ")")
         self.assertEqual(profil.vollstaendiger_name, "Peter Zwegat")
         self.assertEqual(profil.vollstaendige_adresse, "Schuldenweg 1, 12345 Berlin")
 
     def test_ist_vollstaendig_automatik(self):
-        """Testet, ob 'ist_vollstaendig' automatisch gesetzt wird."""
+        test_id = str(uuid.uuid4()).replace("-", "")[:8]
+        user = User.objects.create_user(username=f"voll_{test_id}")
+        steuer_id = f"98765432{test_id[:3]}9"
         # Unvollständiges Profil
         profil = Benutzerprofil.objects.create(
-            user=self.user,
+            user=user,
             vorname="Max",
             nachname="Mustermann",
-            steuer_id="98765432109",
+            steuer_id=steuer_id,
         )
         self.assertFalse(profil.ist_vollstaendig)
 
@@ -73,20 +88,21 @@ class BenutzerprofilModelTest(TestCase):
             ).full_clean()
 
     def test_ist_umsatzsteuerpflichtig_property(self):
+        test_id = str(uuid.uuid4()).replace("-", "")[:8]
+        user = User.objects.create_user(username=f"ust_{test_id}")
+        steuer_id = f"11122233{test_id[:3]}4"
         profil = Benutzerprofil.objects.create(
-            user=self.user,
+            user=user,
             vorname="Test",
             nachname="User",
             email="test@user.de",
-            strasse="Teststr. 1",
-            plz="12345",
-            ort="Testort",
-            steuer_id="12345678901",
-            beruf="Tester",
+            steuer_id=steuer_id,
             kleinunternehmer_19_ustg=True,  # Standard
         )
         self.assertFalse(profil.ist_umsatzsteuerpflichtig())
-
         profil.kleinunternehmer_19_ustg = False
         profil.save()
+        profil.refresh_from_db()
+        self.assertTrue(profil.ist_umsatzsteuerpflichtig())
+        profil.refresh_from_db()
         self.assertTrue(profil.ist_umsatzsteuerpflichtig())

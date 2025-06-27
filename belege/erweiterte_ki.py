@@ -119,18 +119,23 @@ class ErweiterteKI:
             logger.warning(f"Sentence Transformer nicht verfügbar: {e}")
 
     def _lade_spacy_modell(self):
-        """Lädt das deutsche spaCy-Modell."""
+        """Lädt das deutsche spaCy-Modell - wirft Exception wenn nicht verfügbar."""
         try:
             # Deutsches Modell für Named Entity Recognition
             self.spacy_nlp = spacy.load("de_core_news_sm")
-            logger.info("Deutsches spaCy-Modell geladen")
+            logger.info("Deutsches spaCy-Modell 'de_core_news_sm' geladen")
         except OSError:
             try:
-                # Fallback auf kleineres Modell
+                # Fallback auf größeres deutsches Modell
                 self.spacy_nlp = spacy.load("de_core_news_lg")
-                logger.info("Großes deutsches spaCy-Modell geladen")
+                logger.info("Großes deutsches spaCy-Modell 'de_core_news_lg' geladen")
             except OSError:
-                logger.warning("Kein deutsches spaCy-Modell verfügbar")
+                logger.error("Kein deutsches spaCy-Modell verfügbar")
+                raise RuntimeError(
+                    "Ein deutsches spaCy-Modell ist erforderlich. "
+                    "Installieren Sie eines mit: python -m spacy download de_core_news_sm "
+                    "oder python -m spacy download de_core_news_lg"
+                )
 
     def _initialisiere_ocr(self):
         """Initialisiert EasyOCR für bessere Texterkennung."""

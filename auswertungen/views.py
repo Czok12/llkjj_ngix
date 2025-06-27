@@ -245,6 +245,15 @@ def eur_view(request):
         or Decimal("0"),
     }
 
+    gesamte_einnahmen = sum(einnahmen_kategorien.values())
+    # Prozentanteile berechnen
+    einnahmen_anteile = {}
+    for k, v in einnahmen_kategorien.items():
+        if gesamte_einnahmen > 0:
+            einnahmen_anteile[k] = float(v) / float(gesamte_einnahmen) * 100
+        else:
+            einnahmen_anteile[k] = 0.0
+
     # Ausgaben nach Kategorien
     ausgaben_kategorien = {
         "wareneinsatz": Buchungssatz.objects.filter(
@@ -344,6 +353,7 @@ def eur_view(request):
         "verfuegbare_jahre": verfuegbare_jahre,
         # EÜR-Daten
         "einnahmen_kategorien": einnahmen_kategorien,
+        "einnahmen_anteile": einnahmen_anteile,
         "ausgaben_kategorien": ausgaben_kategorien,
         "gesamte_einnahmen": gesamte_einnahmen,
         "gesamte_ausgaben": gesamte_ausgaben,
@@ -732,7 +742,7 @@ def kontenblatt_excel_export(request, konto_id):
 def eur_offiziell_view(request):
     """
     Offizielle EÜR basierend auf dem amtlichen Formular.
-    Peter Zwegat: "Das ist 1:1 wie beim Finanzamt - kein Schnickschnack!"
+    Peter Zwegat: "Das ist das Wichtigste - hier sieht das Finanzamt alles!"
     """
     from .services import EURService
 
@@ -831,7 +841,7 @@ def eur_export_pdf(request):
             [
                 item["zeile_nummer"],
                 item["bezeichnung"],
-                f"{item['betrag']:,.2f}".replace(",", "."),
+                f"{item['betrag']:.2f}".replace(",", "."),
             ]
         )
 
@@ -839,7 +849,7 @@ def eur_export_pdf(request):
         [
             "",
             "Summe Einnahmen:",
-            f"{eur_data['gesamte_einnahmen']:,.2f}".replace(",", "."),
+            f"{eur_data['gesamte_einnahmen']:.2f}".replace(",", "."),
         ]
     )
 
@@ -873,7 +883,7 @@ def eur_export_pdf(request):
             [
                 item["zeile_nummer"],
                 item["bezeichnung"],
-                f"{item['betrag']:,.2f}".replace(",", "."),
+                f"{item['betrag']:.2f}".replace(",", "."),
             ]
         )
 
@@ -881,7 +891,7 @@ def eur_export_pdf(request):
         [
             "",
             "Summe Ausgaben:",
-            f"{eur_data['gesamte_ausgaben']:,.2f}".replace(",", "."),
+            f"{eur_data['gesamte_ausgaben']:.2f}".replace(",", "."),
         ]
     )
 

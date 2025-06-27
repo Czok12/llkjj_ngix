@@ -306,7 +306,7 @@ class BuchungViewsTest(TestCase):
     def test_buchung_validieren_ajax(self):
         self.assertFalse(self.buchung.validiert)
         response = self.client.post(
-            reverse("buchungen:validieren_ajax", kwargs={"pk": self.buchung.pk}),
+            reverse("buchungen:ajax_validieren", kwargs={"pk": self.buchung.pk}),
             {"aktion": "validieren"},
         )
         self.assertEqual(response.status_code, 200)
