@@ -11,10 +11,10 @@ class BenutzerprofilModelTest(TestCase):
     Peter Zwegat: "Die Stammdaten sind das Fundament. Ist das Fundament schief, bricht alles zusammen!"
     """
 
-    @classmethod
-    def setUpTestData(cls):
-        cls.user = User.objects.create_user(
-            username="testuser", password="password"  # noqa: S106
+    def setUp(self):
+        """Erstellt für jeden Test einen neuen User"""
+        self.user = User.objects.create_user(
+            username=f"testuser_{self.id()}", password="password"  # noqa: S106
         )
 
     def test_profil_erstellung(self):

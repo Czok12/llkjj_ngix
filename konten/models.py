@@ -145,7 +145,12 @@ class Konto(models.Model):
 
         # Kontonummer-Bereich-Validierung nach SKR03 (flexibel)
         if self.nummer:
-            nummer_int = int(self.nummer)
+            try:
+                nummer_int = int(self.nummer)
+            except ValueError:
+                raise ValidationError(
+                    {"nummer": "Kontonummer muss eine gültige Zahl sein"}
+                )
 
             # SKR03-Bereiche validieren (weniger strikt für Sonderfälle)
             if 1000 <= nummer_int <= 1299:  # Anlagevermögen/Kassen/Bank

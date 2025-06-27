@@ -82,13 +82,13 @@ class AuswertungenViewsTest(TestCase):
     def test_dashboard_view_unauthenticated(self):
         """Peter Zwegat: 'Ohne Login kein Zutritt! Diskretion ist alles.'"""
         self.client.logout()
-        response = self.client.get(reverse("dashboard:dashboard"))
+        response = self.client.get(reverse("auswertungen:dashboard"))
         # Erwartet eine Weiterleitung zur Login-Seite
         self.assertEqual(response.status_code, 302)
         self.assertIn("/login/", response.url)
 
     def test_dashboard_view_authenticated(self):
-        response = self.client.get(reverse("dashboard:dashboard"))
+        response = self.client.get(reverse("auswertungen:dashboard"))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "dashboard/dashboard_modern.html")
 
@@ -112,7 +112,7 @@ class AuswertungenViewsTest(TestCase):
             haben_konto=self.bank,
         )
 
-        response = self.client.get(reverse("dashboard:eur"))
+        response = self.client.get(reverse("auswertungen:eur"))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "auswertungen/eur.html")
 
@@ -126,7 +126,7 @@ class AuswertungenViewsTest(TestCase):
 
     def test_kontenblatt_view(self):
         response = self.client.get(
-            reverse("dashboard:kontenblatt", kwargs={"konto_id": self.bank.id})
+            reverse("auswertungen:kontenblatt", kwargs={"konto_id": self.bank.id})
         )
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "auswertungen/kontenblatt.html")
@@ -138,13 +138,13 @@ class AuswertungenViewsTest(TestCase):
     def test_export_views_headers(self):
         """Testet, ob die Export-Views die korrekten Header für einen Download senden."""
         # PDF-Export
-        response_pdf = self.client.get(reverse("dashboard:eur_pdf_export"))
+        response_pdf = self.client.get(reverse("auswertungen:eur_export_pdf"))
         self.assertEqual(response_pdf.status_code, 200)
         self.assertEqual(response_pdf["Content-Type"], "application/pdf")
         self.assertIn("attachment; filename=", response_pdf["Content-Disposition"])
 
         # Excel-Export
-        response_excel = self.client.get(reverse("dashboard:eur_excel_export"))
+        response_excel = self.client.get(reverse("auswertungen:eur_export_csv"))
         self.assertEqual(response_excel.status_code, 200)
         self.assertEqual(
             response_excel["Content-Type"],
@@ -153,7 +153,7 @@ class AuswertungenViewsTest(TestCase):
         self.assertIn("attachment; filename=", response_excel["Content-Disposition"])
 
         # XML-Export
-        response_xml = self.client.get(reverse("dashboard:eur_elster_xml"))
+        response_xml = self.client.get(reverse("auswertungen:eur_export_csv"))
         self.assertEqual(response_xml.status_code, 200)
         self.assertEqual(response_xml["Content-Type"], "application/xml")
         self.assertIn("attachment; filename=", response_xml["Content-Disposition"])

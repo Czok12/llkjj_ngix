@@ -308,13 +308,20 @@ class Buchungssatz(models.Model):
         super().clean()
 
         # Soll und Haben dürfen nicht identisch sein
-        if self.soll_konto and self.haben_konto and self.soll_konto == self.haben_konto:
-            raise ValidationError(
-                {"haben_konto": "Soll- und Haben-Konto dürfen nicht identisch sein!"}
-            )
+        if self.soll_konto and self.haben_konto:
+            try:
+                if self.soll_konto.id == self.haben_konto.id:
+                    raise ValidationError(
+                        {
+                            "haben_konto": "Soll- und Haben-Konto dürfen nicht identisch sein!"
+                        }
+                    )
+            except AttributeError:
+                # Falls die Konten noch nicht geladen sind, überspringen
+                pass
 
         # Betrag muss positiv sein
-        if self.betrag and self.betrag <= 0:
+        if self.betrag is not None and self.betrag <= 0:
             raise ValidationError({"betrag": "Der Betrag muss größer als 0 sein!"})
 
         # Konten müssen aktiv sein

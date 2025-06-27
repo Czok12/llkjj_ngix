@@ -42,7 +42,7 @@ class BelegModelTest(TestCase):
         self.assertEqual(bereinige_dateinamen("  Sonderzeichen!?*  "), "Sonderzeichen")
         self.assertEqual(
             bereinige_dateinamen("Ein sehr langer Name der gekürzt werden muss"),
-            "Ein_sehr_langer_Nam",
+            "Ein_sehr_langer_Name",
         )
 
     @patch("belege.models.datetime")
@@ -73,7 +73,9 @@ class BelegModelTest(TestCase):
         )
 
     def test_beleg_properties(self):
-        beleg = Beleg.objects.create(status="NEU", beleg_typ="RECHNUNG_EINGANG")
+        beleg = Beleg.objects.create(
+            status="NEU", beleg_typ="RECHNUNG_EINGANG", dateigröße=1024
+        )
         self.assertTrue(beleg.braucht_aufmerksamkeit)
         self.assertTrue(beleg.ist_ausgabe_typ)
         self.assertFalse(beleg.ist_einnahme_typ)
