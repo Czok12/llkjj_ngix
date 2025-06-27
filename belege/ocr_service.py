@@ -130,7 +130,7 @@ class OCRService:
             logger.warning(f"OCR fehlgeschlagen: {str(e)}")
             return ""
 
-    def _analyze_text(self, text: str) -> Dict:
+    def _analyze_text(self, text: str) -> dict:
         """
         Analysiert extrahierten Text und findet relevante Informationen.
         """
@@ -167,7 +167,7 @@ class OCRService:
 
         return result
 
-    def _extract_betrag(self, text: str) -> Dict | None:
+    def _extract_betrag(self, text: str) -> dict | None:
         """
         Extrahiert Geldbetrag aus Text.
         """
@@ -206,7 +206,7 @@ class OCRService:
 
         return None
 
-    def _extract_datum(self, text: str) -> Dict | None:
+    def _extract_datum(self, text: str) -> dict | None:
         """
         Extrahiert Datum aus Text.
         """
@@ -228,7 +228,7 @@ class OCRService:
 
         return None
 
-    def _extract_geschaeftspartner(self, text: str) -> Dict | None:
+    def _extract_geschaeftspartner(self, text: str) -> dict | None:
         """
         Extrahiert potentielle Geschäftspartner aus Text.
         """

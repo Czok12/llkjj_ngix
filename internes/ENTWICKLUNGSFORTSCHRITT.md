@@ -52,7 +52,7 @@
 - ✅ Moderne Benutzeroberfläche
 - ✅ Drag & Drop Upload
 - ✅ Live-Kennzahlen
-- ✅ Peter Zwegat Motivations-System
+- ✅  Motivations-System
 
 ### 🔍 **Features**
 - ✅ PDF-Upload und -Verwaltung
@@ -95,7 +95,7 @@
 - **Bulk Processing:** Stapelverarbeitung für Effizienz
 
 ### 🎨 **UX-Innovationen:**
-- **Peter Zwegat System:** Motivierende Sprüche und Tipps
+- ** System:** Motivierende Sprüche und Tipps
 - **Quick Actions:** Ein-Klick-Shortcuts für häufige Aufgaben
 - **Thumbnail Previews:** Visuelle Belegübersicht
 - **Progressive Enhancement:** Funktioniert auch ohne JavaScript
@@ -162,7 +162,7 @@
 ⚡ **Für Entwickler:** Moderne Architektur mit besten Practices  
 🏆 **Für das Team:** Beweis für agile Entwicklung in Perfektion  
 
-**Peter Zwegat wäre stolz: "Ordnung muss sein - und hier ist sie!"** 💪
+** wäre stolz: "Ordnung muss sein - und hier ist sie!"** 💪
 
 ---
 

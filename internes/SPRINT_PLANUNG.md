@@ -1,6 +1,6 @@
 # 🎯 llkjj_knut: Sprint-Planung als CTO
 
-*"Wie Peter Zwegat sagt: Ordnung ist das halbe Leben - die andere Hälfte ist systematische Entwicklung!"*
+*"Wie  sagt: Ordnung ist das halbe Leben - die andere Hälfte ist systematische Entwicklung!"*
 
 ---
 
@@ -144,7 +144,7 @@ Vollständige Implementierung aller Kern-Datenmodelle und SKR03-Integration.
 ---
 
 ## 🏃‍♂️ SPRINT 2: "Admin-Interface & Basis-UI" (Woche 2)
-**Motto: "Peter Zwegat hätte es nicht schöner machen können!"**
+**Motto: " hätte es nicht schöner machen können!"**
 
 ### 🎯 Sprint-Ziel:
 Vollständig nutzbares Admin-Interface und erste echte UI-Components.
@@ -161,7 +161,7 @@ Vollständig nutzbares Admin-Interface und erste echte UI-Components.
 - [x] List-Display, List-Filter, Search-Fields
 - [x] Inline-Editing (Buchungssätze bei Belegen)
 - [x] Custom Admin-Actions
-- [x] Peter Zwegat Branding im Admin
+- [x]  Branding im Admin
 
 **Definition of Done:** Admin-Interface vollständig professionalisiert ✅
 
@@ -176,7 +176,7 @@ Vollständig nutzbares Admin-Interface und erste echte UI-Components.
 - [x] `base.html` Template mit Tailwind CSS
 - [x] Responsive Sidebar-Navigation
 - [x] Breadcrumb-Navigation
-- [x] Peter Zwegat Humor in UI-Texten
+- [x]  Humor in UI-Texten
 - [x] Dashboard mit Live-Statistiken
 
 **Definition of Done:** Vollständige Navigation und UI-Framework implementiert ✅
@@ -338,7 +338,7 @@ Vollständiges Dashboard und erste Auswertungen (EÜR-Basis) für professionelle
 - ✅ Gewinn/Verlust Trend (Chart.js mit 12-Monats-Verlauf)
 - ✅ Offene Belege Counter mit direkter Verlinkung
 - ✅ Letzte Buchungen Timeline mit Live-Updates
-- ✅ Peter Zwegat Motivations-Sprüche (täglich wechselnd)
+- ✅  Motivations-Sprüche (täglich wechselnd)
 - ✅ Responsive Design für mobile Nutzung
 
 **Definition of Done:** ✅ Dashboard vollständig implementiert und getestet
@@ -414,7 +414,7 @@ Vollständiges Dashboard und erste Auswertungen (EÜR-Basis).
 - [ ] Gewinn/Verlust Trend (Chart.js)
 - [ ] Offene Belege Counter
 - [ ] Letzte Buchungen Timeline
-- [ ] Peter Zwegat Motivations-Sprüche
+- [ ]  Motivations-Sprüche
 
 ---
 
@@ -471,7 +471,7 @@ Production-Ready System mit vollständiger Test-Coverage.
 - [ ] Geschäftsjahr-Konfiguration
 - [ ] Import/Export-Einstellungen
 - [ ] Backup/Restore-Funktionen
-- [ ] Peter Zwegat Humor-Level Einstellung
+- [ ]  Humor-Level Einstellung
 
 ---
 
@@ -565,6 +565,6 @@ Production-Ready System mit vollständiger Test-Coverage.
 
 ---
 
-*"Wie Peter Zwegat sagen würde: 'Jetzt haben wir einen Plan - und Pläne sind da, um umgesetzt zu werden!' 💪"*
+*"Wie  sagen würde: 'Jetzt haben wir einen Plan - und Pläne sind da, um umgesetzt zu werden!' 💪"*
 
 **CTO-Unterschrift**: *Ready for Development* ✅

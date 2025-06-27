@@ -592,8 +592,9 @@ def beleg_bulk_upload(request):
                         beleg.erkannter_betrag = ocr_result.get("betrag")
                         beleg.erkanntes_datum = ocr_result.get("datum")
                         beleg.save()
-                except Exception:
+                except Exception as e:
                     # OCR-Fehler ignorieren, Beleg ist trotzdem gespeichert
+                    logger.warning(f"OCR-Fehler bei Beleg {beleg.id}: {e}")
                     pass
 
                 erfolgreiche_uploads.append(

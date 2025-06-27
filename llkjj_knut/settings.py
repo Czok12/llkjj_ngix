@@ -5,6 +5,7 @@ Buchhaltungsbutler für Künstler - Peter Zwegat Edition 🎨
 "Ordnung ist das halbe Leben - die andere Hälfte ist Kunst!"
 """
 
+import sys
 from pathlib import Path
 
 import environ
@@ -101,6 +102,14 @@ WSGI_APPLICATION = "llkjj_knut.wsgi.application"
 # Database - Mit django-environ konfigurierbar
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 DATABASES = {"default": env.db(default="sqlite:///db.sqlite3")}
+
+# Für Tests immer SQLite verwenden (schneller und keine Berechtigungsprobleme)
+# Peter Zwegat: "Tests müssen schnell und zuverlässig sein!"
+if "test" in sys.argv or "test_coverage" in sys.argv:
+    DATABASES["default"] = {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": ":memory:",  # In-Memory für schnellere Tests
+    }
 
 
 # Password validation

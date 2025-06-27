@@ -1242,7 +1242,7 @@ def eur_elster_xml_export(request):
 
     # ELSTER-XML generieren (vereinfachte Version)
     xml_content = f"""<?xml version="1.0" encoding="ISO-8859-1"?>
-<Elster xmlns="http://www.elster.de/elsterxml/schema/v11" 
+<Elster xmlns="http://www.elster.de/elsterxml/schema/v11"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://www.elster.de/elsterxml/schema/v11 elster_v11.xsd">
   <TransferHeader version="11">
@@ -1268,7 +1268,7 @@ def eur_elster_xml_export(request):
       </ElsterInfo>
     </Zusatz>
   </TransferHeader>
-  
+
   <DatenTeil>
     <Nutzdatenblock>
       <Nutzdatenheader version="11">
@@ -1280,25 +1280,25 @@ def eur_elster_xml_export(request):
         </Hersteller>
         <DatenLieferant>llkjj_knut</DatenLieferant>
       </Nutzdatenheader>
-      
+
       <Nutzdaten>
         <AnmeldungEst version="1">
           <StNr><!-- Steuernummer hier einfügen --></StNr>
           <Zeitraum>{jahr}</Zeitraum>
-          
+
           <!-- Anlage EÜR Daten -->
           <Kennzahlen>
             <!-- Einnahmen -->
             <Kz8400>{einnahmen:,.2f}</Kz8400>
-            
+
             <!-- Ausgaben -->
             <Kz4000>{ausgaben:,.2f}</Kz4000>
-            
+
             <!-- Gewinn/Verlust -->
             <Kz9000>{'1' if gewinn >= 0 else '2'}</Kz9000>
             <Kz9001>{abs(gewinn):,.2f}</Kz9001>
           </Kennzahlen>
-          
+
           <!-- Erklärung -->
           <Erklaerung>
             <Name><!-- Name des Steuerpflichtigen --></Name>
