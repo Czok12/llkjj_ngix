@@ -2,7 +2,7 @@
 
 from datetime import datetime, timedelta
 from decimal import Decimal
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 from django.contrib.auth import get_user_model
@@ -303,7 +303,8 @@ class TestBelegListeModern:
         assert response.status_code == 200
         assert "belege" in response.context
         assert "total_count" in response.context
-        assert "form" in response.context
+        assert "stats" in response.context
+        assert "page_title" in response.context
 
 
 class TestDashboard:
@@ -316,16 +317,19 @@ class TestDashboard:
 
         assert response.status_code == 200
         assert "gesamt_belege" in response.context
-        assert "neue_belege" in response.context
-        assert "geprueft_belege" in response.context
-        assert "verbuchte_belege" in response.context
-        assert "aktuelle_belege" in response.context
+        assert "stats" in response.context
+        assert "neueste_belege" in response.context
+        assert "aufmerksamkeit" in response.context
+        assert "titel" in response.context
 
         # Prüfe die Statistiken
         assert response.context["gesamt_belege"] == 30  # aus beleg_basis fixture
-        assert response.context["neue_belege"] >= 0
-        assert response.context["geprueft_belege"] >= 0
-        assert response.context["verbuchte_belege"] >= 0
+        stats = response.context["stats"]
+        assert stats["gesamt"] == 30
+        assert stats["neu"] >= 0
+        assert stats["geprueft"] >= 0
+        assert stats["verbucht"] >= 0
+        assert stats["fehler"] >= 0
 
 
 class TestBelegDetail:
@@ -343,7 +347,9 @@ class TestBelegDetail:
 
     def test_beleg_detail_nicht_existent(self, client):
         """Test für nicht existierenden Beleg."""
-        url = reverse("belege:detail", kwargs={"beleg_id": 999})
+        from uuid import uuid4
+
+        url = reverse("belege:detail", kwargs={"beleg_id": str(uuid4())})
         response = client.get(url)
 
         assert response.status_code == 404
@@ -376,6 +382,7 @@ class TestBelegBearbeiten:
             "rechnungsdatum": beleg.rechnungsdatum,
             "beleg_typ": beleg.beleg_typ,
             "geschaeftspartner": geschaeftspartner_lieferant.id,
+            "status": "GEPRUEFT",  # Status hinzufügen
         }
 
         response = client.post(url, data)
@@ -389,24 +396,53 @@ class TestBelegBearbeiten:
 class TestBelegThumbnail:
     """Tests für die beleg_thumbnail View."""
 
-    @patch("belege.views.generate_pdf_thumbnail")
-    def test_beleg_thumbnail_success(self, mock_generate, client, beleg_basis):
+    def test_beleg_thumbnail_success(self, client, beleg_mit_datei):
         """Test der Thumbnail-Generierung."""
-        mock_generate.return_value = b"fake thumbnail data"
+        with (
+            patch("belege.views.fitz") as mock_fitz,
+            patch("belege.views.Image") as mock_image,
+        ):
+            # Mock fitz (PyMuPDF)
+            mock_doc = MagicMock()
+            mock_page = MagicMock()
+            mock_pixmap = MagicMock()
+            mock_pixmap.tobytes.return_value = b"fake ppm data"
+            mock_page.get_pixmap.return_value = mock_pixmap
+            mock_doc.__getitem__.return_value = mock_page
+            mock_fitz.open.return_value = mock_doc
 
-        beleg = beleg_basis[0]
-        url = reverse("belege:thumbnail", kwargs={"beleg_id": beleg.id})
-        response = client.get(url)
+            # Mock PIL Image
+            mock_img = MagicMock()
+            mock_image.open.return_value = mock_img
+            mock_image.new.return_value = mock_img
 
-        assert response.status_code == 200
-        assert response["Content-Type"] == "image/jpeg"
+            # Mock das save-Verhalten
+            def mock_save(output, format):
+                output.write(b"fake png data")
 
-    @patch("belege.views.generate_pdf_thumbnail")
-    def test_beleg_thumbnail_error(self, mock_generate, client, beleg_basis):
+            mock_img.save.side_effect = mock_save
+
+            # beleg_mit_datei hat eine Datei
+            url = reverse("belege:thumbnail", kwargs={"beleg_id": beleg_mit_datei.id})
+            response = client.get(url)
+
+            assert response.status_code == 200
+            assert response["Content-Type"] == "image/png"
+
+    def test_beleg_thumbnail_error(self, client, beleg_mit_datei):
         """Test der Thumbnail-Generierung bei Fehler."""
-        mock_generate.side_effect = Exception("Thumbnail error")
+        with patch("belege.views.fitz") as mock_fitz:
+            mock_fitz.open.side_effect = Exception("Thumbnail error")
 
-        beleg = beleg_basis[0]
+            # beleg_mit_datei hat eine Datei
+            url = reverse("belege:thumbnail", kwargs={"beleg_id": beleg_mit_datei.id})
+            response = client.get(url)
+
+            assert response.status_code == 500
+
+    def test_beleg_thumbnail_ohne_datei(self, client, beleg_basis):
+        """Test der Thumbnail-Generierung für Beleg ohne Datei."""
+        beleg = beleg_basis[0]  # Hat keine Datei
         url = reverse("belege:thumbnail", kwargs={"beleg_id": beleg.id})
         response = client.get(url)
 
@@ -431,6 +467,24 @@ class TestBelegPDFViewer:
         response = client.get(url)
 
         assert response.status_code == 404
+
+    def test_beleg_pdf_viewer_mit_datei(self, client, beleg_mit_datei):
+        """Test PDF-Viewer für Beleg mit Datei."""
+        url = reverse("belege:pdf_viewer", kwargs={"beleg_id": beleg_mit_datei.id})
+        response = client.get(url)
+
+        assert response.status_code == 200
+        assert response["Content-Type"] == "application/pdf"
+
+    def test_beleg_pdf_viewer_modern_mit_datei(self, client, beleg_mit_datei):
+        """Test moderner PDF-Viewer für Beleg mit Datei."""
+        url = reverse(
+            "belege:pdf_viewer_modern", kwargs={"beleg_id": beleg_mit_datei.id}
+        )
+        response = client.get(url)
+
+        assert response.status_code == 200
+        assert "beleg" in response.context
 
 
 class TestNeuerGeschaeftspartner:
@@ -457,6 +511,9 @@ class TestNeuerGeschaeftspartner:
         response = client.post(url, data)
 
         assert response.status_code == 302  # Redirect nach Erfolg
+        # Prüfen über die Datenbank-Query direkt
+        from buchungen.models import Geschaeftspartner
+
         assert Geschaeftspartner.objects.filter(name="Neuer Partner GmbH").exists()
 
     def test_neuer_geschaeftspartner_post_invalid(self, client):

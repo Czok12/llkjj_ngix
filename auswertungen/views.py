@@ -621,6 +621,7 @@ def kontenblatt_excel_export(request, konto_id):
     return response
 
 
+@login_required
 def eur_pdf_export(request):
     """
     PDF-Export der EÜR.
@@ -705,6 +706,7 @@ def eur_pdf_export(request):
     return response
 
 
+@login_required
 def eur_excel_export(request):
     """
     Excel-Export der EÜR.
@@ -816,6 +818,7 @@ def eur_offiziell_view(request):
     return render(request, "auswertungen/eur_offiziell.html", context)
 
 
+@login_required
 def eur_export_csv(request):
     """
     CSV-Export der offiziellen EÜR.
@@ -840,6 +843,7 @@ def eur_export_csv(request):
     return response
 
 
+@login_required
 def eur_export_pdf(request):
     """
     PDF-Export der offiziellen EÜR.

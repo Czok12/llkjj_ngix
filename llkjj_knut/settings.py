@@ -5,6 +5,7 @@ Buchhaltungsbutler für Künstler - Peter Zwegat Edition 🎨
 "Ordnung ist das halbe Leben - die andere Hälfte ist Kunst!"
 """
 
+import os
 import sys
 from pathlib import Path
 
@@ -13,44 +14,34 @@ import environ
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Environment Variables (django-environ)
-env = environ.Env(
-    DEBUG=(bool, True),  # Default auf True für Development
-    PETER_ZWEGAT_MODE=(bool, True),
-    HUMOR_LEVEL=(str, "medium"),
-    # Logging-Konfiguration
-    ENABLE_FILE_LOGGING=(bool, True),
-    LOG_LEVEL=(str, "INFO"),
-    LOG_TO_CONSOLE=(bool, True),
-    LOG_MAX_FILE_SIZE=(int, 5242880),  # 5MB default
-    LOG_BACKUP_COUNT=(int, 5),
-    LOG_ROTATE_DAILY=(bool, False),
-)
+# Environment Variables (django-environ) - Vereinfacht
+env = environ.Env()
 
 # Lade .env-Datei falls vorhanden
-environ.Env.read_env(BASE_DIR / ".env")
+try:
+    environ.Env.read_env(BASE_DIR / ".env")
+except (FileNotFoundError, OSError):
+    # .env-Datei nicht gefunden oder nicht lesbar - verwende System-Umgebungsvariablen
+    pass
 
 # SECURITY WARNING: keep the secret key used in production secret!
 # CTO-approved: Production-ready secret key
-SECRET_KEY = env(
+SECRET_KEY = os.getenv(
     "SECRET_KEY",
-    default="p@ssw0rd!2024-llkjj-art-production-super-secure-secret-key-with-50plus-chars-very-long",
+    "p@ssw0rd!2024-llkjj-art-production-super-secure-secret-key-with-50plus-chars-very-long",
 )
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = env("DEBUG")
+DEBUG = os.getenv("DEBUG", "True").lower() == "true"
 
 # CTO-approved: Erweiterte ALLOWED_HOSTS für Production
-ALLOWED_HOSTS = env.list(
-    "ALLOWED_HOSTS",
-    default=[
-        "localhost",
-        "127.0.0.1",
-        "*.herokuapp.com",
-        "*.railway.app",
-        "*.vercel.app",
-    ],
-)
+ALLOWED_HOSTS = [
+    "localhost",
+    "127.0.0.1",
+    "*.herokuapp.com",
+    "*.railway.app",
+    "*.vercel.app",
+]
 
 
 # Application definition
@@ -109,9 +100,15 @@ TEMPLATES = [
 WSGI_APPLICATION = "llkjj_knut.wsgi.application"
 
 
-# Database - Mit django-environ aus .env konfigurierbar
+# Database - Direkte SQLite-Konfiguration für Development
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
-DATABASES = {"default": env.db()}
+
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",
+    }
+}
 
 # Für Tests immer SQLite verwenden (schneller und keine Berechtigungsprobleme)
 # Peter Zwegat: "Tests müssen schnell und zuverlässig sein!"
@@ -211,37 +208,38 @@ if DEBUG:
     EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 else:
     EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-    EMAIL_HOST = env("EMAIL_HOST", default="smtp.gmail.com")
-    EMAIL_PORT = env.int("EMAIL_PORT", default=587)
-    EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=True)
-    EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="")
-    EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")
+    # E-Mail Konfiguration mit os.getenv für Kompatibilität
+    EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.gmail.com")
+    EMAIL_PORT = int(os.getenv("EMAIL_PORT", "587"))
+    EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "True").lower() == "true"
+    EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
+    EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
 
 # =============================================================================
 # PROJEKT-SPEZIFISCHE EINSTELLUNGEN
 # =============================================================================
 
 # Peter Zwegat Modus
-PETER_ZWEGAT_MODE = env("PETER_ZWEGAT_MODE")
-HUMOR_LEVEL = env("HUMOR_LEVEL")
+PETER_ZWEGAT_MODE = os.getenv("PETER_ZWEGAT_MODE", "True").lower() == "true"
+HUMOR_LEVEL = os.getenv("HUMOR_LEVEL", "medium")
 
 # SKR03 Kontenrahmen
 SKR03_JSON_PATH = BASE_DIR / "skr03_konten.json"
 
 # Unternehmensdaten
-COMPANY_NAME = env("COMPANY_NAME", default="Künstlerischer Betrieb")
-FISCAL_YEAR_START = env.int("FISCAL_YEAR_START", default=1)  # 1. Januar
+COMPANY_NAME = os.getenv("COMPANY_NAME", "Künstlerischer Betrieb")
+FISCAL_YEAR_START = int(os.getenv("FISCAL_YEAR_START", "1"))  # 1. Januar
 
 # Datei-Upload Einstellungen
-MAX_UPLOAD_SIZE = env.int("MAX_UPLOAD_SIZE", default=10485760)  # 10MB
+MAX_UPLOAD_SIZE = int(os.getenv("MAX_UPLOAD_SIZE", "10485760"))  # 10MB
 ALLOWED_UPLOAD_EXTENSIONS = [".pdf", ".jpg", ".jpeg", ".png", ".gif"]
 
 # =============================================================================
 # CELERY KONFIGURATION (für asynchrone Tasks)
 # =============================================================================
 
-CELERY_BROKER_URL = env("CELERY_BROKER_URL", default="redis://localhost:6379/0")
-CELERY_RESULT_BACKEND = env("CELERY_RESULT_BACKEND", default="redis://localhost:6379/0")
+CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", "redis://localhost:6379/0")
+CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND", "redis://localhost:6379/0")
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
@@ -261,7 +259,7 @@ handlers_config = {}
 loggers_handlers = []
 
 # Console-Handler (optional via .env)
-if env("LOG_TO_CONSOLE"):
+if os.getenv("LOG_TO_CONSOLE", "False").lower() == "true":
     handlers_config["console"] = {
         "level": "INFO",
         "class": "logging.StreamHandler",
@@ -270,29 +268,32 @@ if env("LOG_TO_CONSOLE"):
     loggers_handlers.append("console")
 
 # File-Handler (optional via .env)
-if env("ENABLE_FILE_LOGGING"):
+if os.getenv("ENABLE_FILE_LOGGING", "False").lower() == "true":
     # Haupt-Log-Datei (alle Logs in einer .txt-Datei)
     handlers_config["file"] = {
-        "level": env("LOG_LEVEL"),
+        "level": os.getenv("LOG_LEVEL", "INFO"),
         "class": "logging.handlers.RotatingFileHandler",
-        "filename": LOG_DIR / "llkjj_knut.txt",
-        "maxBytes": env.int("LOG_MAX_FILE_SIZE"),
-        "backupCount": env.int("LOG_BACKUP_COUNT"),
+        "filename": str(LOG_DIR / "llkjj_knut.txt"),
+        "maxBytes": int(os.getenv("LOG_MAX_FILE_SIZE", "10485760")),
+        "backupCount": int(os.getenv("LOG_BACKUP_COUNT", "5")),
         "formatter": "detailed",
         "encoding": "utf-8",
     }
     loggers_handlers.append("file")
 
 # Tägliche Rotation (optional)
-if env("LOG_ROTATE_DAILY") and env("ENABLE_FILE_LOGGING"):
+if (
+    os.getenv("LOG_ROTATE_DAILY", "False").lower() == "true"
+    and os.getenv("ENABLE_FILE_LOGGING", "False").lower() == "true"
+):
     # Überschreibt Standard-File-Handler mit zeitbasierter Rotation
     handlers_config["file"] = {
-        "level": env("LOG_LEVEL"),
+        "level": os.getenv("LOG_LEVEL", "INFO"),
         "class": "logging.handlers.TimedRotatingFileHandler",
-        "filename": LOG_DIR / "llkjj_knut.log",
+        "filename": str(LOG_DIR / "llkjj_knut.log"),
         "when": "midnight",
         "interval": 1,
-        "backupCount": env.int("LOG_BACKUP_COUNT"),
+        "backupCount": int(os.getenv("LOG_BACKUP_COUNT", "5")),
         "formatter": "detailed",
         "encoding": "utf-8",
     }
@@ -320,7 +321,7 @@ LOGGING = {
     "handlers": handlers_config,
     "root": {
         "handlers": loggers_handlers,
-        "level": env("LOG_LEVEL"),
+        "level": os.getenv("LOG_LEVEL", "INFO"),
     },
     "loggers": {
         # Django Core
@@ -342,42 +343,42 @@ LOGGING = {
         # llkjj_knut Apps
         "llkjj_knut": {
             "handlers": loggers_handlers,
-            "level": env("LOG_LEVEL"),
+            "level": os.getenv("LOG_LEVEL", "INFO"),
             "propagate": False,
         },
         "konten": {
             "handlers": loggers_handlers,
-            "level": env("LOG_LEVEL"),
+            "level": os.getenv("LOG_LEVEL", "INFO"),
             "propagate": False,
         },
         "buchungen": {
             "handlers": loggers_handlers,
-            "level": env("LOG_LEVEL"),
+            "level": os.getenv("LOG_LEVEL", "INFO"),
             "propagate": False,
         },
         "belege": {
             "handlers": loggers_handlers,
-            "level": env("LOG_LEVEL"),
+            "level": os.getenv("LOG_LEVEL", "INFO"),
             "propagate": False,
         },
         "auswertungen": {
             "handlers": loggers_handlers,
-            "level": env("LOG_LEVEL"),
+            "level": os.getenv("LOG_LEVEL", "INFO"),
             "propagate": False,
         },
         "steuer": {
             "handlers": loggers_handlers,
-            "level": env("LOG_LEVEL"),
+            "level": os.getenv("LOG_LEVEL", "INFO"),
             "propagate": False,
         },
         "einstellungen": {
             "handlers": loggers_handlers,
-            "level": env("LOG_LEVEL"),
+            "level": os.getenv("LOG_LEVEL", "INFO"),
             "propagate": False,
         },
         "authentifizierung": {
             "handlers": loggers_handlers,
-            "level": env("LOG_LEVEL"),
+            "level": os.getenv("LOG_LEVEL", "INFO"),
             "propagate": False,
         },
         # Celery
@@ -404,21 +405,39 @@ LOGGING = {
 # Diese werden nur in Production aktiviert, wenn DEBUG=False
 if not DEBUG:
     try:
-        from .security_settings import *
+        from .security_settings import (
+            PRODUCTION_ALLOWED_HOSTS,
+            PRODUCTION_SECRET_KEY,
+            SECURE_BROWSER_XSS_FILTER,
+            SECURE_CONTENT_TYPE_NOSNIFF,
+            SECURE_HSTS_INCLUDE_SUBDOMAINS,
+            SECURE_HSTS_SECONDS,
+            SECURE_REFERRER_POLICY,
+            X_FRAME_OPTIONS,
+        )
 
         # Überschreibe kritische Settings für Production
-        if "PRODUCTION_SECRET_KEY" in globals():
-            SECRET_KEY = PRODUCTION_SECRET_KEY
+        SECRET_KEY = PRODUCTION_SECRET_KEY
+        ALLOWED_HOSTS = PRODUCTION_ALLOWED_HOSTS
 
-        if "PRODUCTION_ALLOWED_HOSTS" in globals():
-            ALLOWED_HOSTS = PRODUCTION_ALLOWED_HOSTS
+        # Übernehme Security-Headers
+        globals().update(
+            {
+                "SECURE_HSTS_SECONDS": SECURE_HSTS_SECONDS,
+                "SECURE_HSTS_INCLUDE_SUBDOMAINS": SECURE_HSTS_INCLUDE_SUBDOMAINS,
+                "SECURE_CONTENT_TYPE_NOSNIFF": SECURE_CONTENT_TYPE_NOSNIFF,
+                "SECURE_BROWSER_XSS_FILTER": SECURE_BROWSER_XSS_FILTER,
+                "SECURE_REFERRER_POLICY": SECURE_REFERRER_POLICY,
+                "X_FRAME_OPTIONS": X_FRAME_OPTIONS,
+            }
+        )
 
         print("🔒 Production Security activated")
     except ImportError:
         print("⚠️  Security settings not found - using defaults")
 
 # PERFORMANCE: Cache für Production
-if not DEBUG and env.bool("USE_CACHE", default=False):
+if not DEBUG and os.getenv("USE_CACHE", "False").lower() == "true":
     CACHES = {
         "default": {
             "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
