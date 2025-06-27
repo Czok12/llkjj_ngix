@@ -7,7 +7,8 @@ import secrets
 
 import environ
 
-from llkjj_knut.settings import *
+from llkjj_knut.settings import *  # noqa: F403
+from llkjj_knut.settings import BASE_DIR  # Explicit import for mypy
 
 # Import environ
 env = environ.Env()

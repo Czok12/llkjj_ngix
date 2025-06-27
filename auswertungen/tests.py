@@ -198,9 +198,9 @@ class AuswertungenViewsExtendedTest(TestCase):
 
     def setUp(self):
         self.client = Client()
-        self.client.login(
-            username="tester", password="password123"
-        )  # noqa: S106    def test_kennzahlen_ajax_view(self):
+        self.client.login(username="tester", password="password123")  # noqa: S106
+
+    def test_kennzahlen_ajax_view(self):
         """Test für die AJAX-Kennzahlen-Abfrage."""
         response = self.client.get(reverse("auswertungen:kennzahlen_ajax"))
         self.assertEqual(response.status_code, 200)

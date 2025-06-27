@@ -218,10 +218,10 @@ class BelegKategorisierungsKI:
 
         if historie.exists():
             haeufigste = historie.first()
-            gesamt_count = sum(h["count"] for h in historie)
-            vertrauen = min(0.95, haeufigste["count"] / gesamt_count)
-
-            return haeufigste["korrekte_kategorie"], vertrauen
+            if haeufigste:
+                gesamt_count = sum(h["count"] for h in historie)
+                vertrauen = min(0.95, haeufigste["count"] / gesamt_count)
+                return haeufigste["korrekte_kategorie"], vertrauen
 
         return "SONSTIGES", 0.0
 
@@ -268,6 +268,7 @@ class BelegKategorisierungsKI:
         # Schlüsselwörter extrahieren
         if ocr_text:
             text_lower = ocr_text.lower()
+            features["schluesselwoerter"] = []  # Initialize as list
             for kategorie_woerter in self.kategorien_regeln.values():
                 for wort in kategorie_woerter:
                     if re.search(wort, text_lower):
@@ -305,7 +306,7 @@ class BelegKategorisierungsKI:
 
         return aehnlichkeit
 
-    def _bestimme_betrag_bereich(self, betrag: float = None) -> str:
+    def _bestimme_betrag_bereich(self, betrag: float | None = None) -> str:
         """Bestimmt den Betragsbereich."""
         if not betrag:
             return "unbekannt"
@@ -331,7 +332,7 @@ class BelegKategorisierungsKI:
             return "SONSTIGES", 0.1
 
         # Gewichteter Durchschnitt der Ergebnisse
-        kategorien_votes = {}
+        kategorien_votes: dict[str, float] = {}
         for kategorie, vertrauen in ergebnisse:
             if kategorie in kategorien_votes:
                 kategorien_votes[kategorie] += vertrauen
@@ -339,7 +340,7 @@ class BelegKategorisierungsKI:
                 kategorien_votes[kategorie] = vertrauen
 
         # Beste Kategorie mit höchstem gewichteten Vertrauen
-        beste_kategorie = max(kategorien_votes, key=kategorien_votes.get)
+        beste_kategorie = max(kategorien_votes, key=kategorien_votes.get)  # type: ignore[arg-type]
         finales_vertrauen = min(
             0.95, kategorien_votes[beste_kategorie] / len(ergebnisse)
         )
@@ -356,7 +357,8 @@ class BelegKategorisierungsKI:
         ).select_related("geschaeftspartner")
 
         for beleg in belege:
-            lieferant = beleg.geschaeftspartner.name.lower()
+            if beleg.geschaeftspartner:
+                lieferant = beleg.geschaeftspartner.name.lower()
             if lieferant not in historie:
                 historie[lieferant] = beleg.beleg_typ
 

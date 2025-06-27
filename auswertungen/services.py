@@ -222,7 +222,7 @@ class EURService:
                 {
                     "datum": buchung.buchungsdatum,
                     "betrag": buchung.betrag,
-                    "beschreibung": buchung.beschreibung,
+                    "beschreibung": buchung.buchungstext,
                     "soll_konto": (
                         f"{buchung.soll_konto.nummer} - {buchung.soll_konto.name}"
                         if buchung.soll_konto
@@ -238,7 +238,7 @@ class EURService:
                         if buchung.geschaeftspartner
                         else ""
                     ),
-                    "beleg_nummer": buchung.beleg.nummer if buchung.beleg else "",
+                    "beleg_nummer": (str(buchung.beleg.id) if buchung.beleg else ""),
                 }
             )
 
@@ -330,4 +330,5 @@ class EURExportService:
         """Generiert PDF-Export der EÜR."""
         # TODO: Implementierung der PDF-Generierung
         # Hier würde die PDF-Generierung mit ReportLab implementiert
-        pass
+        # Für jetzt geben wir leeren Byte-Content zurück
+        return b""

@@ -86,7 +86,7 @@ class PDFDatenExtraktor:
             ],
         }
 
-    def extrahiere_daten(self, pdf_pfad: str) -> dict[str, str | None]:
+    def extrahiere_daten(self, pdf_pfad: str) -> dict[str, str | bool | float | None]:
         """
         Hauptmethode zur Datenextraktion aus PDF.
 
@@ -166,7 +166,7 @@ class PDFDatenExtraktor:
 
         return text
 
-    def _analysiere_text(self, text: str) -> dict[str, str | None]:
+    def _analysiere_text(self, text: str) -> dict[str, str | bool | float | None]:
         """
         Analysiert den extrahierten Text und sucht nach relevanten Daten.
 
@@ -399,7 +399,7 @@ class PDFDatenExtraktor:
 
         return daten
 
-    def _leere_daten_struktur(self) -> dict[str, str | None]:
+    def _leere_daten_struktur(self) -> dict[str, str | bool | float | None]:
         """
         Gibt eine leere Datenstruktur zurück.
 
@@ -414,7 +414,7 @@ class PDFDatenExtraktor:
             "ust_id": None,
             "ocr_text": "",
             "extraktions_erfolg": False,
-            "vertrauen": 0.0,  # Vertrauenswert 0-1
+            "vertrauen": 0.0,
         }
 
     def berechne_vertrauen(self, daten: dict) -> float:
@@ -441,7 +441,7 @@ class PDFDatenExtraktor:
         return round(vertrauen, 2)
 
 
-def extrahiere_pdf_daten(datei_pfad: str) -> dict[str, str | None]:
+def extrahiere_pdf_daten(datei_pfad: str) -> dict[str, str | bool | float | None]:
     """
     Convenience-Funktion für PDF-Datenextraktion.
 

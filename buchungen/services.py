@@ -190,7 +190,7 @@ class BuchungsService:
                 try:
                     # Daten aus Zeile extrahieren
                     buchung_data = BuchungsService._extrahiere_buchung_aus_csv_zeile(
-                        zeile, mapping
+                        zeile, mapping  # type: ignore[arg-type]
                     )
 
                     if not buchung_data:
@@ -254,7 +254,12 @@ class BuchungsService:
                     pass
 
                 else:
-                    buchung_data[feld_name.replace("buchungs", "")] = wert
+                    if feld_name.replace("buchungs", "") == "betrag":
+                        buchung_data[feld_name.replace("buchungs", "")] = Decimal(
+                            str(wert)
+                        )
+                    else:
+                        buchung_data[feld_name.replace("buchungs", "")] = wert
 
         # Betrag ist Pflicht
         if "betrag" not in buchung_data:

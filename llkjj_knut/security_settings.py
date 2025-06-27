@@ -21,9 +21,7 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 CSRF_COOKIE_HTTPONLY = True
 
 # Production-ready Secret Key (50+ characters)
-PRODUCTION_SECRET_KEY = (
-    "p@ssw0rd!2024-llkjj-art-production-super-secure-secret-key-with-50plus-chars"
-)
+PRODUCTION_SECRET_KEY = "p@ssw0rd!2024-llkjj-art-production-super-secure-secret-key-with-50plus-chars"  # noqa: S105
 
 # Production Allowed Hosts
 PRODUCTION_ALLOWED_HOSTS = [

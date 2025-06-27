@@ -265,7 +265,7 @@ class OCRService:
                 )
 
         if candidates:
-            return max(candidates, key=lambda x: x["confidence"])
+            return max(candidates, key=lambda x: x["confidence"])  # type: ignore[arg-type,return-value]
 
         return None
 

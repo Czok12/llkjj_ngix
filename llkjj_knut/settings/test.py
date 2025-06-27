@@ -14,7 +14,7 @@ PASSWORD_HASHERS = [
 ]
 
 # Secret Key für Tests
-SECRET_KEY = "test-secret-key-not-for-production"
+SECRET_KEY = "test-secret-key-not-for-production"  # noqa: S105
 
 # Crispy Forms Template Pack (using Tailwind)
 CRISPY_ALLOWED_TEMPLATE_PACKS = "tailwind"
