@@ -1,0 +1,1 @@
+diese Software ist eine Einzelnutzeranwendung mit Vorbild von "Buchhaltungsbutler.de". Ausgelegt auf einen freischaffenden Künstler, der Kleinunternehmer ist. SKR03 Kontenrahmen und automatisierungen.

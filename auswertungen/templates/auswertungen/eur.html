@@ -24,10 +24,6 @@
     @apply bg-green-600 hover:bg-green-700;
 }
 
-.export-btn.xml {
-    @apply bg-blue-600 hover:bg-blue-700;
-}
-
 .eur-section {
     @apply bg-white rounded-lg shadow-md p-6 mb-6;
 }
@@ -78,10 +74,6 @@
         <a href="{% url 'auswertungen:eur_excel' %}?jahr={{ jahr }}" 
            class="export-btn excel">
             📊 Excel-Export
-        </a>
-        <a href="{% url 'auswertungen:eur_elster_xml' %}?jahr={{ jahr }}" 
-           class="export-btn xml">
-            📤 ELSTER-XML
         </a>
     </div>
 
@@ -203,7 +195,6 @@
             <li>• Diese EÜR ist nach §4 Abs. 3 EStG erstellt</li>
             <li>• Alle Beträge sind bereits nach SKR03-Standard kategorisiert</li>
             <li>• Der PDF-Export ist druckfertig für Ihren Steuerberater</li>
-            <li>• Die ELSTER-XML kann direkt ans Finanzamt übertragen werden</li>
         </ul>
     </div>
 </div>

@@ -30,7 +30,7 @@
 ### 🎯 **Nächste Meilensteine:**
 - **Sprint 4**: Beleg-Upload, PDF-Preview, OCR-Vorbereitung
 - **Sprint 5**: EÜR-Generierung und Auswertungen
-- **Sprint 6**: Steuererklärung und ELSTER-Integration
+- **Sprint 6**: Steuererklärung
 
 ---
 

@@ -257,9 +257,6 @@
                 <a href="{% url 'auswertungen:eur_export_pdf' %}?jahr={{ jahr }}" class="btn btn-outline-danger">
                     <i class="fas fa-file-pdf"></i> PDF
                 </a>
-                <button id="btn-elster-export" class="btn btn-outline-success">
-                    <i class="fas fa-download"></i> ELSTER-XML
-                </button>
             </div>
         </div>
     </div>
@@ -290,7 +287,6 @@
             <div class="col-md-6">
                 <small class="text-info"><i class="fas fa-info-circle"></i> Gewinn im normalen Bereich</small><br>
                 <small class="text-info"><i class="fas fa-info-circle"></i> Ausgaben plausibel zu Einnahmen</small><br>
-                <small class="text-info"><i class="fas fa-info-circle"></i> Bereit für ELSTER-Export</small>
             </div>
         </div>
     </div>
@@ -430,7 +426,7 @@
                 <div class="zeilen-nr">99</div>
                 <div class="zeilen-text">Künstlerische Tätigkeit nach § 18 EStG</div>
                 <div class="kz-nr">KZ 699</div>
-                <div class="betrag">{{ kuenstlerische_einnahmen|floatformat:2 }}€</div>
+                <div class="betrag>{{ kuenstlerische_einnahmen|floatformat:2 }}€</div>
             </div>
             
             <div class="eur-zeile-official">
@@ -468,13 +464,7 @@
 
 {% block extra_js %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {            // ELSTER-Export Button
-            document.getElementById('btn-elster-export').addEventListener('click', function() {
-                if (confirm('ELSTER-XML für das Jahr {{ jahr }} exportieren?')) {
-                    window.location.href = '{% url "auswertungen:eur_elster_xml_export" %}?jahr={{ jahr }}';
-                }
-            });
-    
+document.addEventListener('DOMContentLoaded', function() {
     // Plausibilitätsprüfung
     function validateEUR() {
         const errors = [];

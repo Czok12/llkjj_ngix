@@ -88,17 +88,8 @@
 - [x] Validierung der Steuerdaten ✅
 - [x] Layout nach offizieller Vorlage ✅
 - [x] Automatische Berechnung der Summen ✅
-- [x] ELSTER-XML Export implementiert ✅
 
-#### Task 2: ELSTER-Export Vorbereitung (✅ **FERTIG**)
-**Status:** ✅ **ABGESCHLOSSEN** (27. Juni 2025, 18:00 Uhr)  
-**Aufwand:** 2-3 Tage
-- [x] XML-Export für ELSTER ✅
-- [x] Strukturierte Datenaufbereitung ✅
-- [x] Validierung nach ELSTER-Standards ✅
-- [x] Import/Export-Schnittstelle ✅
-
-#### Task 3: Erweiterte Auswertungen
+#### Task 2: Erweiterte Auswertungen
 **Status:** 📋 **GEPLANT**
 **Aufwand:** 1-2 Tage
 - [ ] Kontenblätter mit Drill-Down
@@ -115,7 +106,6 @@
 
 **🔥 Haupterfolge:**
 - ✅ Offizielles BMF-EÜR-Formular nach § 60 EStDV
-- ✅ ELSTER-XML Export implementiert
 - ✅ Plausibilitätsprüfung und Validierung
 - ✅ Quick-Actions im Dashboard erweitert
 - ✅ Professionelle Druckansicht
@@ -198,7 +188,6 @@
 
 **EÜR & Steuern:**
 - ✅ EÜR-Formular nach BMF-Vorgaben (**95% fertig**)
-- ✅ ELSTER-XML Export (**90% fertig**)
 - ✅ Plausibilitätsprüfungen (**85% fertig**)
 
 #### 🚧 **WAS HALBFERTIG IST (50-70%):**

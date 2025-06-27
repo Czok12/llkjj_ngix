@@ -26,10 +26,6 @@ urlpatterns = [
     # Alte Export-URLs (Kompatibilität)
     path("eur/pdf/", views.eur_pdf_export, name="eur_pdf"),
     path("eur/excel/", views.eur_excel_export, name="eur_excel"),
-    path("eur/elster-xml/", views.eur_elster_xml, name="eur_elster_xml"),
-    path(
-        "eur-bmf/elster-xml/", views.eur_elster_xml_export, name="eur_elster_xml_export"
-    ),
     # Kontenblätter
     path("kontenblatt/<uuid:konto_id>/", views.kontenblatt_view, name="kontenblatt"),
     path(

@@ -165,7 +165,7 @@ class AuswertungenViewsTest(TestCase):
         )
         self.assertIn("attachment; filename=", response_csv["Content-Disposition"])
 
-        # CSV-Export (wiederholt, um XML zu testen - sollte geändert werden)
+        # CSV-Export (wiederholt, um Funktion zu testen)
         response_csv2 = self.client.get(reverse("auswertungen:eur_export_csv"))
         self.assertEqual(response_csv2.status_code, 200)
         self.assertEqual(response_csv2["Content-Type"], "text/csv; charset=utf-8")

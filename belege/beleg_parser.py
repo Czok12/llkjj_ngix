@@ -247,24 +247,38 @@ class BelegParser:
                 org_text = ent.text.strip()
                 # Filtere BIC-Codes und IBANs aus, die als ORG erkannt werden könnten
                 # BIC: 11 Zeichen, nur Großbuchstaben und Zahlen
-                is_bic = (len(org_text) == 11 and org_text.isalnum() and org_text.isupper())
+                is_bic = (
+                    len(org_text) == 11 and org_text.isalnum() and org_text.isupper()
+                )
                 # IBAN: beginnt mit DE und ist 22 Zeichen lang
-                is_iban = (org_text.startswith("DE") and len(org_text) == 22 and org_text.isalnum())
+                is_iban = (
+                    org_text.startswith("DE")
+                    and len(org_text) == 22
+                    and org_text.isalnum()
+                )
                 # Enthält "IBAN" oder "BIC" im Text
-                contains_bank_terms = ("IBAN" in org_text.upper() or "BIC" in org_text.upper())
-                
+                contains_bank_terms = (
+                    "IBAN" in org_text.upper() or "BIC" in org_text.upper()
+                )
+
                 if not (is_bic or is_iban or contains_bank_terms):
                     organizations.append(org_text)
 
         # Wenn spaCy nichts gefunden hat, versuche Regex-Pattern
         if not organizations:
             # Suche nach Firmennamen am Anfang des Texts (erste Zeilen)
-            lines = self.text.split('\n')[:5]  # Erste 5 Zeilen
+            lines = self.text.split("\n")[:5]  # Erste 5 Zeilen
             for line in lines:
                 line = line.strip()
                 # Typische Firmenendungen
-                if any(ending in line.upper() for ending in ['GMBH', 'GBMH & CO', 'KG', 'AG', 'UG']):
-                    if line and not any(word in line.upper() for word in ['AN', 'RECHNUNG', 'DATUM', 'STRASSE']):
+                if any(
+                    ending in line.upper()
+                    for ending in ["GMBH", "GBMH & CO", "KG", "AG", "UG"]
+                ):
+                    if line and not any(
+                        word in line.upper()
+                        for word in ["AN", "RECHNUNG", "DATUM", "STRASSE"]
+                    ):
                         organizations.append(line)
                         break
 
