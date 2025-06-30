@@ -86,3 +86,25 @@ python manage.py runserver              # Nur Django
 celery -A llkjj_knut worker --loglevel=info  # Nur Celery
 redis-server --daemonize yes            # Nur Redis
 ```
+
+## 🔐 FIDO2/WebAuthn Support (NEU!)
+
+Diese Anwendung unterstützt jetzt **passwortlose Anmeldung** mit FIDO2/WebAuthn!
+
+### Unterstützte Authentifikatoren:
+- **Hardware-Schlüssel:** YubiKey, Solo, Nitrokey, etc.
+- **Biometrie:** Touch ID (Mac), Windows Hello, Fingerabdruck-Sensoren
+- **Plattform-Authentifikatoren:** Face ID, PIN + TPM
+
+### FIDO2-Setup:
+
+**Für neue Installation mit FIDO2:**
+```bash
+./start.sh --fido2
+```
+
+**Für bestehende Benutzer:**
+1. Normal anmelden: http://127.0.0.1:8000/auth/anmeldung/
+2. FIDO2-Setup: http://127.0.0.1:8000/auth/fido2/setup/
+3. Hardware-Schlüssel registrieren
+4. Passwortlose Anmeldung testen

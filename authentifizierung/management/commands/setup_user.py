@@ -30,6 +30,11 @@ class Command(BaseCommand):
             type=str,
             help="Passwort (optional, sonst interaktive Eingabe)",
         )
+        parser.add_argument(
+            "--fido2",
+            action="store_true",
+            help="Setup für FIDO2/WebAuthn-Authentifizierung (passwortlos)",
+        )
 
     def handle(self, *args, **options):
         # Prüfen, ob bereits ein Benutzer existiert
@@ -62,6 +67,18 @@ class Command(BaseCommand):
         )
         self.stdout.write(self.style.SUCCESS("=" * 60))
         self.stdout.write("")
+
+        # FIDO2-Setup-Modus
+        if options["fido2"]:
+            self.stdout.write("🔐 FIDO2/WebAuthn-Setup wird vorbereitet...")
+            self.stdout.write("")
+            self.stdout.write("📝 Hinweise für FIDO2-Setup:")
+            self.stdout.write("- Ein Benutzer wird mit temporärem Passwort erstellt")
+            self.stdout.write("- Nach dem ersten Login richten Sie FIDO2 ein")
+            self.stdout.write(
+                "- Das temporäre Passwort sollte danach deaktiviert werden"
+            )
+            self.stdout.write("")
 
         # Automatische Einrichtung für Tests
         if options["auto"]:
@@ -135,6 +152,21 @@ class Command(BaseCommand):
             self.stdout.write("🌐 Sie können sich jetzt anmelden unter:")
             self.stdout.write("   - Anwendung: http://127.0.0.1:8000/auth/anmeldung/")
             self.stdout.write("   - Admin: http://127.0.0.1:8000/admin/")
+
+            # FIDO2-spezifische Hinweise
+            if options["fido2"]:
+                self.stdout.write("")
+                self.stdout.write("🔐 FIDO2-Setup nächste Schritte:")
+                self.stdout.write("   1. Melden Sie sich mit Benutzername/Passwort an")
+                self.stdout.write(
+                    "   2. Besuchen Sie: http://127.0.0.1:8000/auth/fido2/setup/"
+                )
+                self.stdout.write("   3. Registrieren Sie Ihren FIDO2-Schlüssel")
+                self.stdout.write("   4. Testen Sie die passwortlose Anmeldung")
+                self.stdout.write(
+                    "   💡 Nach erfolgreicher FIDO2-Einrichtung können Sie das Passwort deaktivieren"
+                )
+
             self.stdout.write("")
             self.stdout.write(self.style.SUCCESS("🎉 Ersteinrichtung abgeschlossen!"))
 

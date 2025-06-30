@@ -35,6 +35,12 @@ if [[ "$1" == "--setup" ]]; then
     exit 0
 fi
 
+if [[ "$1" == "--fido2" ]]; then
+    echo "🔐 FIDO2/WebAuthn-Setup..."
+    python manage.py setup_user --fido2
+    exit 0
+fi
+
 # Für eine neue Installation: Schnelle automatische Einrichtung
 if [[ "$1" == "--new" ]]; then
     echo "🚀 Neue Installation - Automatische Einrichtung..."
@@ -63,6 +69,7 @@ if [[ "$1" == "--help" ]] || [[ "$1" == "-h" ]]; then
     echo "  --help, -h      Zeige diese Hilfe"
     echo "  --clean         Beende alle Services"
     echo "  --setup         Interaktive Ersteinrichtung (Benutzer anlegen)"
+    echo "  --fido2         FIDO2/WebAuthn-Setup (passwortlose Anmeldung)"
     echo "  --new           Komplette Neuinstallation (alle Daten werden gelöscht!)"
     echo ""
     exit 0
