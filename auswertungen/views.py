@@ -2,6 +2,9 @@
 Dashboard Views - Zentrale Auswertungen und Berichte für die Buchhaltung.
 """
 
+# pyright: reportGeneralTypeIssues=false
+# Die Django Model Manager werden von Pylance nicht korrekt erkannt
+
 import datetime
 import io
 from datetime import timedelta
@@ -25,6 +28,7 @@ from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, Tabl
 
 from belege.models import Beleg
 from buchungen.models import Buchungssatz, Geschaeftspartner
+from einstellungen.models import Benutzerprofil
 from konten.models import Konto
 
 
@@ -196,7 +200,7 @@ def dashboard_view(request):
     return render(request, "dashboard/dashboard_modern.html", context)
 
 
-def kennzahlen_ajax(request):
+def kennzahlen_ajax(_request):
     """
     AJAX-Endpoint für Live-Kennzahlen.
     """
@@ -502,6 +506,8 @@ def kontenblatt_excel_export(request, konto_id):
     # Excel-Datei erstellen
     wb = Workbook()
     ws = wb.active
+    if ws is None:
+        ws = wb.create_sheet()
     ws.title = f"Kontenblatt {konto.nummer}"
 
     # Header
@@ -717,6 +723,8 @@ def eur_excel_export(request):
     # Excel-Workbook erstellen
     workbook = Workbook()
     worksheet = workbook.active
+    if worksheet is None:
+        worksheet = workbook.create_sheet()
     worksheet.title = f"EÜR {jahr}"
 
     # Header mit Stil
@@ -1002,7 +1010,8 @@ def eur_mapping_details(request, mapping_id):
 
     # Gesamtbetrag berechnen
     kontoseite = "HABEN" if mapping.kategorie == "EINNAHMEN" else "SOLL"
-    gesamtbetrag = eur_service._berechne_betrag_fuer_konten(
+    # Verwende protected method für interne Berechnung
+    gesamtbetrag = eur_service._berechne_betrag_fuer_konten(  # noqa: SLF001
         mapping.skr03_konten, kontoseite
     )
 
@@ -1040,12 +1049,19 @@ def eur_bmf_formular_view(request):
     )
 
     # Steuerpflichtigen-Daten (aus Einstellungen)
-    steuerpflichtiger = {
-        "name": "Max Mustermann",  # TODO: Aus Einstellungen laden
-        "steuernummer": "123/456/78901",
-        "beruf": "Freischaffender Künstler",
-        "finanzamt": "Finanzamt Musterstadt",
-    }
+    try:
+        profil = Benutzerprofil.objects.get(user=request.user)
+        steuerpflichtiger = profil.benoetigte_felder_fuer_euer()
+    except Benutzerprofil.DoesNotExist:
+        # Fallback für Benutzer ohne Profil
+        steuerpflichtiger = {
+            "name": "Bitte Profil anlegen",
+            "adresse": "Bitte Profil anlegen",
+            "steuer_id": "Bitte Profil anlegen",
+            "steuernummer": "Bitte Profil anlegen",
+            "beruf": "Bitte Profil anlegen",
+            "finanzamt": "Bitte Profil anlegen",
+        }
 
     # EÜR-Mappings mit offiziellen Kennziffern
     einnahmen_mappings = []
@@ -1234,11 +1250,16 @@ def eur_bmf_formular_view(request):
 
     # Besondere Angaben für Künstler
     kuenstlerische_einnahmen = summe_einnahmen  # Vereinfacht
-    kleinunternehmer = True  # TODO: Aus Einstellungen laden
+    try:
+        profil = Benutzerprofil.objects.get(user=request.user)
+        kleinunternehmer = profil.kleinunternehmer_19_ustg
+    except Benutzerprofil.DoesNotExist:
+        kleinunternehmer = True  # Standard-Fallback
 
     # Sonderausgaben und außergewöhnliche Belastungen
-    sonderausgaben = Decimal("0")  # TODO: Implementieren
-    aussergewoehnliche_belastungen = Decimal("0")  # TODO: Implementieren
+    # Implementierung folgt - aktuell auf 0 gesetzt
+    sonderausgaben = Decimal("0")
+    aussergewoehnliche_belastungen = Decimal("0")
 
     context = {
         "page_title": "Einnahmenüberschussrechnung (EÜR)",

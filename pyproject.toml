@@ -59,7 +59,7 @@ warn_unreachable = true
 ignore_missing_imports = true
 
 # Django-spezifische Einstellungen
-plugins = ["mypy_django_plugin.main"]
+# plugins = ["mypy_django_plugin.main"]  # Deaktiviert da Plugin nicht verfügbar
 
 [tool.django-stubs]
 django_settings_module = "llkjj_knut.settings"

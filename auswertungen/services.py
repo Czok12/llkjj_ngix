@@ -328,7 +328,124 @@ class EURExportService:
     @staticmethod
     def generiere_pdf_export(eur_data: dict) -> bytes:
         """Generiert PDF-Export der EÜR."""
-        # TODO: Implementierung der PDF-Generierung
-        # Hier würde die PDF-Generierung mit ReportLab implementiert
-        # Für jetzt geben wir leeren Byte-Content zurück
-        return b""
+        from decimal import Decimal
+        from io import BytesIO
+
+        from reportlab.lib import colors
+        from reportlab.lib.pagesizes import A4
+        from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+        from reportlab.lib.units import cm
+        from reportlab.platypus import (
+            Paragraph,
+            SimpleDocTemplate,
+            Spacer,
+            Table,
+            TableStyle,
+        )
+
+        buffer = BytesIO()
+        doc = SimpleDocTemplate(
+            buffer, pagesize=A4, topMargin=2 * cm, bottomMargin=2 * cm
+        )
+
+        # Styles
+        styles = getSampleStyleSheet()
+        title_style = ParagraphStyle(
+            "CustomTitle",
+            parent=styles["Heading1"],
+            fontSize=16,
+            spaceAfter=20,
+            alignment=1,  # Center
+        )
+
+        heading_style = ParagraphStyle(
+            "CustomHeading",
+            parent=styles["Heading2"],
+            fontSize=12,
+            spaceAfter=10,
+            textColor=colors.black,
+        )
+
+        # Story - Inhalt des PDFs
+        story = []
+
+        # Titel
+        title = Paragraph("Einnahmenüberschussrechnung (EÜR)", title_style)
+        story.append(title)
+
+        # Steuerpflichtigen-Daten
+        if "steuerpflichtiger" in eur_data:
+            steuerpf = eur_data["steuerpflichtiger"]
+            story.append(Paragraph("Steuerpflichtiger", heading_style))
+
+            steuerpf_data = [
+                ["Name:", steuerpf.get("name", "N/A")],
+                ["Adresse:", steuerpf.get("adresse", "N/A")],
+                ["Steuer-ID:", steuerpf.get("steuer_id", "N/A")],
+                ["Steuernummer:", steuerpf.get("steuernummer", "N/A")],
+                ["Beruf:", steuerpf.get("beruf", "N/A")],
+                ["Finanzamt:", steuerpf.get("finanzamt", "N/A")],
+            ]
+
+            steuerpf_table = Table(steuerpf_data, colWidths=[4 * cm, 12 * cm])
+            steuerpf_table.setStyle(
+                TableStyle(
+                    [
+                        ("ALIGN", (0, 0), (-1, -1), "LEFT"),
+                        ("FONTNAME", (0, 0), (0, -1), "Helvetica-Bold"),
+                        ("FONTSIZE", (0, 0), (-1, -1), 10),
+                        ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+                    ]
+                )
+            )
+            story.append(steuerpf_table)
+            story.append(Spacer(1, 20))
+
+        # EÜR-Daten
+        story.append(
+            Paragraph(
+                f"Einnahmenüberschussrechnung für das Jahr {eur_data.get('jahr', 'N/A')}",
+                heading_style,
+            )
+        )
+
+        # Haupttabelle mit Einnahmen und Ausgaben
+        hauptdaten = [
+            ["Position", "Betrag (€)"],
+            ["Einnahmen", f"{eur_data.get('summe_einnahmen', Decimal('0')):.2f}"],
+            ["Ausgaben", f"{eur_data.get('summe_ausgaben', Decimal('0')):.2f}"],
+            ["Gewinn/Verlust", f"{eur_data.get('gewinn_verlust', Decimal('0')):.2f}"],
+        ]
+
+        haupt_table = Table(hauptdaten, colWidths=[10 * cm, 6 * cm])
+        haupt_table.setStyle(
+            TableStyle(
+                [
+                    ("BACKGROUND", (0, 0), (-1, 0), colors.grey),
+                    ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
+                    ("ALIGN", (0, 0), (-1, -1), "LEFT"),
+                    ("ALIGN", (1, 0), (1, -1), "RIGHT"),
+                    ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                    ("FONTSIZE", (0, 0), (-1, -1), 10),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 12),
+                    ("BACKGROUND", (0, 1), (-1, -1), colors.beige),
+                    ("GRID", (0, 0), (-1, -1), 1, colors.black),
+                ]
+            )
+        )
+        story.append(haupt_table)
+
+        # Zeitstempel
+        from datetime import datetime
+
+        story.append(Spacer(1, 40))
+        zeitstempel = Paragraph(
+            f"Erstellt am: {datetime.now().strftime('%d.%m.%Y %H:%M:%S')}",
+            styles["Normal"],
+        )
+        story.append(zeitstempel)
+
+        # PDF generieren
+        doc.build(story)
+        buffer.seek(0)
+        return buffer.getvalue()

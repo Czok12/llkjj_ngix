@@ -71,12 +71,12 @@ def run_command(cmd, shell=False, capture=False, cwd=None):
     """Kommando ausführen"""
     try:
         if capture:
-            result = subprocess.run(
+            result = subprocess.run(  # noqa: S603
                 cmd, shell=shell, capture_output=True, text=True, cwd=cwd
             )
             return result.returncode == 0, result.stdout.strip()
         else:
-            result = subprocess.run(cmd, shell=shell, cwd=cwd)
+            result = subprocess.run(cmd, shell=shell, cwd=cwd)  # noqa: S603
             return result.returncode == 0, ""
     except Exception as e:
         error(f"Kommando fehlgeschlagen: {e}")
@@ -86,9 +86,11 @@ def run_command(cmd, shell=False, capture=False, cwd=None):
 def check_command(cmd):
     """Prüft ob ein Kommando verfügbar ist"""
     try:
-        subprocess.run([cmd, "--version"], capture_output=True, check=True)
+        subprocess.run(
+            [cmd, "--version"], capture_output=True, check=True
+        )  # noqa: S603
         return True
-    except:
+    except (subprocess.CalledProcessError, FileNotFoundError, OSError):
         return False
 
 
@@ -98,8 +100,8 @@ def check_system():
 
     # Python Version prüfen
     python_version = f"{sys.version_info.major}.{sys.version_info.minor}"
-    if sys.version_info < (3, 8):
-        error(f"Python 3.8+ wird benötigt. Aktuelle Version: {python_version}")
+    if sys.version_info < (3, 11):  # noqa: UP036
+        error(f"Python 3.11+ wird benötigt. Aktuelle Version: {python_version}")
         return False
     success(f"Python {python_version} gefunden")
 
@@ -248,7 +250,7 @@ else:
     print('Superuser existiert bereits')
 """
 
-    process = subprocess.Popen(
+    process = subprocess.Popen(  # noqa: S603
         [python_exe, "manage.py", "shell"],
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
@@ -287,7 +289,7 @@ def start_django_server(python_exe):
 
     # Django Server starten
     try:
-        process = subprocess.Popen(
+        process = subprocess.Popen(  # noqa: S603
             [python_exe, "manage.py", "runserver", f"0.0.0.0:{port}"], cwd=PROJECT_DIR
         )
         processes.append(process)
@@ -304,16 +306,20 @@ def cleanup():
         try:
             process.terminate()
             process.wait(timeout=5)
-        except:
+        except (subprocess.TimeoutExpired, OSError) as e:
+            log(f"Warnung beim Beenden des Prozesses: {e}", Colors.YELLOW)
             try:
                 process.kill()
-            except:
-                pass
+            except (OSError, ProcessLookupError) as kill_error:
+                log(
+                    f"Warnung beim Forcieren des Prozess-Stopps: {kill_error}",
+                    Colors.YELLOW,
+                )
 
     success("Cleanup abgeschlossen")
 
 
-def signal_handler(signum, frame):
+def signal_handler(_signum, _frame):
     """Signal Handler für sauberes Beenden"""
     cleanup()
     sys.exit(0)
@@ -360,7 +366,7 @@ def main():
 
     except KeyboardInterrupt:
         log("🛑 Script wurde durch Benutzer abgebrochen", Colors.YELLOW)
-    except Exception as e:
+    except (OSError, subprocess.SubprocessError, ImportError) as e:
         error(f"Unerwarteter Fehler: {e}")
         return 1
     finally:

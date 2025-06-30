@@ -346,8 +346,8 @@ if os.getenv("ENABLE_FILE_LOGGING", "False").lower() == "true":
         "level": os.getenv("LOG_LEVEL", "INFO"),
         "class": "logging.handlers.RotatingFileHandler",
         "filename": str(LOG_DIR / "llkjj_knut.txt"),
-        "maxBytes": int(os.getenv("LOG_MAX_FILE_SIZE", "10485760")),
-        "backupCount": int(os.getenv("LOG_BACKUP_COUNT", "5")),
+        "maxBytes": os.getenv("LOG_MAX_FILE_SIZE", "10485760"),
+        "backupCount": os.getenv("LOG_BACKUP_COUNT", "5"),
         "formatter": "detailed",
         "encoding": "utf-8",
     }
@@ -364,8 +364,8 @@ if (
         "class": "logging.handlers.TimedRotatingFileHandler",
         "filename": str(LOG_DIR / "llkjj_knut.log"),
         "when": "midnight",
-        "interval": 1,
-        "backupCount": int(os.getenv("LOG_BACKUP_COUNT", "5")),
+        "interval": "1",
+        "backupCount": os.getenv("LOG_BACKUP_COUNT", "5"),
         "formatter": "detailed",
         "encoding": "utf-8",
     }

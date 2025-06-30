@@ -83,7 +83,7 @@ class Command(BaseCommand):
         # Automatische Einrichtung für Tests
         if options["auto"]:
             username = "admin"
-            password = "admin123"
+            password = "admin123"  # noqa: S105
             email = "admin@llkjj.de"
             self.stdout.write("🔧 Automatische Testeinrichtung...")
         else:
