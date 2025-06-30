@@ -5,6 +5,8 @@ Peter Zwegat: "Hier fließt das Geld - digital versteht sich!"
 
 import csv
 import io
+from datetime import date, datetime
+from decimal import Decimal
 
 from django.contrib import messages
 from django.db import transaction
@@ -18,6 +20,14 @@ from django.views.generic import CreateView, DetailView, FormView, ListView, Upd
 from konten.models import Konto
 
 from .forms import BuchungssatzForm, CSVImportForm, SchnellbuchungForm
+
+try:
+    import openpyxl
+
+    EXCEL_SUPPORT = True
+except ImportError:
+    EXCEL_SUPPORT = False
+from .intelligent_kontierung import IntelligenterKontierungsVorschlag
 from .models import Buchungssatz, Geschaeftspartner
 
 
@@ -278,17 +288,22 @@ class CSVImportView(FormView):
             return self.form_invalid(form)
 
     def _parse_csv(self, form_data):
-        """CSV-Datei einlesen und analysieren"""
+        """CSV- oder Excel-Datei einlesen und analysieren"""
         csv_datei = form_data["csv_datei"]
         trennzeichen = form_data["trennzeichen"]
         encoding = form_data["encoding"]
         erste_zeile_ueberspringen = form_data["erste_zeile_ueberspringen"]
 
-        # Datei in String umwandeln
+        # Excel-Datei verarbeiten
         if csv_datei.name.endswith((".xlsx", ".xls")):
-            # Excel-Datei (TODO: pandas integration)
-            raise ValueError("Excel-Import noch nicht implementiert")
+            if not EXCEL_SUPPORT:
+                raise ValueError(
+                    "Excel-Import nicht verfügbar. Bitte openpyxl installieren."
+                )
 
+            return self._parse_excel_file(csv_datei, erste_zeile_ueberspringen)
+
+        # CSV-Datei verarbeiten
         content = csv_datei.read().decode(encoding)
         csv_reader = csv.reader(io.StringIO(content), delimiter=trennzeichen)
 
@@ -306,6 +321,45 @@ class CSVImportView(FormView):
             "daten": daten[:50],  # Nur erste 50 Zeilen für Preview
             "gesamt_zeilen": len(daten),
         }
+
+    def _parse_excel_file(self, excel_datei, erste_zeile_ueberspringen):
+        """
+        Excel-Datei verarbeiten mit openpyxl.
+
+        Peter Zwegat: "Excel ist auch nur eine Tabelle - wir kriegen das hin!"
+        """
+        try:
+            workbook = openpyxl.load_workbook(excel_datei, data_only=True)
+
+            # Erstes Arbeitsblatt verwenden
+            worksheet = workbook.active
+
+            # Alle Zeilen einlesen
+            zeilen = []
+            for row in worksheet.iter_rows(values_only=True):
+                # Leere Zeilen überspringen
+                if any(cell is not None for cell in row):
+                    # None-Werte zu leeren Strings konvertieren
+                    zeile = [str(cell) if cell is not None else "" for cell in row]
+                    zeilen.append(zeile)
+
+            if erste_zeile_ueberspringen and zeilen:
+                header = zeilen[0]
+                daten = zeilen[1:]
+            else:
+                header = [
+                    f"Spalte_{i+1}" for i in range(len(zeilen[0]) if zeilen else 0)
+                ]
+                daten = zeilen
+
+            return {
+                "header": header,
+                "daten": daten[:50],  # Nur erste 50 Zeilen für Preview
+                "gesamt_zeilen": len(daten),
+            }
+
+        except Exception as e:
+            raise ValueError(f"Fehler beim Lesen der Excel-Datei: {str(e)}")
 
     def get_context_data(self, **kwargs):
         """Zusätzliche Kontextdaten"""
@@ -359,6 +413,9 @@ def _process_csv_mapping(request, csv_daten):
         messages.error(request, "❌ Bitte mindestens eine Spalte zuordnen!")
         return redirect("buchungen:csv_mapping")
 
+    # Intelligente Kontierung initialisieren
+    kontierung_ai = IntelligenterKontierungsVorschlag(request.user)
+
     # Buchungen erstellen
     erfolgreiche_importe = 0
     fehler = []
@@ -375,24 +432,66 @@ def _process_csv_mapping(request, csv_daten):
                             wert = (
                                 wert.replace(",", ".").replace("€", "").replace(" ", "")
                             )
-                            buchung_data[feld_name] = float(wert)
+                            buchung_data[feld_name] = Decimal(wert)
+                        elif feld_name == "buchungsdatum":
+                            # Datum intelligent parsen
+                            parsed_date = _parse_date_intelligent(wert)
+                            if parsed_date:
+                                buchung_data[feld_name] = parsed_date
+                            else:
+                                # Fallback auf aktuelles Datum mit Hinweis
+                                buchung_data[feld_name] = timezone.now().date()
+                                buchung_data["_date_parsing_failed"] = True
                         else:
                             buchung_data[feld_name] = wert
 
-                # Standard-Buchung erstellen (vereinfacht)
+                # Intelligente Kontierung anwenden
                 if buchung_data.get("betrag"):
+                    buchungstext = buchung_data.get("buchungstext", "CSV-Import")
+                    betrag = buchung_data["betrag"]
+
+                    # Intelligenten Kontierungsvorschlag holen (mit originalem Vorzeichen!)
+                    kontierung_vorschlag = kontierung_ai.suggest_kontierung(
+                        buchungstext=buchungstext, betrag=float(betrag)
+                    )
+
+                    # Buchung erstellen
                     buchung = Buchungssatz(
-                        buchungsdatum=timezone.now().date(),  # TODO: Parse datum
-                        buchungstext=buchung_data.get("buchungstext", "CSV-Import"),
-                        betrag=abs(buchung_data["betrag"]),
+                        buchungsdatum=buchung_data.get(
+                            "buchungsdatum", timezone.now().date()
+                        ),
+                        buchungstext=buchungstext,
+                        betrag=abs(betrag),
                         referenz=buchung_data.get("referenz", ""),
                         automatisch_erstellt=True,
-                        # TODO: Intelligente Kontierung
-                        soll_konto=Konto.objects.filter(nummer="1200").first(),  # Bank
-                        haben_konto=Konto.objects.filter(
+                        soll_konto=kontierung_vorschlag.get("soll_konto")
+                        or Konto.objects.filter(
+                            nummer="1200"
+                        ).first(),  # Fallback: Bank
+                        haben_konto=kontierung_vorschlag.get("haben_konto")
+                        or Konto.objects.filter(
                             nummer="8400"
-                        ).first(),  # Erlöse
+                        ).first(),  # Fallback: Erlöse
                     )
+
+                    # Zusätzliche Metadaten für Nachverfolgung
+                    notizen_teile = []
+                    if kontierung_vorschlag.get("confidence"):
+                        notizen_teile.append(
+                            f"KI-Kontierung: {kontierung_vorschlag.get('kategorie', 'unknown')} "
+                            f"(Confidence: {kontierung_vorschlag.get('confidence', 0):.2f}) "
+                            f"- {kontierung_vorschlag.get('reasoning', '')}"
+                        )
+
+                    # Warnung bei Datum-Parsing-Fehlern
+                    if buchung_data.get("_date_parsing_failed"):
+                        notizen_teile.append(
+                            "⚠️ Datum konnte nicht geparst werden - aktuelles Datum verwendet"
+                        )
+
+                    if notizen_teile:
+                        buchung.notizen = " | ".join(notizen_teile)
+
                     buchung.full_clean()
                     buchung.save()
                     erfolgreiche_importe += 1
@@ -404,7 +503,8 @@ def _process_csv_mapping(request, csv_daten):
     if erfolgreiche_importe > 0:
         messages.success(
             request,
-            f"🎉 Peter Zwegat freut sich: '{erfolgreiche_importe} Buchungen erfolgreich importiert!'",
+            f"🎉 Peter Zwegat freut sich: '{erfolgreiche_importe} Buchungen erfolgreich importiert!' "
+            f"🧠 KI-basierte Kontierung wurde angewendet.",
         )
 
     if fehler:
@@ -531,3 +631,50 @@ def buchungen_export_csv(request):
         )
 
     return response
+
+
+def _parse_date_intelligent(date_string: str) -> date | None:
+    """
+    Intelligentes Datum-Parsing für verschiedene CSV-Formate.
+
+    Peter Zwegat: "Daten müssen richtig verstanden werden!"
+
+    Unterstützte Formate:
+    - DD.MM.YYYY (deutsch)
+    - DD/MM/YYYY
+    - YYYY-MM-DD (ISO)
+    - MM/DD/YYYY (US-Format)
+    - DD-MM-YYYY
+    """
+    if not date_string or not date_string.strip():
+        return None
+
+    date_string = date_string.strip()
+
+    # Häufige deutsche Formate zuerst
+    date_formats = [
+        "%d.%m.%Y",  # 01.12.2025
+        "%d.%m.%y",  # 01.12.25
+        "%Y-%m-%d",  # 2025-12-01 (ISO)
+        "%d/%m/%Y",  # 01/12/2025
+        "%d/%m/%y",  # 01/12/25
+        "%d-%m-%Y",  # 01-12-2025
+        "%d-%m-%y",  # 01-12-25
+        "%m/%d/%Y",  # 12/01/2025 (US-Format, als Fallback)
+        "%m/%d/%y",  # 12/01/25 (US-Format, als Fallback)
+    ]
+
+    for date_format in date_formats:
+        try:
+            parsed_date = datetime.strptime(date_string, date_format)
+            # Zweistellige Jahre intelligent interpretieren
+            if parsed_date.year < 1950:  # 00-49 -> 2000-2049
+                parsed_date = parsed_date.replace(year=parsed_date.year + 2000)
+            elif parsed_date.year < 100:  # 50-99 -> 1950-1999
+                parsed_date = parsed_date.replace(year=parsed_date.year + 1900)
+            return parsed_date.date()
+        except ValueError:
+            continue
+
+    # Fallback: Aktuelles Datum mit Warnung
+    return None

@@ -230,6 +230,7 @@ class SchnellbuchungForm(forms.ModelForm):
         fields = ["buchungstyp", "buchungsdatum", "buchungstext", "betrag", "referenz"]
 
     def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop("user", None)  # Extract user from kwargs
         super().__init__(*args, **kwargs)
         self.helper = FormHelper()
         self.helper.form_method = "post"
@@ -264,8 +265,34 @@ class SchnellbuchungForm(forms.ModelForm):
         buchung = super().save(commit=False)
         buchungstyp = self.cleaned_data["buchungstyp"]
 
-        # Standard-Konten je nach Typ setzen
-        # TODO: Diese sollten konfigurierbar sein
+        # Benutzer-spezifische Standard-Kontierungen laden
+        from einstellungen.models import StandardKontierung
+
+        if self.user:
+            try:
+                # Versuche benutzer-spezifische Kontierung zu finden
+                standard_kontierung = StandardKontierung.objects.get(
+                    benutzerprofil__user=self.user,
+                    buchungstyp=buchungstyp,
+                    ist_aktiv=True,
+                )
+                # Verwende die konfigurierten Konten
+                buchung.soll_konto = standard_kontierung.soll_konto
+                buchung.haben_konto = standard_kontierung.haben_konto
+
+            except StandardKontierung.DoesNotExist:
+                # Fallback auf Standard-Konten wenn keine benutzer-spezifische Konfiguration existiert
+                self._apply_default_kontierung(buchung, buchungstyp)
+        else:
+            # Kein Benutzer verfügbar, verwende Standard-Kontierung
+            self._apply_default_kontierung(buchung, buchungstyp)
+
+        if commit:
+            buchung.save()
+        return buchung
+
+    def _apply_default_kontierung(self, buchung, buchungstyp):
+        """Wendet Standard-Kontierung an wenn keine benutzer-spezifische Konfiguration vorhanden ist."""
         standard_konten = {
             "einnahme": {"soll": "1200", "haben": "8400"},  # Bank an Erlöse
             "ausgabe": {"soll": "4980", "haben": "1200"},  # Aufwand an Bank
@@ -273,7 +300,10 @@ class SchnellbuchungForm(forms.ModelForm):
                 "soll": "1800",
                 "haben": "1200",
             },  # Privatentnahme an Bank
-            "privateinlage": {"soll": "1200", "haben": "1800"},  # Bank an Eigenkapital
+            "privateinlage": {
+                "soll": "1200",
+                "haben": "1800",
+            },  # Bank an Eigenkapital
         }
 
         if buchungstyp in standard_konten:
@@ -282,12 +312,8 @@ class SchnellbuchungForm(forms.ModelForm):
                 buchung.soll_konto = Konto.objects.get(nummer=konten["soll"])
                 buchung.haben_konto = Konto.objects.get(nummer=konten["haben"])
             except Konto.DoesNotExist:
-                # Fallback wenn SKR03 nicht vollständig importiert
+                # Lasse Konten leer wenn nicht gefunden
                 pass
-
-        if commit:
-            buchung.save()
-        return buchung
 
 
 class CSVImportForm(forms.Form):
@@ -335,7 +361,7 @@ class CSVImportForm(forms.Form):
         super().__init__(*args, **kwargs)
         self.helper = FormHelper()
         self.helper.form_method = "post"
-        self.helper.form_enctype = "multipart/form-data"
+        self.helper.attrs = {"enctype": "multipart/form-data"}
         self.helper.layout = Layout(
             HTML(
                 '<div class="alert alert-info">'

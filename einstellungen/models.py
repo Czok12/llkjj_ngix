@@ -246,3 +246,134 @@ class Benutzerprofil(models.Model):
             "beruf": self.beruf,
             "finanzamt": self.finanzamt,
         }
+
+
+class StandardKontierung(models.Model):
+    """
+    Standard-Kontierungen für verschiedene Buchungstypen.
+
+    Peter Zwegat: "Automatische Kontierung spart Zeit und Fehler!"
+    """
+
+    BUCHUNGSTYP_CHOICES = [
+        ("einnahme", "Einnahme"),
+        ("ausgabe", "Ausgabe"),
+        ("privatentnahme", "Privatentnahme"),
+        ("privateinlage", "Privateinlage"),
+    ]
+
+    # Verknüpfung zum Benutzerprofil
+    benutzerprofil = models.ForeignKey(
+        Benutzerprofil,
+        on_delete=models.CASCADE,
+        related_name="standard_kontierungen",
+        verbose_name="Benutzerprofil",
+    )
+
+    # Buchungstyp
+    buchungstyp = models.CharField(
+        max_length=20,
+        choices=BUCHUNGSTYP_CHOICES,
+        verbose_name="Buchungstyp",
+        help_text="Art der Buchung",
+    )
+
+    # Konten-Verknüpfungen
+    soll_konto = models.ForeignKey(
+        "konten.Konto",
+        on_delete=models.PROTECT,
+        related_name="standard_soll_buchungen",
+        verbose_name="Standard Soll-Konto",
+        help_text="Konto welches im Soll gebucht wird",
+    )
+
+    haben_konto = models.ForeignKey(
+        "konten.Konto",
+        on_delete=models.PROTECT,
+        related_name="standard_haben_buchungen",
+        verbose_name="Standard Haben-Konto",
+        help_text="Konto welches im Haben gebucht wird",
+    )
+
+    # Metadaten
+    beschreibung = models.CharField(
+        max_length=200,
+        blank=True,
+        verbose_name="Beschreibung",
+        help_text="Optionale Beschreibung für diese Kontierung",
+    )
+
+    ist_aktiv = models.BooleanField(
+        default=True,
+        verbose_name="Aktiv",
+        help_text="Ist diese Standard-Kontierung aktiv?",
+    )
+
+    erstellt_am = models.DateTimeField(auto_now_add=True)
+    geaendert_am = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Standard-Kontierung"
+        verbose_name_plural = "Standard-Kontierungen"
+        unique_together = ["benutzerprofil", "buchungstyp"]
+        ordering = ["buchungstyp"]
+
+    def __str__(self) -> str:
+        return (
+            f"{self.buchungstyp}: {self.soll_konto.nummer} an {self.haben_konto.nummer}"
+        )
+
+    @classmethod
+    def standard_kontierungen_erstellen(cls, benutzerprofil):
+        """
+        Erstellt Standard-Kontierungen für einen neuen Benutzer.
+
+        Peter Zwegat: "Ein guter Start sind sinnvolle Voreinstellungen!"
+        """
+        from konten.models import Konto
+
+        # Standard-Kontierungen definieren
+        defaults = [
+            {
+                "buchungstyp": "einnahme",
+                "soll_konto_nummer": "1200",  # Bank
+                "haben_konto_nummer": "8400",  # Erlöse
+                "beschreibung": "Standard-Kontierung für Einnahmen",
+            },
+            {
+                "buchungstyp": "ausgabe",
+                "soll_konto_nummer": "4980",  # Aufwendungen
+                "haben_konto_nummer": "1200",  # Bank
+                "beschreibung": "Standard-Kontierung für Ausgaben",
+            },
+            {
+                "buchungstyp": "privatentnahme",  # Privatentnahme
+                "soll_konto_nummer": "1800",  # Privatentnahme
+                "haben_konto_nummer": "1200",  # Bank
+                "beschreibung": "Standard-Kontierung für Privatentnahmen",
+            },
+            {
+                "buchungstyp": "privateinlage",
+                "soll_konto_nummer": "1200",  # Bank
+                "haben_konto_nummer": "1800",  # Eigenkapital
+                "beschreibung": "Standard-Kontierung für Privateinlagen",
+            },
+        ]
+
+        for default in defaults:
+            try:
+                soll_konto = Konto.objects.get(nummer=default["soll_konto_nummer"])
+                haben_konto = Konto.objects.get(nummer=default["haben_konto_nummer"])
+
+                cls.objects.get_or_create(
+                    benutzerprofil=benutzerprofil,
+                    buchungstyp=default["buchungstyp"],
+                    defaults={
+                        "soll_konto": soll_konto,
+                        "haben_konto": haben_konto,
+                        "beschreibung": default["beschreibung"],
+                    },
+                )
+            except Konto.DoesNotExist:
+                # Überspringe wenn Konto nicht existiert
+                continue

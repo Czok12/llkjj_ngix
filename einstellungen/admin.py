@@ -7,7 +7,7 @@ Peter Zwegat: "Ein gutes Admin-Interface ist wie ein gut organisierter Schreibti
 from django.contrib import admin
 from django.utils.html import format_html
 
-from .models import Benutzerprofil
+from .models import Benutzerprofil, StandardKontierung
 
 
 @admin.register(Benutzerprofil)
@@ -142,3 +142,105 @@ class BenutzerprofIlAdmin(admin.ModelAdmin):
 
         css = {"all": ("admin/css/forms.css",)}
         js = ("admin/js/vendor/jquery/jquery.js",)
+
+
+@admin.register(StandardKontierung)
+class StandardKontierungAdmin(admin.ModelAdmin):
+    """
+    Admin-Interface für Standard-Kontierungen.
+
+    Peter Zwegat: "Gute Voreinstellungen sind der Schlüssel zur Effizienz!"
+    """
+
+    list_display = [
+        "benutzerprofil",
+        "buchungstyp",
+        "soll_konto_display",
+        "haben_konto_display",
+        "ist_aktiv",
+        "geaendert_am",
+    ]
+
+    list_filter = [
+        "buchungstyp",
+        "ist_aktiv",
+        "erstellt_am",
+        "geaendert_am",
+    ]
+
+    search_fields = [
+        "benutzerprofil__vorname",
+        "benutzerprofil__nachname",
+        "beschreibung",
+        "soll_konto__name",
+        "haben_konto__name",
+    ]
+
+    list_editable = ["ist_aktiv"]
+
+    readonly_fields = ["erstellt_am", "geaendert_am"]
+
+    fieldsets = (
+        ("👤 Benutzer", {"fields": ("benutzerprofil",)}),
+        ("📋 Buchungstyp", {"fields": ("buchungstyp", "beschreibung")}),
+        (
+            "💰 Konten",
+            {
+                "fields": ("soll_konto", "haben_konto"),
+                "description": "Soll-Konto: Wo wird gebucht? Haben-Konto: Wo kommt es her?",
+            },
+        ),
+        ("⚙️ Einstellungen", {"fields": ("ist_aktiv",)}),
+        (
+            "📅 Metadaten",
+            {
+                "fields": ("erstellt_am", "geaendert_am"),
+                "classes": ("collapse",),
+            },
+        ),
+    )
+
+    def soll_konto_display(self, obj):
+        """Zeigt Kontonummer und Name."""
+        return f"{obj.soll_konto.nummer} - {obj.soll_konto.name}"
+
+    def haben_konto_display(self, obj):
+        """Zeigt Kontonummer und Name."""
+        return f"{obj.haben_konto.nummer} - {obj.haben_konto.name}"
+
+    # Set display names for the admin columns
+    soll_konto_display.short_description = "Soll-Konto"  # type: ignore
+    haben_konto_display.short_description = "Haben-Konto"  # type: ignore
+
+    def get_queryset(self, request):
+        """Optimiert die Datenbankabfragen."""
+        return (
+            super()
+            .get_queryset(request)
+            .select_related(
+                "benutzerprofil",
+                "benutzerprofil__user",
+                "soll_konto",
+                "haben_konto",
+            )
+        )
+
+    def save_model(self, request, obj, form, change):
+        """
+        Erweiterte Speicher-Logik für Standard-Kontierungen.
+
+        Peter Zwegat: "Jede Einstellung muss sinnvoll sein!"
+        """
+        super().save_model(request, obj, form, change)
+
+        # Optional: Benachrichtigung bei Änderungen
+        if change:
+            self.message_user(
+                request,
+                f"Standard-Kontierung für {obj.buchungstyp} wurde aktualisiert.",
+                level="success",
+            )
+
+    class Meta:
+        verbose_name = "Standard-Kontierung"
+        verbose_name_plural = "Standard-Kontierungen"

@@ -330,45 +330,49 @@ LOG_DIR.mkdir(exist_ok=True)
 handlers_config = {}
 loggers_handlers = []
 
-# Console-Handler (optional via .env)
-if os.getenv("LOG_TO_CONSOLE", "False").lower() == "true":
-    handlers_config["console"] = {
-        "level": "INFO",
-        "class": "logging.StreamHandler",
-        "formatter": "simple",
-    }
-    loggers_handlers.append("console")
+# Console-Handler (Standardmäßig aktiviert für bessere Entwicklererfahrung)
+handlers_config["console"] = {
+    "level": "INFO",
+    "class": "logging.StreamHandler",
+    "formatter": "simple",
+}
+loggers_handlers.append("console")
 
-# File-Handler (optional via .env)
+# File-Handler ist standardmäßig deaktiviert
+# Kann über ENABLE_FILE_LOGGING=true in .env aktiviert werden
 if os.getenv("ENABLE_FILE_LOGGING", "False").lower() == "true":
-    # Haupt-Log-Datei (alle Logs in einer .txt-Datei)
-    handlers_config["file"] = {
-        "level": os.getenv("LOG_LEVEL", "INFO"),
-        "class": "logging.handlers.RotatingFileHandler",
-        "filename": str(LOG_DIR / "llkjj_knut.txt"),
-        "maxBytes": os.getenv("LOG_MAX_FILE_SIZE", "10485760"),
-        "backupCount": os.getenv("LOG_BACKUP_COUNT", "5"),
-        "formatter": "detailed",
-        "encoding": "utf-8",
-    }
-    loggers_handlers.append("file")
+    try:
+        # Haupt-Log-Datei (alle Logs in einer .txt-Datei)
+        max_bytes = int(os.getenv("LOG_MAX_FILE_SIZE", "10485760"))
+        backup_count = int(os.getenv("LOG_BACKUP_COUNT", "5"))
 
-# Tägliche Rotation (optional)
-if (
-    os.getenv("LOG_ROTATE_DAILY", "False").lower() == "true"
-    and os.getenv("ENABLE_FILE_LOGGING", "False").lower() == "true"
-):
-    # Überschreibt Standard-File-Handler mit zeitbasierter Rotation
-    handlers_config["file"] = {
-        "level": os.getenv("LOG_LEVEL", "INFO"),
-        "class": "logging.handlers.TimedRotatingFileHandler",
-        "filename": str(LOG_DIR / "llkjj_knut.log"),
-        "when": "midnight",
-        "interval": "1",
-        "backupCount": os.getenv("LOG_BACKUP_COUNT", "5"),
-        "formatter": "detailed",
-        "encoding": "utf-8",
-    }
+        handlers_config["file"] = {
+            "level": os.getenv("LOG_LEVEL", "INFO"),
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": str(LOG_DIR / "llkjj_knut.txt"),
+            "maxBytes": max_bytes,
+            "backupCount": backup_count,
+            "formatter": "detailed",
+            "encoding": "utf-8",
+        }
+        loggers_handlers.append("file")
+
+        # Überprüfe ob tägliche Rotation gewünscht ist
+        if os.getenv("LOG_ROTATE_DAILY", "False").lower() == "true":
+            # Überschreibt Standard-File-Handler mit zeitbasierter Rotation
+            handlers_config["file"] = {
+                "level": os.getenv("LOG_LEVEL", "INFO"),
+                "class": "logging.handlers.TimedRotatingFileHandler",
+                "filename": str(LOG_DIR / "llkjj_knut.log"),
+                "when": "midnight",
+                "interval": 1,
+                "backupCount": backup_count,
+                "formatter": "detailed",
+                "encoding": "utf-8",
+            }
+    except (ValueError, TypeError) as e:
+        print(f"⚠️ File logging configuration error: {e}")
+        print("📝 File logging disabled, using console only")
 
 LOGGING = {
     "version": 1,

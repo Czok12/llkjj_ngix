@@ -86,9 +86,9 @@ def run_command(cmd, shell=False, capture=False, cwd=None):
 def check_command(cmd):
     """Prüft ob ein Kommando verfügbar ist"""
     try:
-        subprocess.run(
+        subprocess.run(  # noqa: S603
             [cmd, "--version"], capture_output=True, check=True
-        )  # noqa: S603
+        )
         return True
     except (subprocess.CalledProcessError, FileNotFoundError, OSError):
         return False
