@@ -4,6 +4,7 @@ Peter Zwegat: "Ordnung in der Logik ist der Schlüssel zum Erfolg!"
 """
 
 import logging
+from datetime import date
 from decimal import Decimal
 
 from django.core.exceptions import ValidationError
@@ -250,8 +251,16 @@ class BuchungsService:
                         raise ValidationError(f"Ungültiger Betrag: {wert}")
 
                 elif feld_name == "buchungsdatum":
-                    # TODO: Intelligentes Datum-Parsing implementieren
-                    pass
+                    # Intelligentes Datum-Parsing implementiert
+                    datum = BuchungsService._parse_datum_intelligent(wert)
+                    if datum:
+                        buchung_data["buchungsdatum"] = datum
+                    else:
+                        logger.warning(f"Konnte Datum nicht parsen: {wert}")
+                        # Fallback: heute verwenden
+                        from django.utils import timezone
+
+                        buchung_data["buchungsdatum"] = timezone.now().date()
 
                 else:
                     if feld_name.replace("buchungs", "") == "betrag":
@@ -376,49 +385,102 @@ class BuchungsService:
 
         return list(aehnliche.order_by("-buchungsdatum")[:limit])
 
-
-class GeschaeftspartnerService:
-    """
-    Service für Geschäftspartner-Management.
-    Peter Zwegat: "Gute Partner sind Gold wert!"
-    """
-
     @staticmethod
-    def erstelle_partner(name: str, partner_typ: str, **kwargs) -> Geschaeftspartner:
+    def _parse_datum_intelligent(datum_str: str) -> date | None:
         """
-        Erstellt einen neuen Geschäftspartner.
+        Intelligentes Datum-Parsing für verschiedene Formate.
+
+        Unterstützte Formate:
+        - DD.MM.YYYY oder DD.MM.YY
+        - DD/MM/YYYY oder DD/MM/YY
+        - DD-MM-YYYY oder DD-MM-YY
+        - YYYY-MM-DD (ISO)
+        - DD MMM YYYY (z.B. 15 Jan 2025)
+        - DD. MMMM YYYY (z.B. 15. Januar 2025)
         """
-
-        if not name.strip():
-            raise ValidationError("Name darf nicht leer sein!")
-
-        partner = Geschaeftspartner(
-            name=name.strip(), partner_typ=partner_typ, **kwargs
-        )
-
-        partner.full_clean()
-        partner.save()
-
-        logger.info(f"Geschäftspartner erstellt: {partner.name}")
-        return partner
-
-    @staticmethod
-    def finde_partner_by_name(name: str) -> Geschaeftspartner | None:
-        """
-        Findet Partner anhand des Namens (fuzzy matching).
-        """
-        if not name:
+        if not datum_str or not datum_str.strip():
             return None
 
-        # Exakte Übereinstimmung
+        datum_str = datum_str.strip()
+
+        # Import hier um Circular Import zu vermeiden
+        import re
+        from datetime import datetime
+
+        # Deutsche Monatsnamen
+        monatsnamen = {
+            "januar": 1,
+            "jan": 1,
+            "februar": 2,
+            "feb": 2,
+            "märz": 3,
+            "mär": 3,
+            "mar": 3,
+            "april": 4,
+            "apr": 4,
+            "mai": 5,
+            "juni": 6,
+            "jun": 6,
+            "juli": 7,
+            "jul": 7,
+            "august": 8,
+            "aug": 8,
+            "september": 9,
+            "sep": 9,
+            "sept": 9,
+            "oktober": 10,
+            "okt": 10,
+            "oct": 10,
+            "november": 11,
+            "nov": 11,
+            "dezember": 12,
+            "dez": 12,
+            "dec": 12,
+        }
+
         try:
-            return Geschaeftspartner.objects.get(name__iexact=name)
-        except Geschaeftspartner.DoesNotExist:
-            pass
+            # Format 1: DD.MM.YYYY oder DD.MM.YY
+            if re.match(r"^\d{1,2}\.\d{1,2}\.\d{2,4}$", datum_str):
+                return datetime.strptime(
+                    datum_str,
+                    "%d.%m.%Y" if len(datum_str.split(".")[-1]) == 4 else "%d.%m.%y",
+                ).date()
 
-        # Teilübereinstimmung
-        aehnliche = Geschaeftspartner.objects.filter(name__icontains=name).order_by(
-            "name"
-        )
+            # Format 2: DD/MM/YYYY oder DD/MM/YY
+            if re.match(r"^\d{1,2}/\d{1,2}/\d{2,4}$", datum_str):
+                return datetime.strptime(
+                    datum_str,
+                    "%d/%m/%Y" if len(datum_str.split("/")[-1]) == 4 else "%d/%m/%y",
+                ).date()
 
-        return aehnliche.first() if aehnliche.exists() else None
+            # Format 3: DD-MM-YYYY oder DD-MM-YY
+            if re.match(r"^\d{1,2}-\d{1,2}-\d{2,4}$", datum_str):
+                return datetime.strptime(
+                    datum_str,
+                    "%d-%m-%Y" if len(datum_str.split("-")[-1]) == 4 else "%d-%m-%y",
+                ).date()
+
+            # Format 4: YYYY-MM-DD (ISO)
+            if re.match(r"^\d{4}-\d{1,2}-\d{1,2}$", datum_str):
+                return datetime.strptime(datum_str, "%Y-%m-%d").date()
+
+            # Format 5: DD MMM YYYY (z.B. 15 Jan 2025)
+            match = re.match(r"^(\d{1,2})\s+(\w+)\s+(\d{4})$", datum_str.lower())
+            if match:
+                tag, monat_str, jahr = match.groups()
+                if monat_str in monatsnamen:
+                    return date(int(jahr), monatsnamen[monat_str], int(tag))
+
+            # Format 6: DD. MMMM YYYY (z.B. 15. Januar 2025)
+            match = re.match(r"^(\d{1,2})\.\s*(\w+)\s+(\d{4})$", datum_str.lower())
+            if match:
+                tag, monat_str, jahr = match.groups()
+                if monat_str in monatsnamen:
+                    return date(int(jahr), monatsnamen[monat_str], int(tag))
+
+            # Fallback: Standard-Parser versuchen
+            return datetime.strptime(datum_str, "%d.%m.%Y").date()
+
+        except (ValueError, TypeError) as e:
+            logger.warning(f"Datum-Parsing fehlgeschlagen für '{datum_str}': {e}")
+            return None

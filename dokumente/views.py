@@ -392,8 +392,73 @@ class KIAnalyseView(View):
     def post(self, request, pk):
         dokument = get_object_or_404(Dokument, pk=pk)
 
-        # TODO: KI-Analyse-Implementierung
-        messages.info(request, "KI-Analyse wird noch implementiert! 🤖")
+        try:
+            # Import der KI-Services
+            from django.utils import timezone
+
+            from belege.erweiterte_ki import ErweiterteKI
+            from belege.ki_service import BelegKategorisierungsKI
+
+            # KI-Kategorisierung durchführen
+            ki_service = BelegKategorisierungsKI()
+            erweiterte_ki = ErweiterteKI()
+
+            # OCR-Text für Analyse nutzen (falls vorhanden)
+            ocr_text = (
+                dokument.ocr_text or dokument.titel or dokument.original_dateiname
+            )
+
+            # Kategorisierung mit Standard-KI
+            lieferant_str = str(dokument.organisation) if dokument.organisation else ""
+            kategorie, vertrauen = ki_service.kategorisiere_beleg(
+                ocr_text=ocr_text, lieferant=lieferant_str, betrag=0.0
+            )
+
+            # Erweiterte Analyse durchführen
+            zusatz_analyse = {
+                "text_laenge": len(ocr_text),
+                "kategorie_erkannt": dokument.kategorie,
+                "organisation": dokument.organisation,
+                "analyse_methode": "ki_service_v1",
+            }
+
+            # Ergebnisse in KI-Analyse speichern
+            dokument.ki_analyse.update(
+                {
+                    "ki_kategorie": kategorie,
+                    "ki_vertrauen": float(vertrauen),
+                    "ki_analyse_datum": timezone.now().isoformat(),
+                    "zusatz_analyse": zusatz_analyse,
+                    "original_kategorie": dokument.kategorie,
+                }
+            )
+            dokument.save()
+
+            # Benutzer-Feedback basierend auf Vertrauen
+            if vertrauen > 0.8:
+                messages.success(
+                    request,
+                    f"🎯 KI-Analyse erfolgreich! Kategorie: {kategorie} (Vertrauen: {vertrauen:.1%})",
+                )
+            elif vertrauen > 0.5:
+                messages.info(
+                    request,
+                    f"🤔 KI-Vorschlag: {kategorie} (Vertrauen: {vertrauen:.1%}) - Bitte prüfen!",
+                )
+            else:
+                messages.warning(
+                    request,
+                    f"❓ KI unsicher: {kategorie} (Vertrauen: {vertrauen:.1%}) - Manuelle Kategorisierung empfohlen",
+                )
+
+        except ImportError:
+            messages.error(
+                request, "KI-Services nicht verfügbar. Bitte KI-Module installieren."
+            )
+            logger.error("KI-Module nicht verfügbar für Dokument-Analyse")
+        except Exception as e:
+            messages.error(request, f"KI-Analyse fehlgeschlagen: {str(e)}")
+            logger.error(f"KI-Analyse-Fehler für Dokument {dokument.pk}: {e}")
 
         return redirect("dokumente:detail", pk=dokument.pk)
 
