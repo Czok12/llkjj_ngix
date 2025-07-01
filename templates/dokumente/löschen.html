@@ -1,0 +1,215 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}🗑️ Dokument löschen: {{ object.titel }}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    <!-- Header -->
+    <div class="bg-white shadow">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-6">
+                <div>
+                    <h1 class="text-3xl font-bold text-red-600">🗑️ Dokument löschen</h1>
+                    <p class="mt-2 text-gray-600">
+                        <em>Peter Zwegat: "Manchmal muss man Ballast abwerfen - aber nur nach reiflicher Überlegung!"</em>
+                    </p>
+                </div>
+                <div class="flex space-x-4">
+                    <a href="{% url 'dokumente:detail' object.pk %}" 
+                       class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                        </svg>
+                        Zurück zum Dokument
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lösch-Bestätigung -->
+    <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="bg-white shadow rounded-lg">
+            <!-- Warnung Header -->
+            <div class="px-6 py-4 border-b border-gray-200 bg-red-50">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <svg class="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.982 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <h2 class="text-lg font-medium text-red-800">⚠️ Dokument unwiderruflich löschen</h2>
+                        <p class="mt-1 text-sm text-red-700">
+                            Diese Aktion kann nicht rückgängig gemacht werden!
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dokument-Details -->
+            <div class="p-6">
+                <div class="mb-6">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">📄 Dokument-Informationen</h3>
+                    
+                    <div class="bg-gray-50 rounded-lg p-4 space-y-3">
+                        <div class="flex justify-between">
+                            <span class="text-sm font-medium text-gray-600">Titel:</span>
+                            <span class="text-sm text-gray-900 font-semibold">{{ object.titel }}</span>
+                        </div>
+                        
+                        <div class="flex justify-between">
+                            <span class="text-sm font-medium text-gray-600">Kategorie:</span>
+                            <span class="text-sm text-gray-900">{{ object.get_kategorie_display }}</span>
+                        </div>
+                        
+                        {% if object.organisation %}
+                        <div class="flex justify-between">
+                            <span class="text-sm font-medium text-gray-600">Organisation:</span>
+                            <span class="text-sm text-gray-900">{{ object.organisation }}</span>
+                        </div>
+                        {% endif %}
+                        
+                        {% if object.datum %}
+                        <div class="flex justify-between">
+                            <span class="text-sm font-medium text-gray-600">Dokument-Datum:</span>
+                            <span class="text-sm text-gray-900">{{ object.datum|date:"d.m.Y" }}</span>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="flex justify-between">
+                            <span class="text-sm font-medium text-gray-600">Status:</span>
+                            <span class="text-sm text-gray-900">{{ object.get_status_display }}</span>
+                        </div>
+                        
+                        <div class="flex justify-between">
+                            <span class="text-sm font-medium text-gray-600">Erstellt:</span>
+                            <span class="text-sm text-gray-900">{{ object.erstellt_am|date:"d.m.Y H:i" }}</span>
+                        </div>
+                        
+                        {% if object.datei %}
+                        <div class="flex justify-between">
+                            <span class="text-sm font-medium text-gray-600">Datei:</span>
+                            <span class="text-sm text-gray-900">{{ object.dateiname_bereinigt }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Zusätzliche Warnungen -->
+                <div class="mb-6">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">❗ Was wird gelöscht?</h3>
+                    
+                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                        <ul class="text-sm text-yellow-800 space-y-2">
+                            <li class="flex items-start">
+                                <span class="flex-shrink-0 h-1.5 w-1.5 bg-yellow-600 rounded-full mt-2 mr-3"></span>
+                                <span>Das Dokument mit allen Metadaten</span>
+                            </li>
+                            {% if object.datei %}
+                            <li class="flex items-start">
+                                <span class="flex-shrink-0 h-1.5 w-1.5 bg-yellow-600 rounded-full mt-2 mr-3"></span>
+                                <span>Die hochgeladene Datei ({{ object.dateiname_bereinigt }})</span>
+                            </li>
+                            {% endif %}
+                            {% if object.aktionen.count > 0 %}
+                            <li class="flex items-start">
+                                <span class="flex-shrink-0 h-1.5 w-1.5 bg-yellow-600 rounded-full mt-2 mr-3"></span>
+                                <span>{{ object.aktionen.count }} Aktions-Protokoll(e)</span>
+                            </li>
+                            {% endif %}
+                            {% if object.ocr_text %}
+                            <li class="flex items-start">
+                                <span class="flex-shrink-0 h-1.5 w-1.5 bg-yellow-600 rounded-full mt-2 mr-3"></span>
+                                <span>OCR-Text und KI-Analyse-Daten</span>
+                            </li>
+                            {% endif %}
+                            {% if object.verknüpfte_dokumente.count > 0 %}
+                            <li class="flex items-start">
+                                <span class="flex-shrink-0 h-1.5 w-1.5 bg-yellow-600 rounded-full mt-2 mr-3"></span>
+                                <span>Verknüpfungen zu {{ object.verknüpfte_dokumente.count }} anderen Dokument(en)</span>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Bestätigung -->
+                <form method="post" class="mt-6">
+                    {% csrf_token %}
+                    
+                    <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+                        <div class="flex">
+                            <input type="checkbox" id="confirm-delete" name="confirm_delete" required
+                                   class="h-4 w-4 text-red-600 focus:ring-red-500 border-red-300 rounded">
+                            <label for="confirm-delete" class="ml-2 text-sm text-red-800">
+                                <strong>Ja, ich bin mir sicher</strong> und möchte dieses Dokument unwiderruflich löschen.
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Aktions-Buttons -->
+                    <div class="flex justify-between items-center">
+                        <a href="{% url 'dokumente:detail' object.pk %}" 
+                           class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-6 py-3 rounded-lg font-medium flex items-center">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                            Abbrechen
+                        </a>
+                        
+                        <button type="submit" id="delete-button" disabled
+                                class="bg-red-600 hover:bg-red-700 disabled:bg-red-300 disabled:cursor-not-allowed text-white px-6 py-3 rounded-lg font-medium flex items-center transition-colors">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                            </svg>
+                            Dokument löschen
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Zusätzliche Sicherheitshinweise -->
+        <div class="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <h3 class="text-sm font-medium text-blue-800">💡 Alternative Optionen</h3>
+                    <div class="mt-2 text-sm text-blue-700">
+                        <ul class="list-disc pl-5 space-y-1">
+                            <li>Dokument stattdessen <strong>archivieren</strong> (Status auf "Archiviert" setzen)</li>
+                            <li>Dokument zur <strong>späteren Bearbeitung</strong> markieren</li>
+                            <li>Datenschutz-relevante Inhalte durch <strong>Bearbeitung</strong> entfernen</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const checkbox = document.getElementById('confirm-delete');
+    const button = document.getElementById('delete-button');
+    
+    checkbox.addEventListener('change', function() {
+        button.disabled = !this.checked;
+    });
+    
+    // Double-Confirm bei Submit
+    button.addEventListener('click', function(e) {
+        if (!confirm('🚨 LETZTE WARNUNG: Dokument "{{ object.titel }}" wirklich unwiderruflich löschen?')) {
+            e.preventDefault();
+            return false;
+        }
+    });
+});
+</script>
+{% endblock %}

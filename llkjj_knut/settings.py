@@ -350,8 +350,8 @@ if os.getenv("ENABLE_FILE_LOGGING", "False").lower() == "true":
             "level": os.getenv("LOG_LEVEL", "INFO"),
             "class": "logging.handlers.RotatingFileHandler",
             "filename": str(LOG_DIR / "llkjj_knut.txt"),
-            "maxBytes": max_bytes,
-            "backupCount": backup_count,
+            "maxBytes": max_bytes,  # type: ignore[dict-item]
+            "backupCount": backup_count,  # type: ignore[dict-item]
             "formatter": "detailed",
             "encoding": "utf-8",
         }
@@ -365,8 +365,8 @@ if os.getenv("ENABLE_FILE_LOGGING", "False").lower() == "true":
                 "class": "logging.handlers.TimedRotatingFileHandler",
                 "filename": str(LOG_DIR / "llkjj_knut.log"),
                 "when": "midnight",
-                "interval": 1,
-                "backupCount": backup_count,
+                "interval": 1,  # type: ignore[dict-item]
+                "backupCount": backup_count,  # type: ignore[dict-item]
                 "formatter": "detailed",
                 "encoding": "utf-8",
             }

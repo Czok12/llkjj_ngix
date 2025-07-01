@@ -8,9 +8,11 @@ Diese Datei erweitert die Admin-Interfaces mit:
 - Reduzierte Anzahl von DB-Queries
 """
 
+import logging
+
 from django.contrib import admin
 from django.core.cache import cache
-from django.db.models import Count, Sum
+from django.db.models import Count, Max, Sum
 from django.utils.html import format_html
 
 from belege.models import Beleg
@@ -56,7 +58,7 @@ class OptimizedBelegAdmin(admin.ModelAdmin):
             obj.get_status_display(),
         )
 
-    status_anzeige.short_description = "Status"
+    status_anzeige.short_description = "Status"  # type: ignore[attr-defined]
 
     def betrag_formatiert(self, obj):
         """Formatierte Betragsanzeige."""
@@ -67,7 +69,7 @@ class OptimizedBelegAdmin(admin.ModelAdmin):
             )
         return "-"
 
-    betrag_formatiert.short_description = "Betrag"
+    betrag_formatiert.short_description = "Betrag"  # type: ignore[attr-defined]
 
 
 class OptimizedBuchungssatzAdmin(admin.ModelAdmin):
@@ -105,7 +107,7 @@ class OptimizedBuchungssatzAdmin(admin.ModelAdmin):
             obj.haben_konto.nummer if obj.haben_konto else "---",
         )
 
-    soll_haben_anzeige.short_description = "Soll → Haben"
+    soll_haben_anzeige.short_description = "Soll → Haben"  # type: ignore[attr-defined]
 
     def betrag_formatiert(self, obj):
         """Formatierte Betragsanzeige."""
@@ -114,7 +116,7 @@ class OptimizedBuchungssatzAdmin(admin.ModelAdmin):
             obj.betrag,
         )
 
-    betrag_formatiert.short_description = "Betrag"
+    betrag_formatiert.short_description = "Betrag"  # type: ignore[attr-defined]
 
     def buchungstext_kurz(self, obj):
         """Gekürzter Buchungstext."""
@@ -122,7 +124,7 @@ class OptimizedBuchungssatzAdmin(admin.ModelAdmin):
             return f"{obj.buchungstext[:37]}..."
         return obj.buchungstext
 
-    buchungstext_kurz.short_description = "Buchungstext"
+    buchungstext_kurz.short_description = "Buchungstext"  # type: ignore[attr-defined]
 
 
 class OptimizedKontoAdmin(admin.ModelAdmin):
@@ -163,7 +165,7 @@ class OptimizedKontoAdmin(admin.ModelAdmin):
             return format_html('<span style="color: green;">✓ Aktiv</span>')
         return format_html('<span style="color: red;">✗ Inaktiv</span>')
 
-    aktiv_status.short_description = "Status"
+    aktiv_status.short_description = "Status"  # type: ignore[attr-defined]
 
     def anzahl_buchungen(self, obj):
         """Zeigt Anzahl der Buchungen."""
@@ -180,7 +182,7 @@ class OptimizedKontoAdmin(admin.ModelAdmin):
             )
         return "0"
 
-    anzahl_buchungen.short_description = "Buchungen"
+    anzahl_buchungen.short_description = "Buchungen"  # type: ignore[attr-defined]
 
     def saldo_cache(self, obj):
         """Gecachter Konten-Saldo."""
@@ -204,7 +206,7 @@ class OptimizedKontoAdmin(admin.ModelAdmin):
             '<span style="color: {}; font-weight: bold;">{:,.2f} €</span>', color, saldo
         )
 
-    saldo_cache.short_description = "Saldo"
+    saldo_cache.short_description = "Saldo"  # type: ignore[attr-defined]
 
 
 class OptimizedGeschaeftspartnerAdmin(admin.ModelAdmin):
@@ -252,7 +254,7 @@ class OptimizedGeschaeftspartnerAdmin(admin.ModelAdmin):
             )
         return "0"
 
-    anzahl_buchungen_cached.short_description = "Buchungen"
+    anzahl_buchungen_cached.short_description = "Buchungen"  # type: ignore[attr-defined]
 
     def letzter_umsatz(self, obj):
         """Letztes Buchungsdatum."""
@@ -261,7 +263,7 @@ class OptimizedGeschaeftspartnerAdmin(admin.ModelAdmin):
             return datum.strftime("%d.%m.%Y")
         return "-"
 
-    letzter_umsatz.short_description = "Letzter Umsatz"
+    letzter_umsatz.short_description = "Letzter Umsatz"  # type: ignore[attr-defined]
 
 
 # Cache-Invalidierung bei Änderungen
@@ -275,8 +277,9 @@ def invalidate_admin_caches():
             # Einfache Invalidierung für bekannte Keys
             for i in range(1, 1000):  # Annahme: max 1000 Einträge
                 cache.delete(pattern.replace("*", str(i)))
-        except:
-            pass
+        except Exception as e:
+            # Cache-Löschung ist nicht kritisch für die Funktionalität
+            logging.debug("Cache deletion failed: %s", e)
 
 
 # Admin-Registrierung mit optimierten Klassen

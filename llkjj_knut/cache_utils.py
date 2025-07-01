@@ -7,6 +7,7 @@ Zentrale Cache-Funktionen und Decorators für das gesamte Projekt.
 
 import functools
 import hashlib
+import logging
 from typing import Any
 
 from django.contrib.auth.models import AnonymousUser, User
@@ -42,7 +43,7 @@ def make_cache_key(prefix: str, *args, **kwargs) -> str:
 
     # Args hinzufügen
     for arg in args:
-        if isinstance(arg, (int, str)):
+        if isinstance(arg, int | str):
             key_parts.append(str(arg))
         elif hasattr(arg, "id"):
             key_parts.append(f"{arg.__class__.__name__}_{arg.id}")
@@ -57,7 +58,7 @@ def make_cache_key(prefix: str, *args, **kwargs) -> str:
 
     # Key-Länge begrenzen (Redis hat 512MB Limit)
     if len(cache_key) > 250:
-        hash_suffix = hashlib.md5(cache_key.encode()).hexdigest()[:8]
+        hash_suffix = hashlib.sha256(cache_key.encode()).hexdigest()[:8]  # noqa: S324
         cache_key = cache_key[:240] + "_" + hash_suffix
 
     return f"llkjj_art:{cache_key}"
@@ -160,9 +161,9 @@ def invalidate_cache_pattern(pattern: str):
                 )
 
             cache.delete_many(keys_to_delete)
-    except Exception:
-        # Silent fail - Cache-Invalidierung ist nicht kritisch
-        pass
+    except Exception as e:
+        # Cache-Invalidierung ist nicht kritisch für Funktionalität
+        logging.debug("Cache invalidation failed: %s", e)
 
 
 def cache_user_data(
@@ -177,7 +178,7 @@ def cache_user_data(
         data: Zu cachende Daten
         timeout: Cache-Timeout in Sekunden
     """
-    user_id = user.id if user.is_authenticated else "anonymous"
+    user_id = user.id if hasattr(user, "id") and user.is_authenticated else "anonymous"
     cache_key = make_cache_key("user_data", user_id, data_type)
     cache.set(cache_key, data, timeout)
 
@@ -193,13 +194,13 @@ def get_cached_user_data(user: User | AnonymousUser, data_type: str) -> Any | No
     Returns:
         Gecachte Daten oder None
     """
-    user_id = user.id if user.is_authenticated else "anonymous"
+    user_id = user.id if hasattr(user, "id") and user.is_authenticated else "anonymous"
     cache_key = make_cache_key("user_data", user_id, data_type)
     return cache.get(cache_key)
 
 
 def cache_template_fragment(
-    fragment_name: str, vary_on: list = None, timeout: int = 300
+    fragment_name: str, vary_on: list | None = None, timeout: int = 300
 ):
     """
     Helper für Template-Fragment-Caching.
@@ -237,7 +238,7 @@ class CacheKeys:
         return make_cache_key("partner_autocomplete", query[:50])  # Query begrenzen
 
     @staticmethod
-    def konto_saldo(konto_id: int, datum: str = None) -> str:
+    def konto_saldo(konto_id: int, datum: str | None = None) -> str:
         return make_cache_key("konto_saldo", konto_id, datum or "current")
 
     @staticmethod
@@ -246,7 +247,7 @@ class CacheKeys:
 
 
 # Cache-Invalidierung bei Model-Changes
-def invalidate_related_caches(model_name: str, instance_id: int = None):
+def invalidate_related_caches(model_name: str, instance_id: int | None = None):
     """
     Invalidiert verwandte Caches bei Modell-Änderungen.
 

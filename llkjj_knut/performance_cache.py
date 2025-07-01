@@ -7,7 +7,7 @@ Diese Datei erweitert die Cache-Konfiguration für optimale Performance.
 
 import os
 
-from .settings import DEBUG
+from .settings import DATABASES, DEBUG
 
 # Cache Framework Konfiguration
 CACHES = {

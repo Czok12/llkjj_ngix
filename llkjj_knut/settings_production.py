@@ -4,6 +4,7 @@ Peter Zwegat würde sagen: "Sicherheit ist kein Zuckerschlecken, aber unerlässl
 """
 
 import os
+from pathlib import Path
 
 from .settings import *  # noqa: F403,F401
 
@@ -62,12 +63,12 @@ if database_url and "postgres" in database_url:
 # ===== STATIC FILES =====
 
 # Static Files für Production
-STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")  # noqa: F405
+STATIC_ROOT = Path(BASE_DIR) / "staticfiles"  # noqa: F405
 
 # ===== LOGGING =====
 
 # Logs-Verzeichnis erstellen
-LOG_DIR = os.path.join(BASE_DIR, "logs")  # noqa: F405
+LOG_DIR = Path(BASE_DIR) / "logs"  # noqa: F405
 os.makedirs(LOG_DIR, exist_ok=True)
 
 LOGGING = {

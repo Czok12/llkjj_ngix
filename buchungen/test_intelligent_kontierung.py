@@ -25,7 +25,9 @@ class IntelligentKontierungTest(TestCase):
         """Setup für alle Tests."""
         # Test-User
         cls.user = User.objects.create_user(
-            username="testuser1", email="test1@example.com", password="testpass123"
+            username="testuser1",
+            email="test1@example.com",
+            password="testpass123",  # noqa: S106
         )
         cls.benutzerprofil, _ = Benutzerprofil.objects.get_or_create(user=cls.user)
 
@@ -167,7 +169,9 @@ class CSVImportIntelligentKontierungIntegrationTest(TestCase):
         """Setup für alle Tests."""
         # Test-User
         cls.user = User.objects.create_user(
-            username="testuser2", email="test2@example.com", password="testpass123"
+            username="testuser2",
+            email="test2@example.com",
+            password="testpass123",  # noqa: S106
         )
         cls.benutzerprofil, _ = Benutzerprofil.objects.get_or_create(user=cls.user)
 

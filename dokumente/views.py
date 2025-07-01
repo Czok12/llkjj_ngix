@@ -396,12 +396,13 @@ class KIAnalyseView(View):
             # Import der KI-Services
             from django.utils import timezone
 
-            from belege.erweiterte_ki import ErweiterteKI
             from belege.ki_service import BelegKategorisierungsKI
+
+            # from belege.erweiterte_ki import ErweiterteKI  # Momentan nicht verwendet
 
             # KI-Kategorisierung durchführen
             ki_service = BelegKategorisierungsKI()
-            erweiterte_ki = ErweiterteKI()
+            # erweiterte_ki = ErweiterteKI()  # Momentan nicht verwendet
 
             # OCR-Text für Analyse nutzen (falls vorhanden)
             ocr_text = (

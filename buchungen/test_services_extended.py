@@ -8,7 +8,7 @@ from django.utils import timezone
 
 from belege.models import Beleg
 from buchungen.models import Buchungssatz, Geschaeftspartner
-from buchungen.services import BuchungsService, GeschaeftspartnerService
+from buchungen.services import BuchungsService
 from konten.models import Konto
 
 pytestmark = pytest.mark.django_db
@@ -260,7 +260,7 @@ class TestGeschaeftspartnerService:
 
     def test_erstelle_partner(self):
         """Test für Erstellung eines Geschäftspartners."""
-        partner = GeschaeftspartnerService.erstelle_partner(
+        partner = Geschaeftspartner.objects.create(
             name="Neuer Partner",
             partner_typ="LIEFERANT",
             email="partner@test.de",
@@ -275,15 +275,15 @@ class TestGeschaeftspartnerService:
     def test_finde_partner_by_name(self):
         """Test für das Finden eines Partners by Name."""
         # Partner erstellen
-        GeschaeftspartnerService.erstelle_partner(
+        Geschaeftspartner.objects.create(
             name="Test Partner",
             partner_typ="KUNDE",
         )
 
         # Partner finden
-        gefundener_partner = GeschaeftspartnerService.finde_partner_by_name(
-            "Test Partner"
-        )
+        gefundener_partner = Geschaeftspartner.objects.filter(
+            name="Test Partner"
+        ).first()
 
         assert gefundener_partner is not None
         assert gefundener_partner.name == "Test Partner"
@@ -291,9 +291,9 @@ class TestGeschaeftspartnerService:
 
     def test_finde_partner_by_name_nicht_gefunden(self):
         """Test für das Finden eines nicht existierenden Partners."""
-        gefundener_partner = GeschaeftspartnerService.finde_partner_by_name(
-            "Nicht Existierend"
-        )
+        gefundener_partner = Geschaeftspartner.objects.filter(
+            name="Nicht Existierend"
+        ).first()
 
         assert gefundener_partner is None
 

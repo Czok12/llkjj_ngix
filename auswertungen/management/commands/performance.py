@@ -76,7 +76,7 @@ class Command(BaseCommand):
             try:
                 stats = cache._cache.get_stats()
                 self.stdout.write(f"Cache-Stats: {stats}")
-            except:
+            except Exception:
                 self.stdout.write("Keine detaillierten Cache-Stats verfügbar")
 
     def clear_cache(self, verbose=False):
@@ -241,7 +241,7 @@ class Command(BaseCommand):
         konten = Konto.objects.filter(aktiv=True)[:20]
         saldi = []
 
-        for konto in konten:
+        for _konto in konten:
             # Vereinfachte Saldo-Berechnung
             saldo = 0  # In Realität: komplexe Berechnung
             saldi.append(saldo)
