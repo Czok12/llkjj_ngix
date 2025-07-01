@@ -1,3 +1,4 @@
+import logging
 from datetime import date, timedelta
 
 from django.contrib import messages
@@ -16,6 +17,8 @@ from django.views.generic import (
 )
 
 from .models import Dokument, DokumentAktion, DokumentKategorie
+
+logger = logging.getLogger(__name__)
 
 
 class DokumentListView(ListView):
@@ -273,9 +276,60 @@ class BulkUploadView(TemplateView):
     template_name = "dokumente/bulk_upload.html"
 
     def post(self, request, *args, **kwargs):
-        # TODO: Implementierung für Bulk-Upload
-        messages.info(request, "Bulk-Upload wird noch implementiert! 🚧")
-        return redirect("dokumente:liste")
+        """Verarbeitet Bulk-Upload von mehreren Dateien."""
+        try:
+            uploaded_files = request.FILES.getlist("files")
+            if not uploaded_files:
+                messages.error(request, "Keine Dateien ausgewählt!")
+                return redirect("dokumente:bulk_upload")
+
+            erfolg_count = 0
+            fehler_count = 0
+            fehler_details = []
+
+            for datei in uploaded_files:
+                try:
+                    # Dokument erstellen
+                    dokument = Dokument(
+                        titel=datei.name,
+                        datei=datei,
+                        kategorie=request.POST.get("kategorie", "SONSTIGES"),
+                        organisation=request.POST.get("organisation", ""),
+                    )
+                    dokument.full_clean()
+                    dokument.save()
+
+                    # OCR im Hintergrund starten falls PDF
+                    if datei.name.lower().endswith(".pdf"):
+                        # Hier können wir später Celery-Tasks für OCR einbinden
+                        pass
+
+                    erfolg_count += 1
+                    logger.info(f"Dokument {datei.name} erfolgreich hochgeladen")
+
+                except Exception as e:
+                    fehler_count += 1
+                    fehler_details.append(f"{datei.name}: {str(e)}")
+                    logger.error(f"Fehler beim Upload von {datei.name}: {e}")
+
+            # Erfolgsmeldung
+            if erfolg_count > 0:
+                messages.success(
+                    request, f"✅ {erfolg_count} Dokument(e) erfolgreich hochgeladen!"
+                )
+
+            if fehler_count > 0:
+                messages.error(
+                    request,
+                    f"❌ {fehler_count} Fehler: " + "; ".join(fehler_details[:3]),
+                )
+
+            return redirect("dokumente:liste")
+
+        except Exception as e:
+            logger.error(f"Bulk-Upload Fehler: {e}")
+            messages.error(request, f"Bulk-Upload fehlgeschlagen: {str(e)}")
+            return redirect("dokumente:bulk_upload")
 
 
 class OCRExtractView(View):
@@ -286,8 +340,46 @@ class OCRExtractView(View):
     def post(self, request, pk):
         dokument = get_object_or_404(Dokument, pk=pk)
 
-        # TODO: OCR-Implementierung
-        messages.info(request, "OCR-Funktion wird noch implementiert! 🔍")
+        try:
+            if not dokument.datei:
+                messages.error(request, "Keine Datei zum Verarbeiten vorhanden!")
+                return redirect("dokumente:detail", pk=dokument.pk)
+
+            # OCR-Service importieren und verwenden
+            from belege.ocr_service import get_ocr_service
+
+            ocr_service = get_ocr_service()
+
+            # OCR durchführen
+            logger.info(f"Starte OCR für Dokument {dokument.titel}")
+            ocr_result = ocr_service.extract_text_from_pdf(dokument.datei.path)
+
+            if ocr_result.get("full_text"):
+                # Extrahierten Text im Dokument speichern
+                if hasattr(dokument, "inhalt"):
+                    dokument.inhalt = ocr_result["full_text"]
+                    dokument.save()
+
+                    messages.success(
+                        request,
+                        f"✅ OCR erfolgreich! {len(ocr_result['full_text'])} Zeichen extrahiert.",
+                    )
+                    logger.info(
+                        f"OCR erfolgreich für {dokument.titel}: {len(ocr_result['full_text'])} Zeichen"
+                    )
+                else:
+                    messages.warning(
+                        request,
+                        "Text extrahiert, aber Dokument-Modell hat kein 'inhalt'-Feld",
+                    )
+            else:
+                messages.warning(
+                    request, "Kein Text in der Datei gefunden oder OCR fehlgeschlagen"
+                )
+
+        except Exception as e:
+            logger.error(f"OCR-Fehler für Dokument {dokument.pk}: {e}")
+            messages.error(request, f"OCR fehlgeschlagen: {str(e)}")
 
         return redirect("dokumente:detail", pk=dokument.pk)
 

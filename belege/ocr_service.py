@@ -1,5 +1,5 @@
 """
-OCR Service für automatische PDF-Texterkennung.
+OCR Service für automatische PDF-Texterkennung und Dokument-zu-Buchung-Zuordnung.
 
 Peter Zwegat: "Technologie soll das Leben leichter machen - nicht schwerer!"
 """
@@ -27,6 +27,8 @@ class OCRService:
 
     def __init__(self):
         self.confidence_threshold = 60  # Mindest-Vertrauen für OCR-Ergebnisse
+        self.easyocr_reader = None
+        self._initialize_easyocr()
 
         # Regex-Patterns für verschiedene Datentypen
         self.betrag_patterns = [
@@ -56,6 +58,20 @@ class OCRService:
             "Kunde",
         ]
 
+    def _initialize_easyocr(self):
+        """Initialisiert EasyOCR mit deutschen und englischen Sprachen."""
+        try:
+            import easyocr
+
+            self.easyocr_reader = easyocr.Reader(["de", "en"], gpu=False)
+            logger.info("EasyOCR erfolgreich initialisiert")
+        except ImportError:
+            logger.warning("EasyOCR nicht verfügbar - verwende nur Tesseract")
+            self.easyocr_reader = None
+        except Exception as e:
+            logger.warning(f"EasyOCR konnte nicht initialisiert werden: {e}")
+            self.easyocr_reader = None
+
     def extract_text_from_pdf(self, pdf_path: str) -> dict:
         """
         Extrahiert Text aus PDF-Datei und analysiert Inhalte.
@@ -75,7 +91,7 @@ class OCRService:
                 page = doc[page_num]
 
                 # Erst versuchen, direkt Text zu extrahieren
-                page_text = page.get_text()
+                page_text = page.get_text()  # type: ignore[attr-defined]
 
                 if len(page_text.strip()) < 50:  # Wenig Text -> OCR verwenden
                     page_text = self._ocr_from_page(page)
