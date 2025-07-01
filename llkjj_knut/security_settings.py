@@ -2,6 +2,8 @@
 Production Security Settings - Minimal und funktional
 """
 
+import os
+
 # SECURITY: Sichere Defaults für Production
 
 # Security Headers
@@ -20,8 +22,12 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 # CSRF Protection
 CSRF_COOKIE_HTTPONLY = True
 
-# Production-ready Secret Key (50+ characters)
-PRODUCTION_SECRET_KEY = "p@ssw0rd!2024-llkjj-art-production-super-secure-secret-key-with-50plus-chars"  # noqa: S105
+# Production-ready Secret Key (sollte aus Umgebungsvariable kommen)
+# WARNUNG: Hardcodierte Secrets sind ein Sicherheitsrisiko!
+# In Produktion: PRODUCTION_SECRET_KEY aus Environment Variable laden
+PRODUCTION_SECRET_KEY = os.getenv(
+    "PRODUCTION_SECRET_KEY", "CHANGE-ME-IN-PRODUCTION-USE-ENVIRONMENT-VARIABLE"
+)
 
 # Production Allowed Hosts
 PRODUCTION_ALLOWED_HOSTS = [

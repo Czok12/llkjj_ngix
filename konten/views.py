@@ -56,10 +56,9 @@ class KontenListView(ListView):
 
         # Filter nach Aktiv/Inaktiv
         aktiv = self.request.GET.get("aktiv")
-        if aktiv == "true":
-            queryset = queryset.filter(aktiv=True)
-        elif aktiv == "false":
-            queryset = queryset.filter(aktiv=False)
+        if aktiv is not None:
+            is_active = aktiv.lower() == "true"
+            queryset = queryset.filter(aktiv=is_active)
 
         return queryset
 

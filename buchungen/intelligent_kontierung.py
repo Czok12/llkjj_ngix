@@ -4,6 +4,7 @@ Intelligente Kontierung für automatische Buchungsvorschläge.
 Peter Zwegat: "Ein gutes System erkennt Muster und macht Vorschläge!"
 """
 
+import logging
 import re
 from typing import Any
 
@@ -11,6 +12,8 @@ from django.contrib.auth.models import User
 
 from einstellungen.models import StandardKontierung
 from konten.models import Konto
+
+logger = logging.getLogger(__name__)
 
 
 class IntelligenterKontierungsVorschlag:
@@ -35,8 +38,10 @@ class IntelligenterKontierungsVorschlag:
                 benutzerprofil__user=self.user, ist_aktiv=True
             ):
                 kontierungen[sk.buchungstyp] = (sk.soll_konto, sk.haben_konto)
-        except (AttributeError, ValueError):
-            pass  # Fallback auf leeren Dict
+        except (AttributeError, ValueError, TypeError) as e:
+            # Fallback auf leeren Dict bei Fehlern
+            logger.warning(f"Fehler beim Laden der Standard-Kontierungen: {e}")
+            return {}
         return kontierungen
 
     def _init_text_patterns(self) -> dict[str, dict[str, list[str]]]:
@@ -350,7 +355,7 @@ def test_intelligent_kontierung():
 
     user = User.objects.first()
     if not user:
-        print("❌ Kein Benutzer gefunden")
+        logger.error("Kein Benutzer gefunden")
         return
 
     kontierung = IntelligenterKontierungsVorschlag(user)
@@ -365,8 +370,8 @@ def test_intelligent_kontierung():
         "Tankstelle Shell Benzin",
     ]
 
-    print("🧠 Test der intelligenten Kontierung:")
-    print("=" * 50)
+    logger.info("Test der intelligenten Kontierung")
+    logger.info("=" * 50)
 
     for text in test_texts:
         suggestion = kontierung.suggest_kontierung(text)

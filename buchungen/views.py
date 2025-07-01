@@ -83,10 +83,9 @@ class BuchungssatzListView(ListView):
 
         # Filter nach Validierungsstatus
         validiert = self.request.GET.get("validiert")
-        if validiert == "true":
-            queryset = queryset.filter(validiert=True)
-        elif validiert == "false":
-            queryset = queryset.filter(validiert=False)
+        if validiert is not None:
+            is_validated = validiert.lower() == "true"
+            queryset = queryset.filter(validiert=is_validated)
 
         return queryset
 

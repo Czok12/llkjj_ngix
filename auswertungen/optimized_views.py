@@ -299,6 +299,8 @@ def invalidate_dashboard_cache(user_id=None):
     Args:
         user_id: Spezifische User-ID oder None für alle
     """
+    from django.core.cache import cache
+
     if user_id:
         cache_keys = [
             f"dashboard_stats_user_{user_id}",
@@ -309,14 +311,22 @@ def invalidate_dashboard_cache(user_id=None):
         cache.delete_many(cache_keys)
     else:
         # Für alle Benutzer - pattern-based deletion
-        # In Production mit Redis würde man KEYS verwenden
-        # TODO: Implementiere pattern-based cache deletion für Redis
-        # Aktuell wird der Cache nicht invalidiert für "alle Benutzer"
-        # Das ist ein bekanntes Issue und sollte in Production behoben werden
-        logger.warning(
-            "Global cache invalidation not implemented. "
-            "This may cause stale data for other users."
-        )
+        # Implementierung für pattern-based cache deletion
+        try:
+            # Versuche Redis-spezifische pattern deletion
+            if hasattr(cache, "_cache") and hasattr(cache._cache, "delete_pattern"):
+                pattern = "dashboard_*_user_*"
+                cache._cache.delete_pattern(pattern)
+                logger.info(f"Redis pattern deletion executed for: {pattern}")
+            else:
+                # Fallback: Cache komplett leeren (weniger effizient)
+                cache.clear()
+                logger.warning(
+                    "Full cache clear executed (pattern deletion not available)"
+                )
+        except Exception as e:
+            logger.error(f"Cache invalidation failed: {e}")
+            # Graceful degradation - das System funktioniert weiter
 
 
 # Signal-Handler für Cache-Invalidierung

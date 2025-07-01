@@ -76,8 +76,10 @@ class Command(BaseCommand):
             try:
                 stats = cache._cache.get_stats()
                 self.stdout.write(f"Cache-Stats: {stats}")
-            except Exception:
-                self.stdout.write("Keine detaillierten Cache-Stats verfügbar")
+            except (AttributeError, TypeError, ConnectionError) as e:
+                self.stdout.write(f"Keine detaillierten Cache-Stats verfügbar: {e}")
+            except Exception as e:
+                self.stdout.write(f"Unerwarteter Fehler bei Cache-Stats: {e}")
 
     def clear_cache(self, verbose=False):
         """Löscht alle Caches."""

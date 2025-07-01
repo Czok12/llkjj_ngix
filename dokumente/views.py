@@ -301,8 +301,10 @@ class BulkUploadView(TemplateView):
 
                     # OCR im Hintergrund starten falls PDF
                     if datei.name.lower().endswith(".pdf"):
-                        # Hier können wir später Celery-Tasks für OCR einbinden
-                        pass
+                        # TODO: Celery-Tasks für OCR implementieren
+                        logger.info(
+                            f"PDF-Datei {datei.name} hochgeladen - OCR folgt später"
+                        )
 
                     erfolg_count += 1
                     logger.info(f"Dokument {datei.name} erfolgreich hochgeladen")

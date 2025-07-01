@@ -2,6 +2,7 @@
 Minimal Django Settings für Debugging
 """
 
+import logging
 import sys
 from pathlib import Path
 
@@ -115,4 +116,5 @@ MEDIA_ROOT = BASE_DIR / "media"
 # Default primary key field type
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-print("✅ Minimal settings loaded successfully")
+# Minimal settings geladen - für Debugging
+logging.getLogger(__name__).info("Minimal settings loaded successfully")

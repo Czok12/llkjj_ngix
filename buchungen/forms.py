@@ -205,7 +205,10 @@ class BuchungssatzForm(forms.ModelForm):
         """
         # Beispiel-Regel: Aktivkonten nur an Passivkonten
         # (wird später verfeinert)
-        pass
+
+        # Für jetzt: Keine zusätzlichen Validierungen
+        # TODO: Implementiere spezifische Geschäftsregeln
+        return cleaned_data
 
 
 class SchnellbuchungForm(forms.ModelForm):

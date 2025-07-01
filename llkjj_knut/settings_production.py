@@ -3,6 +3,7 @@ Production Settings für llkjj_art - Security-hardened
 Peter Zwegat würde sagen: "Sicherheit ist kein Zuckerschlecken, aber unerlässlich!"
 """
 
+import logging
 import os
 from pathlib import Path
 
@@ -91,7 +92,9 @@ LOGGING = {
     },
 }
 
-print("🔒 Production Settings loaded - Maximum Security enabled")
-print(f"🔐 SSL Redirect: {SECURE_SSL_REDIRECT}")
-print(f"🍪 Secure Cookies: {SESSION_COOKIE_SECURE}")
-print(f"⏰ HSTS: {SECURE_HSTS_SECONDS} seconds")
+# Production settings geladen - Logging statt Print
+logger = logging.getLogger(__name__)
+logger.info("Production Settings loaded - Maximum Security enabled")
+logger.info("SSL Redirect: %s", SECURE_SSL_REDIRECT)
+logger.info("Secure Cookies: %s", SESSION_COOKIE_SECURE)
+logger.info("HSTS: %s seconds", SECURE_HSTS_SECONDS)
