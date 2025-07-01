@@ -1,0 +1,122 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15
+    container_name: llkjj_postgres
+    environment:
+      POSTGRES_DB: llkjj_knut_db
+      POSTGRES_USER: artist
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-sicher123!}
+      POSTGRES_HOST_AUTH_METHOD: trust
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backups:/backups
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U artist -d llkjj_knut_db"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - llkjj_network
+
+  # Redis for Caching & Celery
+  redis:
+    image: redis:7-alpine
+    container_name: llkjj_redis
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - llkjj_network
+
+  # Django Web Application
+  web:
+    build: .
+    container_name: llkjj_web
+    environment:
+      DEBUG: "False"
+      DJANGO_SETTINGS_MODULE: "llkjj_knut.settings_production"
+      POSTGRES_DB: llkjj_knut_db
+      POSTGRES_USER: artist
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-sicher123!}
+      POSTGRES_HOST: postgres
+      REDIS_URL: redis://redis:6379/0
+      SECRET_KEY: ${SECRET_KEY:-your-secret-key-here-change-in-production}
+      ALLOWED_HOSTS: localhost,127.0.0.1,${DOMAIN:-yourdomain.com}
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./media:/app/media
+      - ./staticfiles:/app/staticfiles
+      - ./logs:/app/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - llkjj_network
+
+  # Celery Worker für Background Tasks
+  celery:
+    build: .
+    container_name: llkjj_celery
+    command: celery -A llkjj_knut worker --loglevel=info
+    environment:
+      DEBUG: "False"
+      DJANGO_SETTINGS_MODULE: "llkjj_knut.settings_production"
+      POSTGRES_DB: llkjj_knut_db
+      POSTGRES_USER: artist
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-sicher123!}
+      POSTGRES_HOST: postgres
+      REDIS_URL: redis://redis:6379/0
+      SECRET_KEY: ${SECRET_KEY:-your-secret-key-here-change-in-production}
+    volumes:
+      - ./media:/app/media
+      - ./logs:/app/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - llkjj_network
+
+  # Nginx Reverse Proxy (Production)
+  nginx:
+    image: nginx:alpine
+    container_name: llkjj_nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./staticfiles:/app/staticfiles:ro
+      - ./media:/app/media:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - web
+    restart: unless-stopped
+    networks:
+      - llkjj_network
+
+volumes:
+  postgres_data:
+
+networks:
+  llkjj_network:
+    driver: bridge
+
+# Deployment Commands:
+# 1. docker-compose up --build -d          # Build and start all services
+# 2. docker-compose exec web python manage.py migrate  # Run migrations
+# 3. docker-compose exec web python manage.py createsuperuser  # Create admin user
+# 4. docker-compose logs -f web            # View logs
