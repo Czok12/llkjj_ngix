@@ -61,6 +61,7 @@ DEBUG = os.getenv("DEBUG", "True").lower() == "true"
 ALLOWED_HOSTS = [
     "localhost",
     "127.0.0.1",
+    "testserver",
     "*.herokuapp.com",
     "*.railway.app",
     "*.vercel.app",

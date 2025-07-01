@@ -20,11 +20,13 @@ def create_or_update_user_profile(sender, instance, created, **kwargs):
     """
     if created:
         # Neuer Benutzer -> Profil erstellen (aber noch nicht vollständig)
+        # Steuer-ID ist optional beim Anlegen, um UNIQUE-Fehler zu vermeiden
         Benutzerprofil.objects.create(
             user=instance,
             email=instance.email,
             vorname=instance.first_name,
             nachname=instance.last_name,
+            steuer_id=None,  # Keine Steuer-ID beim Anlegen
         )
     else:
         # Bestehender Benutzer -> Profil aktualisieren (falls vorhanden)

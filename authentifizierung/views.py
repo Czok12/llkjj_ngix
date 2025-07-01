@@ -7,6 +7,7 @@ Peter Zwegat: "Ein System, ein Nutzer - das ist wahre Ordnung!"
 from django.contrib import messages
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.models import User
+from django.http import HttpResponse
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.views.generic import FormView
@@ -114,3 +115,8 @@ def abmelden_view(request):
         )
 
     return redirect("authentifizierung:anmelden")
+
+
+def willkommen_view(request):
+    """Einfache Willkommensseite nach Login."""
+    return HttpResponse("<h1>Willkommen im LLKJJ Art System!</h1>")
