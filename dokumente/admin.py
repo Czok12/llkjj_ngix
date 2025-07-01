@@ -41,12 +41,14 @@ class DokumentKategorieAdmin(admin.ModelAdmin):
                 else obj.beschreibung
             )
         return "-"
+
     def farbe_anzeige(self, obj):
         """Zeigt Farbe als farbigen Block."""
         return format_html(
             '<div style="width: 20px; height: 20px; background-color: {}; border: 1px solid #ccc;"></div>',
             obj.farbe,
         )
+
 
 class DokumentAktionInline(admin.TabularInline):
     """Inline für Dokument-Aktionen."""
@@ -184,6 +186,7 @@ class DokumentAdmin(admin.ModelAdmin):
     def titel_kurz(self, obj):
         """Zeigt gekürzten Titel."""
         return obj.titel[:50] + "..." if len(obj.titel) > 50 else obj.titel
+
     def kategorie_badge(self, obj):
         """Zeigt Kategorie als farbigen Badge."""
         kategorie_dict = dict(obj.KATEGORIE_CHOICES)
@@ -191,6 +194,7 @@ class DokumentAdmin(admin.ModelAdmin):
             '<span style="background-color: #e5e7eb; padding: 2px 8px; border-radius: 12px; font-size: 12px;">{}</span>',
             kategorie_dict.get(obj.kategorie, obj.kategorie),
         )
+
     def status_badge(self, obj):
         """Zeigt Status als farbigen Badge."""
         status_colors = {
@@ -209,6 +213,7 @@ class DokumentAdmin(admin.ModelAdmin):
             color,
             status_dict.get(obj.status, obj.status),
         )
+
     def fälligkeit_anzeige(self, obj):
         """Zeigt Fälligkeit mit Warnung."""
         if not obj.fälligkeitsdatum:
@@ -226,6 +231,7 @@ class DokumentAdmin(admin.ModelAdmin):
             )
         else:
             return obj.fälligkeitsdatum.strftime("%d.%m.%Y")
+
     def datei_link(self, obj):
         """Zeigt Link zur Datei."""
         if obj.datei:
@@ -233,6 +239,7 @@ class DokumentAdmin(admin.ModelAdmin):
                 '<a href="{}" target="_blank">📎 Öffnen</a>', obj.datei.url
             )
         return "-"
+
     def save_model(self, request, obj, form, change):
         """Speichert Dokument und protokolliert Aktion."""
         is_new = not change
@@ -274,6 +281,7 @@ class DokumentAktionAdmin(admin.ModelAdmin):
         """Link zum Dokument."""
         url = reverse("admin:dokumente_dokument_change", args=[obj.dokument.pk])
         return format_html('<a href="{}">{}</a>', url, obj.dokument.titel)
+
     def aktion_badge(self, obj):
         """Zeigt Aktion als Badge."""
         aktion_dict = dict(obj.AKTION_CHOICES)
@@ -281,6 +289,7 @@ class DokumentAktionAdmin(admin.ModelAdmin):
             '<span style="background-color: #3b82f6; color: white; padding: 2px 8px; border-radius: 12px; font-size: 12px;">{}</span>',
             aktion_dict.get(obj.aktion, obj.aktion),
         )
+
     def beschreibung_kurz(self, obj):
         """Gekürzte Beschreibung."""
         return (

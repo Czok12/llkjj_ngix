@@ -44,8 +44,6 @@ class OptimizedBelegAdmin(admin.ModelAdmin):
         return super().get_queryset(request).select_related("geschaeftspartner")
 
     @admin.display(description="Status")
-
-
     def status_anzeige(self, obj):
         """Farbige Status-Anzeige."""
         colors = {
@@ -60,8 +58,8 @@ class OptimizedBelegAdmin(admin.ModelAdmin):
             color,
             obj.get_status_display(),
         )
-    @admin.display(description="Betrag")
 
+    @admin.display(description="Betrag")
     def betrag_formatiert(self, obj):
         """Formatierte Betragsanzeige."""
         if obj.betrag:
@@ -70,6 +68,7 @@ class OptimizedBelegAdmin(admin.ModelAdmin):
                 obj.betrag,
             )
         return "-"
+
 
 class OptimizedBuchungssatzAdmin(admin.ModelAdmin):
     """
@@ -99,8 +98,6 @@ class OptimizedBuchungssatzAdmin(admin.ModelAdmin):
         )
 
     @admin.display(description="Soll → Haben")
-
-
     def soll_haben_anzeige(self, obj):
         """Übersichtliche Soll/Haben Darstellung."""
         return format_html(
@@ -108,22 +105,22 @@ class OptimizedBuchungssatzAdmin(admin.ModelAdmin):
             obj.soll_konto.nummer if obj.soll_konto else "---",
             obj.haben_konto.nummer if obj.haben_konto else "---",
         )
+
     @admin.display(description="Betrag")
-
-
     def betrag_formatiert(self, obj):
         """Formatierte Betragsanzeige."""
         return format_html(
             '<span style="color: green; font-weight: bold;">{:,.2f} €</span>',
             obj.betrag,
         )
-    @admin.display(description="Buchungstext")
 
+    @admin.display(description="Buchungstext")
     def buchungstext_kurz(self, obj):
         """Gekürzter Buchungstext."""
         if len(obj.buchungstext) > 40:
             return f"{obj.buchungstext[:37]}..."
         return obj.buchungstext
+
 
 class OptimizedKontoAdmin(admin.ModelAdmin):
     """
@@ -158,15 +155,13 @@ class OptimizedKontoAdmin(admin.ModelAdmin):
         )
 
     @admin.display(description="Status")
-
-
     def aktiv_status(self, obj):
         """Farbige Aktiv-Status Anzeige."""
         if obj.aktiv:
             return format_html('<span style="color: green;">✓ Aktiv</span>')
         return format_html('<span style="color: red;">✗ Inaktiv</span>')
-    @admin.display(description="Buchungen")
 
+    @admin.display(description="Buchungen")
     def anzahl_buchungen(self, obj):
         """Zeigt Anzahl der Buchungen."""
         soll = getattr(obj, "buchungen_soll", 0) or 0
@@ -181,8 +176,8 @@ class OptimizedKontoAdmin(admin.ModelAdmin):
                 haben,
             )
         return "0"
-    @admin.display(description="Saldo")
 
+    @admin.display(description="Saldo")
     def saldo_cache(self, obj):
         """Gecachter Konten-Saldo."""
         cache_key = f"konto_saldo_{obj.id}"
@@ -204,6 +199,7 @@ class OptimizedKontoAdmin(admin.ModelAdmin):
         return format_html(
             '<span style="color: {}; font-weight: bold;">{:,.2f} €</span>', color, saldo
         )
+
 
 class OptimizedGeschaeftspartnerAdmin(admin.ModelAdmin):
     """
@@ -236,8 +232,6 @@ class OptimizedGeschaeftspartnerAdmin(admin.ModelAdmin):
         )
 
     @admin.display(description="Buchungen")
-
-
     def anzahl_buchungen_cached(self, obj):
         """Gecachte Buchungsanzahl."""
         cache_key = f"partner_buchungen_{obj.id}"
@@ -252,14 +246,15 @@ class OptimizedGeschaeftspartnerAdmin(admin.ModelAdmin):
                 '<span style="color: green; font-weight: bold;">{}</span>', count
             )
         return "0"
-    @admin.display(description="Letzter Umsatz")
 
+    @admin.display(description="Letzter Umsatz")
     def letzter_umsatz(self, obj):
         """Letztes Buchungsdatum."""
         datum = getattr(obj, "letzter_umsatz_datum", None)
         if datum:
             return datum.strftime("%d.%m.%Y")
         return "-"
+
 
 # Cache-Invalidierung bei Änderungen
 def invalidate_admin_caches():

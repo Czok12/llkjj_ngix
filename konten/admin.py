@@ -82,6 +82,7 @@ class KontoAdmin(admin.ModelAdmin):
                 haben,
             )
         return format_html('<span style="color: gray;">0</span>')
+
     def aktiv_status(self, obj):
         """Farbige Anzeige des Aktiv-Status"""
         if obj.aktiv:
@@ -91,12 +92,14 @@ class KontoAdmin(admin.ModelAdmin):
         return format_html(
             '<span style="color: red; font-weight: bold;">✗ Inaktiv</span>'
         )
+
     def aktivieren(self, request, queryset):
         """Bulk-Aktion: Konten aktivieren"""
         updated = queryset.update(aktiv=True)
         self.message_user(
             request, f"Peter Zwegat sagt: '{updated} Konten erfolgreich aktiviert!'"
         )
+
     def deaktivieren(self, request, queryset):
         """Bulk-Aktion: Konten deaktivieren"""
         updated = queryset.update(aktiv=False)

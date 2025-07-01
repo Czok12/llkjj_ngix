@@ -69,6 +69,7 @@ class GeschaeftspartnerAdmin(admin.ModelAdmin):
                 '<span style="color: green;"><strong>{}</strong></span>', count
             )
         return format_html('<span style="color: gray;">0</span>')
+
     def aktiv_status(self, obj):
         """Farbige Anzeige des Aktiv-Status"""
         if obj.aktiv:
@@ -78,18 +79,21 @@ class GeschaeftspartnerAdmin(admin.ModelAdmin):
         return format_html(
             '<span style="color: red; font-weight: bold;">✗ Inaktiv</span>'
         )
+
     def aktivieren(self, request, queryset):
         """Bulk-Aktion: Partner aktivieren"""
         updated = queryset.update(aktiv=True)
         self.message_user(
             request, f"Peter Zwegat sagt: '{updated} Partner erfolgreich aktiviert!'"
         )
+
     def deaktivieren(self, request, queryset):
         """Bulk-Aktion: Partner deaktivieren"""
         updated = queryset.update(aktiv=False)
         self.message_user(
             request, f"Peter Zwegat sagt: '{updated} Partner deaktiviert!'"
         )
+
 
 @admin.register(Buchungssatz)
 class BuchungssatzAdmin(admin.ModelAdmin):
@@ -169,6 +173,7 @@ class BuchungssatzAdmin(admin.ModelAdmin):
         if len(obj.buchungstext) > 50:
             return f"{obj.buchungstext[:47]}..."
         return obj.buchungstext
+
     def soll_haben_anzeige(self, obj):
         """Übersichtliche Soll/Haben Darstellung"""
         return format_html(
@@ -176,11 +181,13 @@ class BuchungssatzAdmin(admin.ModelAdmin):
             obj.soll_konto.nummer if obj.soll_konto else "---",
             obj.haben_konto.nummer if obj.haben_konto else "---",
         )
+
     def betrag_formatiert(self, obj):
         """Formatierte Betragsanzeige"""
         return format_html(
             '<span style="color: blue; font-weight: bold;">{:,.2f} €</span>', obj.betrag
         )
+
     def validiert_status(self, obj):
         """Farbige Anzeige des Validierungsstatus"""
         if obj.validiert:
@@ -190,17 +197,20 @@ class BuchungssatzAdmin(admin.ModelAdmin):
         return format_html(
             '<span style="color: orange; font-weight: bold;">⚠ Prüfen</span>'
         )
+
     def beleg_status(self, obj):
         """Zeigt Beleg-Status"""
         if obj.beleg:
             return format_html('<span style="color: green;">📄 Vorhanden</span>')
         return format_html('<span style="color: red;">📄 Fehlt</span>')
+
     def validieren(self, request, queryset):
         """Bulk-Aktion: Buchungen validieren"""
         updated = queryset.update(validiert=True)
         self.message_user(
             request, f"Peter Zwegat sagt: '{updated} Buchungen erfolgreich validiert!'"
         )
+
     def invalidieren(self, request, queryset):
         """Bulk-Aktion: Buchungen als ungültig markieren"""
         updated = queryset.update(validiert=False)

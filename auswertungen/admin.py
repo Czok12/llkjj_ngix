@@ -40,6 +40,7 @@ class EURMappingAdmin(admin.ModelAdmin):
         """Zeigt die Anzahl der zugeordneten Konten."""
         return len(obj.skr03_konten) if obj.skr03_konten else 0
 
+
 @admin.register(EURBerechnung)
 class EURBerechnungAdmin(admin.ModelAdmin):
     """Admin für EÜR-Berechnungen."""
