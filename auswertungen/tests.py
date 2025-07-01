@@ -85,8 +85,8 @@ class AuswertungenViewsTest(TestCase):
         response = self.client.get(reverse("auswertungen:dashboard"))
         # Erwartet eine Weiterleitung zur Login-Seite
         self.assertEqual(response.status_code, 302)
-        # Django verwendet standardmäßig /accounts/login/
-        self.assertIn("/accounts/login/", response["Location"])
+        # Django verwendet standardmäßig /accounts/login/, aber unser System nutzt /auth/anmeldung/
+        self.assertIn("/auth/anmeldung/", response["Location"])
 
     def test_dashboard_view_authenticated(self):
         response = self.client.get(reverse("auswertungen:dashboard"))
@@ -309,4 +309,4 @@ class AuswertungenViewsExtendedTest(TestCase):
             response = self.client.get(reverse(url_name))
             # Sollte Redirect zu Login-Seite sein
             self.assertEqual(response.status_code, 302)
-            self.assertIn("/accounts/login/", response["Location"])
+            self.assertIn("/auth/anmeldung/", response["Location"])

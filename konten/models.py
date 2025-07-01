@@ -162,12 +162,20 @@ class Konto(models.Model):
                     )
             elif 1800 <= nummer_int <= 1899:  # Eigenkapital/Privat
                 if self.kategorie not in ["EIGENKAPITAL"]:
-                    # Warnung, aber kein Fehler für Eigenkapital-Konten
-                    pass
+                    # Eigenkapital-Konten sollten korrekt kategorisiert sein
+                    raise ValidationError(
+                        {
+                            "kategorie": f"Kontonummer {self.nummer} sollte Eigenkapital-Konto sein"
+                        }
+                    )
             elif 2000 <= nummer_int <= 2199:  # Forderungen
                 if self.kategorie not in ["AKTIVKONTO"]:
                     # Forderungen sind Aktivkonten
-                    pass
+                    raise ValidationError(
+                        {
+                            "kategorie": f"Kontonummer {self.nummer} muss Aktivkonto sein (Forderungen)"
+                        }
+                    )
             elif 2600 <= nummer_int <= 2999:  # Erträge
                 if self.kategorie not in ["ERTRAG", "ERLÖSE"]:
                     raise ValidationError(

@@ -5,6 +5,7 @@ Buchhaltungsbutler für Künstler - Peter Zwegat Edition 🎨
 "Ordnung ist das halbe Leben - die andere Hälfte ist Kunst!"
 """
 
+import logging
 import os
 import sys
 from pathlib import Path
@@ -17,9 +18,8 @@ env_file = BASE_DIR / ".env"
 # Debug-Ausgaben nur wenn explizit gewünscht
 VERBOSE_SETTINGS = os.getenv("VERBOSE_SETTINGS", "False").lower() == "true"
 
-if VERBOSE_SETTINGS:
-    print(f"🔍 Checking for .env file at: {env_file}")
-    print(f"🔍 .env file exists: {env_file.exists()}")
+# Logging für .env-Datei Setup
+logger = logging.getLogger(__name__)
 
 if env_file.exists():
     with open(env_file, encoding="utf-8") as f:
@@ -38,15 +38,15 @@ if env_file.exists():
                 os.environ[key] = value
 
                 if key == "DEBUG" and VERBOSE_SETTINGS:
-                    print(f"🔍 Setting DEBUG to: {value}")
+                    logger.debug(f"Setting DEBUG to: {value}")
 
     if VERBOSE_SETTINGS:
-        print("📄 Loaded .env file successfully")
+        logger.info("Loaded .env file successfully")
 elif VERBOSE_SETTINGS:
-    print("❌ .env file not found!")
+    logger.warning(".env file not found!")
 
 if VERBOSE_SETTINGS:
-    print(f"🔍 DEBUG environment variable: {os.getenv('DEBUG')}")
+    logger.debug(f"DEBUG environment variable: {os.getenv('DEBUG')}")
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv(
@@ -316,8 +316,12 @@ if os.getenv("ENABLE_FILE_LOGGING", "False").lower() == "true":
                 "encoding": "utf-8",
             }
     except (ValueError, TypeError) as e:
-        print(f"⚠️ File logging configuration error: {e}")
-        print("📝 File logging disabled, using console only")
+        # Use logger after it's configured
+        import logging
+
+        logger = logging.getLogger(__name__)
+        logger.error(f"File logging configuration error: {e}")
+        logger.info("File logging disabled, using console only")
 
 LOGGING = {
     "version": 1,

@@ -282,7 +282,12 @@ class BuchungsService:
     ) -> tuple[Konto, Konto]:
         """
         Versucht intelligente Kontierung basierend auf Buchungsdaten.
-        TODO: Hier kann später ML/AI integriert werden.
+
+        Aktuell verwendet diese Funktion regelbasierte Logik.
+        Für zukünftige Versionen ist geplant:
+        - Machine Learning basierte Kontovorhersage
+        - NLP für Textanalyse der Buchungsbeschreibungen
+        - Lernfähigkeit aus historischen Buchungen
         """
 
         buchung_data["betrag"]
@@ -296,7 +301,12 @@ class BuchungsService:
                 erloes = Konto.objects.get(nummer="8400")
                 return bank, erloes
             except Konto.DoesNotExist:
-                pass
+                import logging
+
+                logger = logging.getLogger(__name__)
+                logger.warning(
+                    "Standard-Konten für Einnahmen nicht gefunden (1200/8400)"
+                )
 
         elif any(
             keyword in text for keyword in ["lastschrift", "überweisung", "ausgang"]
@@ -307,7 +317,12 @@ class BuchungsService:
                 bank = Konto.objects.get(nummer="1200")
                 return aufwand, bank
             except Konto.DoesNotExist:
-                pass
+                import logging
+
+                logger = logging.getLogger(__name__)
+                logger.warning(
+                    "Standard-Konten für Ausgaben nicht gefunden (4980/1200)"
+                )
 
         # Fallback zu Standard-Konten
         return default_soll, default_haben

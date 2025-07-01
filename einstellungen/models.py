@@ -4,9 +4,13 @@ Benutzerprofil-Models für llkjj_knut.
 Peter Zwegat: "Ordnung in den Daten ist der Grundstein für eine saubere Steuererklärung!"
 """
 
+import logging
+
 from django.contrib.auth.models import User
 from django.core.validators import RegexValidator
 from django.db import models
+
+logger = logging.getLogger(__name__)
 
 
 class Benutzerprofil(models.Model):
@@ -88,6 +92,8 @@ class Benutzerprofil(models.Model):
         verbose_name="Steuer-Identifikationsnummer",
         help_text="11-stellige Steuer-ID (z.B. 12345678901)",
         unique=True,
+        blank=True,
+        null=True,
         validators=[
             RegexValidator(
                 regex=r"^\d{11}$", message="Steuer-ID muss genau 11 Ziffern haben"
@@ -214,6 +220,7 @@ class Benutzerprofil(models.Model):
             self.beruf,
         ]
 
+        # Für ist_vollstaendig müssen alle Felder ausgefüllt sein
         self.ist_vollstaendig = all(feld for feld in pflichtfelder)
 
         super().save(*args, **kwargs)
@@ -319,9 +326,9 @@ class StandardKontierung(models.Model):
         ordering = ["buchungstyp"]
 
     def __str__(self) -> str:
-        return (
-            f"{self.buchungstyp}: {self.soll_konto.nummer} an {self.haben_konto.nummer}"
-        )
+        soll_nummer = getattr(self.soll_konto, "nummer", "N/A")
+        haben_nummer = getattr(self.haben_konto, "nummer", "N/A")
+        return f"{self.buchungstyp}: {soll_nummer} an {haben_nummer}"
 
     @classmethod
     def standard_kontierungen_erstellen(cls, benutzerprofil):
@@ -362,10 +369,16 @@ class StandardKontierung(models.Model):
 
         for default in defaults:
             try:
+                # Import Konto dynamisch um Circular Import zu vermeiden
+                from django.apps import apps
+
+                Konto = apps.get_model("konten", "Konto")
+
                 soll_konto = Konto.objects.get(nummer=default["soll_konto_nummer"])
                 haben_konto = Konto.objects.get(nummer=default["haben_konto_nummer"])
 
-                cls.objects.get_or_create(
+                objects_manager = cls.objects
+                objects_manager.get_or_create(
                     benutzerprofil=benutzerprofil,
                     buchungstyp=default["buchungstyp"],
                     defaults={
@@ -374,6 +387,7 @@ class StandardKontierung(models.Model):
                         "beschreibung": default["beschreibung"],
                     },
                 )
-            except Konto.DoesNotExist:
-                # Überspringe wenn Konto nicht existiert
+            except Exception as e:
+                # Überspringe wenn Konto nicht existiert oder andere Fehler auftreten
+                logger.warning(f"Standardkontierung übersprungen: {e}")
                 continue

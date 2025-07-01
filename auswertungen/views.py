@@ -16,8 +16,6 @@ from django.db.models.functions import Extract
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
-from django.utils.decorators import method_decorator
-from django.views.decorators.cache import cache_page
 
 # Export-Imports
 from openpyxl import Workbook
@@ -35,7 +33,6 @@ from konten.models import Konto
 
 
 @login_required
-@method_decorator(cache_page(60 * 5), name="dispatch")  # Cache für 5 Minuten
 def dashboard_view(request):
     """
     Hauptdashboard mit allen wichtigen Kennzahlen.

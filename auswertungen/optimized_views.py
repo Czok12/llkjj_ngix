@@ -8,6 +8,7 @@ Diese Datei enthält optimierte Versionen der Dashboard-Views mit:
 - Reduzierte Query-Anzahl
 """
 
+import logging
 import secrets
 from datetime import timedelta
 from decimal import Decimal
@@ -21,6 +22,8 @@ from django.utils import timezone
 from belege.models import Beleg
 from buchungen.models import Buchungssatz, Geschaeftspartner
 from konten.models import Konto
+
+logger = logging.getLogger(__name__)
 
 
 def _get_dashboard_stats_cached(user_id):
@@ -307,7 +310,13 @@ def invalidate_dashboard_cache(user_id=None):
     else:
         # Für alle Benutzer - pattern-based deletion
         # In Production mit Redis würde man KEYS verwenden
-        pass
+        # TODO: Implementiere pattern-based cache deletion für Redis
+        # Aktuell wird der Cache nicht invalidiert für "alle Benutzer"
+        # Das ist ein bekanntes Issue und sollte in Production behoben werden
+        logger.warning(
+            "Global cache invalidation not implemented. "
+            "This may cause stale data for other users."
+        )
 
 
 # Signal-Handler für Cache-Invalidierung

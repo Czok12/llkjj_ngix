@@ -311,9 +311,15 @@ class SchnellbuchungForm(forms.ModelForm):
             try:
                 buchung.soll_konto = Konto.objects.get(nummer=konten["soll"])
                 buchung.haben_konto = Konto.objects.get(nummer=konten["haben"])
-            except Konto.DoesNotExist:
-                # Lasse Konten leer wenn nicht gefunden
-                pass
+            except Konto.DoesNotExist as e:
+                # Log the missing account for debugging
+                import logging
+
+                logger = logging.getLogger(__name__)
+                logger.warning(
+                    f"Standard-Konto für Buchungstyp {buchungstyp} nicht gefunden: {e}"
+                )
+                # Lasse Konten leer wenn nicht gefunden - User muss manuell zuweisen
 
 
 class CSVImportForm(forms.Form):

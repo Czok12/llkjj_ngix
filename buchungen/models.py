@@ -18,6 +18,13 @@ class Geschaeftspartner(models.Model):
         ("BEIDES", "Kunde & Lieferant"),
     ]
 
+    # Django Choice Field Display-Methode (Type Hint für PyLance)
+    def get_partner_typ_display(self) -> str:
+        """Gibt die menschenlesbare Bezeichnung des Partner-Typs zurück."""
+        return dict(self.PARTNER_TYP_CHOICES).get(
+            self.partner_typ, str(self.partner_typ)
+        )
+
     # UUID Primary Key für GoBD-Konformität
     id = models.UUIDField(
         primary_key=True,
@@ -292,11 +299,22 @@ class Buchungssatz(models.Model):
 
     def __str__(self):
         """String-Repräsentation"""
-        return f"{self.buchungsdatum} | {self.soll_konto.nummer} an {self.haben_konto.nummer} | {self.betrag}€"
+        soll_nr = (
+            self.soll_konto.nummer
+            if self.soll_konto and hasattr(self.soll_konto, "nummer")
+            else "N/A"
+        )
+        haben_nr = (
+            self.haben_konto.nummer
+            if self.haben_konto and hasattr(self.haben_konto, "nummer")
+            else "N/A"
+        )
+        return f"{self.buchungsdatum} | {soll_nr} an {haben_nr} | {self.betrag}€"
 
     def __repr__(self):
         """Developer-freundliche Repräsentation"""
-        return f"<Buchungssatz: {self.buchungsdatum} - {self.betrag}€ - {self.buchungstext[:30]}>"
+        buchungstext_short = str(self.buchungstext)[:30] if self.buchungstext else ""
+        return f"<Buchungssatz: {self.buchungsdatum} - {self.betrag}€ - {buchungstext_short}>"
 
     def clean(self):
         """
@@ -349,7 +367,17 @@ class Buchungssatz(models.Model):
     @property
     def buchungszeile(self):
         """Gibt eine klassische Buchungszeile zurück"""
-        return f"{self.soll_konto.nummer} an {self.haben_konto.nummer}"
+        soll_nr = (
+            self.soll_konto.nummer
+            if self.soll_konto and hasattr(self.soll_konto, "nummer")
+            else "N/A"
+        )
+        haben_nr = (
+            self.haben_konto.nummer
+            if self.haben_konto and hasattr(self.haben_konto, "nummer")
+            else "N/A"
+        )
+        return f"{soll_nr} an {haben_nr}"
 
     @property
     def betrag_formatiert(self):
@@ -364,12 +392,22 @@ class Buchungssatz(models.Model):
     @property
     def ist_einnahme(self):
         """Ist es eine Einnahme? (Haben-Konto ist Ertragskonto)"""
-        return self.haben_konto and self.haben_konto.ist_ertragskonto
+        try:
+            return self.haben_konto and getattr(
+                self.haben_konto, "ist_ertragskonto", False
+            )
+        except AttributeError:
+            return False
 
     @property
     def ist_ausgabe(self):
         """Ist es eine Ausgabe? (Soll-Konto ist Aufwandskonto)"""
-        return self.soll_konto and self.soll_konto.ist_aufwandskonto
+        try:
+            return self.soll_konto and getattr(
+                self.soll_konto, "ist_aufwandskonto", False
+            )
+        except AttributeError:
+            return False
 
     @property
     def geschaeftsvorfall_typ(self):
@@ -379,14 +417,17 @@ class Buchungssatz(models.Model):
         elif self.ist_ausgabe:
             return "Ausgabe"
         elif self.soll_konto and self.haben_konto:
-            if self.soll_konto.ist_aktivkonto and self.haben_konto.ist_aktivkonto:
+            soll_ist_aktiv = getattr(self.soll_konto, "ist_aktivkonto", False)
+            haben_ist_aktiv = getattr(self.haben_konto, "ist_aktivkonto", False)
+            if soll_ist_aktiv and haben_ist_aktiv:
                 return "Umbuchung"
         return "Sonstiger Geschäftsvorfall"
 
     @classmethod
     def get_einnahmen_monat(cls, jahr, monat):
         """Holt alle Einnahmen eines Monats"""
-        return cls.objects.filter(
+        objects_manager = cls.objects
+        return objects_manager.filter(
             buchungsdatum__year=jahr,
             buchungsdatum__month=monat,
             haben_konto__kategorie__in=["ERTRAG", "ERLÖSE"],
@@ -395,7 +436,8 @@ class Buchungssatz(models.Model):
     @classmethod
     def get_ausgaben_monat(cls, jahr, monat):
         """Holt alle Ausgaben eines Monats"""
-        return cls.objects.filter(
+        objects_manager = cls.objects
+        return objects_manager.filter(
             buchungsdatum__year=jahr,
             buchungsdatum__month=monat,
             soll_konto__kategorie="AUFWAND",

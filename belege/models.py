@@ -3,6 +3,8 @@ import re
 import uuid
 from datetime import datetime
 
+from django.apps import apps
+from django.core.files.base import ContentFile
 from django.core.validators import FileExtensionValidator
 from django.db import models
 
@@ -71,7 +73,7 @@ def generiere_intelligenten_dateinamen(instance, filename):
 
     except Exception as e:
         # Fallback zum ursprünglichen Namen mit aktuellem Datum
-        logger.warning(f"Fehler bei Dateinamen-Generierung: {e}")
+        logger.warning("Fehler bei Dateinamen-Generierung: %s", e)
         return beleg_upload_path(instance, filename)
 
 
@@ -156,6 +158,15 @@ class Beleg(models.Model):
         ("ARCHIVIERT", "Archiviert"),
         ("FEHLER", "Fehlerhaft"),
     ]
+
+    # Django Choice Field Display-Methoden (Type Hints für PyLance)
+    def get_beleg_typ_display(self) -> str:
+        """Gibt die menschenlesbare Bezeichnung des Beleg-Typs zurück."""
+        return dict(self.BELEG_TYP_CHOICES).get(self.beleg_typ, str(self.beleg_typ))
+
+    def get_status_display(self) -> str:
+        """Gibt die menschenlesbare Bezeichnung des Status zurück."""
+        return dict(self.STATUS_CHOICES).get(self.status, str(self.status))
 
     # UUID Primary Key
     id = models.UUIDField(
@@ -330,7 +341,10 @@ class Beleg(models.Model):
             self.original_dateiname = self.datei.name
 
         if self.datei and not self.dateigröße:
-            self.dateigröße = self.datei.size
+            # Type-safe access zu FileField.size
+            size = getattr(self.datei, "size", None)
+            if size:
+                self.dateigröße = size
 
         super().save(*args, **kwargs)
 
@@ -420,7 +434,9 @@ class Beleg(models.Model):
 
         # Trainingsdaten für ML-Modell erstellen
         if self.ocr_text:
-            BelegKategorieML.objects.create(
+            # Verwende den lokalen Verweis zur Vermeidung von Linting-Fehlern
+            beleg_kategorie_ml = apps.get_model("belege", "BelegKategorieML")
+            beleg_kategorie_ml.objects.create(
                 schluesselwoerter=self._extrahiere_schluesselwoerter(),
                 lieferant_name=(
                     self.geschaeftspartner.name
@@ -445,7 +461,8 @@ class Beleg(models.Model):
 
         # Einfache Schlüsselwort-Extraktion
         schluesselwoerter = []
-        text_lower = self.ocr_text.lower()
+        # Type-safe access zu TextField
+        text_lower = str(self.ocr_text).lower() if self.ocr_text else ""
 
         # Kategorien-spezifische Wörter
         kategorien_woerter = {
@@ -493,7 +510,8 @@ class Beleg(models.Model):
 
             # Neuen Namen generieren
             alter_pfad = self.datei.name
-            alter_voller_pfad = self.datei.path
+            # Type-safe access zu FileField.path
+            alter_voller_pfad = self.datei.path if hasattr(self.datei, "path") else ""
 
             # Neuen Namen mit aktuellen Daten erstellen
             dateiendung = alter_pfad.split(".")[-1].lower()
@@ -504,7 +522,9 @@ class Beleg(models.Model):
 
             datum_str = datetime.now().strftime("%d_%m_%y")
             if self.rechnungsdatum:
-                datum_str = self.rechnungsdatum.strftime("%d_%m_%y")
+                # Type-safe access zu DateField
+                if hasattr(self.rechnungsdatum, "strftime"):
+                    datum_str = self.rechnungsdatum.strftime("%d_%m_%y")
 
             rechnungsnr = "000"
             if self.rechnungsnummer:
@@ -514,11 +534,13 @@ class Beleg(models.Model):
 
             # Pfad mit Jahr/Monat
             jahr = (
-                self.rechnungsdatum.year if self.rechnungsdatum else datetime.now().year
+                self.rechnungsdatum.year
+                if self.rechnungsdatum and hasattr(self.rechnungsdatum, "year")
+                else datetime.now().year
             )
             monat = (
                 self.rechnungsdatum.month
-                if self.rechnungsdatum
+                if self.rechnungsdatum and hasattr(self.rechnungsdatum, "month")
                 else datetime.now().month
             )
 
@@ -528,7 +550,9 @@ class Beleg(models.Model):
             if alter_pfad != neuer_pfad:
                 # Sicherstellen dass das Ziel-Verzeichnis existiert
                 ziel_dir = f"belege/{jahr}/{monat:02d}"
-                default_storage.save(f"{ziel_dir}/.keep", b"")
+                # Erstelle .keep-Datei mit ContentFile für korrekten Type
+                keep_content = ContentFile(b"")
+                default_storage.save(f"{ziel_dir}/.keep", keep_content)
 
                 neuer_voller_pfad = default_storage.path(neuer_pfad)
 
@@ -541,10 +565,10 @@ class Beleg(models.Model):
                     self.datei.name = neuer_pfad
                     self.save(update_fields=["datei"])
 
-                    logger.info(f"Datei umbenannt: {alter_pfad} -> {neuer_pfad}")
+                    logger.info("Datei umbenannt: %s -> %s", alter_pfad, neuer_pfad)
 
         except Exception as e:
-            logger.warning(f"Fehler beim Umbenennen der Datei: {e}")
+            logger.warning("Fehler beim Umbenennen der Datei: %s", e)
 
 
 class BelegKategorieML(models.Model):
