@@ -86,13 +86,12 @@ class BenutzerprofIlAdmin(admin.ModelAdmin):
         ),
     )
 
+    @admin.display(description="Name", ordering="nachname")
     def vollstaendiger_name(self, obj):
         """Zeigt den vollständigen Namen an."""
         return f"{obj.vorname} {obj.nachname}"
 
-    vollstaendiger_name.short_description = "Name"
-    vollstaendiger_name.admin_order_field = "nachname"
-
+    @admin.display(description="USt-Status")
     def kleinunternehmer_status(self, obj):
         """Zeigt den Kleinunternehmer-Status mit Icon an."""
         if obj.kleinunternehmer_19_ustg:
@@ -104,8 +103,7 @@ class BenutzerprofIlAdmin(admin.ModelAdmin):
                 '<span style="color: orange;"><i class="fas fa-exclamation"></i> USt-pflichtig</span>'
             )
 
-    kleinunternehmer_status.short_description = "USt-Status"
-
+    @admin.display(description="Vollständig", boolean=True)
     def ist_vollstaendig(self, obj):
         """Zeigt Vollständigkeits-Status mit Icon an."""
         if obj.ist_vollstaendig:
@@ -116,9 +114,6 @@ class BenutzerprofIlAdmin(admin.ModelAdmin):
             return format_html(
                 '<span style="color: red;"><i class="fas fa-exclamation-circle"></i> Unvollständig</span>'
             )
-
-    ist_vollstaendig.short_description = "Vollständig"
-    ist_vollstaendig.boolean = True
 
     def save_model(self, request, obj, form, change):
         """
@@ -200,17 +195,15 @@ class StandardKontierungAdmin(admin.ModelAdmin):
         ),
     )
 
+    @admin.display(description="Soll-Konto")
     def soll_konto_display(self, obj):
         """Zeigt Kontonummer und Name."""
         return f"{obj.soll_konto.nummer} - {obj.soll_konto.name}"
 
+    @admin.display(description="Haben-Konto")
     def haben_konto_display(self, obj):
         """Zeigt Kontonummer und Name."""
         return f"{obj.haben_konto.nummer} - {obj.haben_konto.name}"
-
-    # Set display names for the admin columns
-    soll_konto_display.short_description = "Soll-Konto"  # type: ignore
-    haben_konto_display.short_description = "Haben-Konto"  # type: ignore
 
     def get_queryset(self, request):
         """Optimiert die Datenbankabfragen."""

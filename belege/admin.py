@@ -93,10 +93,6 @@ class BelegAdmin(admin.ModelAdmin):
                 obj.betrag,
             )
         return format_html('<span style="color: gray;">---</span>')
-
-    betrag_formatiert.short_description = "Betrag"
-    betrag_formatiert.admin_order_field = "betrag"
-
     def status_anzeige(self, obj):
         """Farbige Anzeige des Status"""
         status_colors = {
@@ -111,10 +107,6 @@ class BelegAdmin(admin.ModelAdmin):
         return format_html(
             '<span style="color: {}; font-weight: bold;">{}</span>', color, status_text
         )
-
-    status_anzeige.short_description = "Status"
-    status_anzeige.admin_order_field = "status"
-
     def ocr_status(self, obj):
         """OCR-Status anzeigen"""
         if obj.ocr_verarbeitet:
@@ -122,10 +114,6 @@ class BelegAdmin(admin.ModelAdmin):
                 '<span style="color: green; font-weight: bold;">✓ OCR</span>'
             )
         return format_html('<span style="color: gray;">⚠ Ausstehend</span>')
-
-    ocr_status.short_description = "OCR"
-    ocr_status.admin_order_field = "ocr_verarbeitet"
-
     def datei_vorschau(self, obj):
         """Zeigt Datei-Vorschau wenn möglich"""
         if obj.datei:
@@ -144,23 +132,15 @@ class BelegAdmin(admin.ModelAdmin):
                     '<a href="{}" target="_blank">📎 Datei öffnen</a>', obj.datei.url
                 )
         return "Keine Datei"
-
-    datei_vorschau.short_description = "Vorschau"
-
     def als_verarbeitet_markieren(self, request, queryset):
         """Bulk-Aktion: Belege als verarbeitet markieren"""
         updated = queryset.update(status="verarbeitet")
         self.message_user(
             request, f"Peter Zwegat sagt: '{updated} Belege als verarbeitet markiert!'"
         )
-
-    als_verarbeitet_markieren.short_description = "Als verarbeitet markieren"
-
     def ocr_zuruecksetzen(self, request, queryset):
         """Bulk-Aktion: OCR zurücksetzen"""
         updated = queryset.update(ocr_verarbeitet=False, ocr_text="")
         self.message_user(
             request, f"Peter Zwegat sagt: 'OCR für {updated} Belege zurückgesetzt!'"
         )
-
-    ocr_zuruecksetzen.short_description = "OCR zurücksetzen"

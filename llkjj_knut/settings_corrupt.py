@@ -2,7 +2,55 @@
 Django settings for llkjj_knut project.
 
 Buchhaltungsbutler für Künstler - Peter Zwegat Edition 🎨
-"Ordnung ist das halbe Leben - die andere Hälfte ist Kunst!"
+"Ordnung# Database - SQLite für Entwicklung, PostgreSQL         "E    }     }
+
+# Für Tests immer SQLite verwenden (schneller und keine Berechtigungsprobleme)NGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",
+    }
+}
+
+# Für Tests immer SQLite verwenden (schneller und keine Berechtigungsprobleme)bug-Ausgabe nur wenn gewünscht
+if VERBOSE_SETTINGS:
+    print("📁 SQLite database configured successfully")
+
+# Für Tests immer SQLite verwenden (schneller und keine Berechtigungsprobleme): "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",
+    }
+}
+
+if VERBOSE_SETTINGS:
+    print("📁 SQLite database configured successfully")
+
+# Für Tests immer SQLite verwenden (schneller und keine Berechtigungsprobleme)ERBOSE_SETTINGS:
+    print("📁 SQLite database configured successfully")roduktion
+# https://docs.djangoproject.com/en/5.0/ref/settings/#databases
+
+# Standard SQLite-Konfiguration
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",
+    }
+}
+
+# Ermögliche PostgreSQL über DATABASE_URL (für Produktion)
+database_url = os.getenv("DATABASE_URL")
+if database_url and "postgres" in database_url:
+    # Vereinfachte PostgreSQL-Konfiguration
+    import urllib.parse as urlparse
+    url = urlparse.urlparse(database_url)
+    DATABASES["default"] = {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": url.path[1:],
+        "USER": url.username,
+        "PASSWORD": url.password,
+        "HOST": url.hostname,
+        "PORT": url.port,
+    }
+    print("🐘 PostgreSQL konfiguriert") if VERBOSE_SETTINGS else None
+else:
+    if VERBOSE_SETTINGS:
+        print("📁 SQLite konfiguriert für Entwicklung")lbe Leben - die andere Hälfte ist Kunst!"
 """
 
 import os
@@ -66,7 +114,9 @@ ALLOWED_HOSTS = [
     "*.vercel.app",
 ]
 
+
 # Application definition
+
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -89,7 +139,6 @@ INSTALLED_APPS = [
     "einstellungen.apps.EinstellungenConfig",
     "dokumente.apps.DokumenteConfig",
 ]
-
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -121,7 +170,8 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "llkjj_knut.wsgi.application"
 
-# Database - SQLite für Entwicklung, PostgreSQL für Produktion
+
+# Database - Einfache SQLite-Konfiguration für Entwicklung
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
 DATABASES = {
@@ -131,6 +181,7 @@ DATABASES = {
     }
 }
 
+
 # Für Tests immer SQLite verwenden (schneller und keine Berechtigungsprobleme)
 # Peter Zwegat: "Tests müssen schnell und zuverlässig sein!"
 if "test" in sys.argv or "test_coverage" in sys.argv:
@@ -138,6 +189,7 @@ if "test" in sys.argv or "test_coverage" in sys.argv:
         "ENGINE": "django.db.backends.sqlite3",
         "NAME": ":memory:",  # In-Memory für schnellere Tests
     }
+
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
@@ -156,6 +208,7 @@ AUTH_PASSWORD_VALIDATORS = [
         "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
 ]
+
 
 # Internationalization - Deutsch für Peter Zwegat
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
@@ -180,6 +233,7 @@ MEDIA_ROOT = BASE_DIR / "media"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
+
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # =============================================================================
@@ -218,6 +272,8 @@ SESSION_SAVE_EVERY_REQUEST = True
 # CSRF-Einstellungen
 CSRF_COOKIE_SECURE = not DEBUG  # HTTPS in Production
 CSRF_COOKIE_HTTPONLY = True
+
+# Password-Validierung wird bereits oben definiert
 
 # E-Mail Backend (für Passwort-Reset)
 if DEBUG:
@@ -420,6 +476,42 @@ LOGGING = {
         },
     },
 }
+
+# SECURITY: Production-ready Settings (CTO-approved)
+# Diese werden nur in Production aktiviert, wenn DEBUG=False
+# Temporär deaktiviert für Debug-Zwecke
+# if not DEBUG:
+#     try:
+#         from .security_settings import (
+#             PRODUCTION_ALLOWED_HOSTS,
+#             PRODUCTION_SECRET_KEY,
+#             SECURE_BROWSER_XSS_FILTER,
+#             SECURE_CONTENT_TYPE_NOSNIFF,
+#             SECURE_HSTS_INCLUDE_SUBDOMAINS,
+#             SECURE_HSTS_SECONDS,
+#             SECURE_REFERRER_POLICY,
+#             X_FRAME_OPTIONS,
+#         )
+#
+#         # Überschreibe kritische Settings für Production
+#         SECRET_KEY = PRODUCTION_SECRET_KEY
+#         ALLOWED_HOSTS = PRODUCTION_ALLOWED_HOSTS
+#
+#         # Übernehme Security-Headers
+#         globals().update(
+#             {
+#                 "SECURE_HSTS_SECONDS": SECURE_HSTS_SECONDS,
+#                 "SECURE_HSTS_INCLUDE_SUBDOMAINS": SECURE_HSTS_INCLUDE_SUBDOMAINS,
+#                 "SECURE_CONTENT_TYPE_NOSNIFF": SECURE_CONTENT_TYPE_NOSNIFF,
+#                 "SECURE_BROWSER_XSS_FILTER": SECURE_BROWSER_XSS_FILTER,
+#                 "SECURE_REFERRER_POLICY": SECURE_REFERRER_POLICY,
+#                 "X_FRAME_OPTIONS": X_FRAME_OPTIONS,
+#             }
+#         )
+#
+#         print("🔒 Production Security activated")
+#     except ImportError:
+#         print("⚠️  Security settings not found - using defaults")
 
 # PERFORMANCE: Cache für Production
 if not DEBUG and os.getenv("USE_CACHE", "False").lower() == "true":

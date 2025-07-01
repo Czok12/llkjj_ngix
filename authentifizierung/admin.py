@@ -52,10 +52,6 @@ class ErweiterterUserAdmin(BaseUserAdmin):
             return format_html(
                 '<span style="color: red;"><i class="fas fa-times"></i> Nein</span>'
             )
-
-    hat_profil.short_description = "Hat Profil"
-    hat_profil.admin_order_field = "benutzerprofil"
-
     def get_queryset(self, request):
         """Optimiert die Abfrage für bessere Performance."""
         return super().get_queryset(request).select_related("benutzerprofil")

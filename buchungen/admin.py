@@ -69,10 +69,6 @@ class GeschaeftspartnerAdmin(admin.ModelAdmin):
                 '<span style="color: green;"><strong>{}</strong></span>', count
             )
         return format_html('<span style="color: gray;">0</span>')
-
-    anzahl_buchungen.short_description = "Buchungen"
-    anzahl_buchungen.admin_order_field = "buchungen_count"
-
     def aktiv_status(self, obj):
         """Farbige Anzeige des Aktiv-Status"""
         if obj.aktiv:
@@ -82,28 +78,18 @@ class GeschaeftspartnerAdmin(admin.ModelAdmin):
         return format_html(
             '<span style="color: red; font-weight: bold;">✗ Inaktiv</span>'
         )
-
-    aktiv_status.short_description = "Status"
-    aktiv_status.admin_order_field = "aktiv"
-
     def aktivieren(self, request, queryset):
         """Bulk-Aktion: Partner aktivieren"""
         updated = queryset.update(aktiv=True)
         self.message_user(
             request, f"Peter Zwegat sagt: '{updated} Partner erfolgreich aktiviert!'"
         )
-
-    aktivieren.short_description = "Ausgewählte Partner aktivieren"
-
     def deaktivieren(self, request, queryset):
         """Bulk-Aktion: Partner deaktivieren"""
         updated = queryset.update(aktiv=False)
         self.message_user(
             request, f"Peter Zwegat sagt: '{updated} Partner deaktiviert!'"
         )
-
-    deaktivieren.short_description = "Ausgewählte Partner deaktivieren"
-
 
 @admin.register(Buchungssatz)
 class BuchungssatzAdmin(admin.ModelAdmin):
@@ -183,9 +169,6 @@ class BuchungssatzAdmin(admin.ModelAdmin):
         if len(obj.buchungstext) > 50:
             return f"{obj.buchungstext[:47]}..."
         return obj.buchungstext
-
-    buchungstext_kurz.short_description = "Buchungstext"
-
     def soll_haben_anzeige(self, obj):
         """Übersichtliche Soll/Haben Darstellung"""
         return format_html(
@@ -193,18 +176,11 @@ class BuchungssatzAdmin(admin.ModelAdmin):
             obj.soll_konto.nummer if obj.soll_konto else "---",
             obj.haben_konto.nummer if obj.haben_konto else "---",
         )
-
-    soll_haben_anzeige.short_description = "Soll → Haben"
-
     def betrag_formatiert(self, obj):
         """Formatierte Betragsanzeige"""
         return format_html(
             '<span style="color: blue; font-weight: bold;">{:,.2f} €</span>', obj.betrag
         )
-
-    betrag_formatiert.short_description = "Betrag"
-    betrag_formatiert.admin_order_field = "betrag"
-
     def validiert_status(self, obj):
         """Farbige Anzeige des Validierungsstatus"""
         if obj.validiert:
@@ -214,27 +190,17 @@ class BuchungssatzAdmin(admin.ModelAdmin):
         return format_html(
             '<span style="color: orange; font-weight: bold;">⚠ Prüfen</span>'
         )
-
-    validiert_status.short_description = "Validiert"
-    validiert_status.admin_order_field = "validiert"
-
     def beleg_status(self, obj):
         """Zeigt Beleg-Status"""
         if obj.beleg:
             return format_html('<span style="color: green;">📄 Vorhanden</span>')
         return format_html('<span style="color: red;">📄 Fehlt</span>')
-
-    beleg_status.short_description = "Beleg"
-
     def validieren(self, request, queryset):
         """Bulk-Aktion: Buchungen validieren"""
         updated = queryset.update(validiert=True)
         self.message_user(
             request, f"Peter Zwegat sagt: '{updated} Buchungen erfolgreich validiert!'"
         )
-
-    validieren.short_description = "Ausgewählte Buchungen validieren"
-
     def invalidieren(self, request, queryset):
         """Bulk-Aktion: Buchungen als ungültig markieren"""
         updated = queryset.update(validiert=False)
@@ -242,5 +208,3 @@ class BuchungssatzAdmin(admin.ModelAdmin):
             request,
             f"Peter Zwegat sagt: '{updated} Buchungen zur Überprüfung markiert!'",
         )
-
-    invalidieren.short_description = "Ausgewählte Buchungen zur Überprüfung markieren"
