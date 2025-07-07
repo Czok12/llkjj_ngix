@@ -1,0 +1,207 @@
+<!-- Customer Form Partial for HTMX -->
+{% load widget_tweaks %}
+
+{% if customer_form.errors or company_form.errors %}
+<div class="alert alert-danger">
+    <h6><i class="fas fa-exclamation-circle me-2"></i>Bitte korrigieren Sie die folgenden Fehler:</h6>
+    <ul class="mb-0">
+        {% for field, errors in customer_form.errors.items %}
+        {% for error in errors %}
+        <li>{{ field|title }}: {{ error }}</li>
+        {% endfor %}
+        {% endfor %}
+        {% for field, errors in company_form.errors.items %}
+        {% for error in errors %}
+        <li>Unternehmen - {{ field|title }}: {{ error }}</li>
+        {% endfor %}
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
+<!-- Customer Information -->
+<div class="row mb-4">
+    <div class="col-12">
+        <h5 class="border-bottom pb-2 mb-3">
+            <i class="fas fa-user text-primary me-2"></i>
+            Kundendaten
+        </h5>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="mb-3">
+            <label for="{{ customer_form.name.id_for_label }}" class="form-label">
+                Name <span class="text-danger">*</span>
+            </label>
+            {{ customer_form.name|add_class:"form-control"|attr:"placeholder:Kundenname" }}
+            {% if customer_form.name.help_text %}
+            <div class="form-text">{{ customer_form.name.help_text }}</div>
+            {% endif %}
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="mb-3">
+            <label for="{{ customer_form.email.id_for_label }}" class="form-label">
+                E-Mail
+            </label>
+            {{ customer_form.email|add_class:"form-control"|attr:"placeholder:kunde@example.com" }}
+            {% if customer_form.email.help_text %}
+            <div class="form-text">{{ customer_form.email.help_text }}</div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="mb-3">
+            <label for="{{ customer_form.phone.id_for_label }}" class="form-label">
+                Telefon
+            </label>
+            {{ customer_form.phone|add_class:"form-control"|attr:"placeholder:+49 123 456789" }}
+            {% if customer_form.phone.help_text %}
+            <div class="form-text">{{ customer_form.phone.help_text }}</div>
+            {% endif %}
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="mb-3">
+            <label for="{{ customer_form.contact_person.id_for_label }}" class="form-label">
+                Ansprechpartner
+            </label>
+            {{ customer_form.contact_person|add_class:"form-control"|attr:"placeholder:Max Mustermann" }}
+            {% if customer_form.contact_person.help_text %}
+            <div class="form-text">{{ customer_form.contact_person.help_text }}</div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="mb-3">
+            <div class="form-check">
+                {{ customer_form.is_active|add_class:"form-check-input" }}
+                <label for="{{ customer_form.is_active.id_for_label }}" class="form-check-label">
+                    Kunde ist aktiv
+                </label>
+            </div>
+            {% if customer_form.is_active.help_text %}
+            <div class="form-text">{{ customer_form.is_active.help_text }}</div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Company Information -->
+<div class="row mb-4 mt-4">
+    <div class="col-12">
+        <h5 class="border-bottom pb-2 mb-3">
+            <i class="fas fa-building text-warning me-2"></i>
+            Unternehmensdaten
+        </h5>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="mb-3">
+            <label for="{{ company_form.name.id_for_label }}" class="form-label">
+                Firmenname <span class="text-danger">*</span>
+            </label>
+            {{ company_form.name|add_class:"form-control"|attr:"placeholder:Musterfirma GmbH" }}
+            {% if company_form.name.help_text %}
+            <div class="form-text">{{ company_form.name.help_text }}</div>
+            {% endif %}
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="mb-3">
+            <label for="{{ company_form.address.id_for_label }}" class="form-label">
+                Adresse
+            </label>
+            {{ company_form.address|add_class:"form-control"|attr:"placeholder:Musterstraße 123" }}
+            {% if company_form.address.help_text %}
+            <div class="form-text">{{ company_form.address.help_text }}</div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-3">
+        <div class="mb-3">
+            <label for="{{ company_form.postal_code.id_for_label }}" class="form-label">
+                PLZ
+            </label>
+            {{ company_form.postal_code|add_class:"form-control"|attr:"placeholder:12345" }}
+            {% if company_form.postal_code.help_text %}
+            <div class="form-text">{{ company_form.postal_code.help_text }}</div>
+            {% endif %}
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="mb-3">
+            <label for="{{ company_form.city.id_for_label }}" class="form-label">
+                Stadt
+            </label>
+            {{ company_form.city|add_class:"form-control"|attr:"placeholder:Musterstadt" }}
+            {% if company_form.city.help_text %}
+            <div class="form-text">{{ company_form.city.help_text }}</div>
+            {% endif %}
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="mb-3">
+            <label for="{{ company_form.country.id_for_label }}" class="form-label">
+                Land
+            </label>
+            {{ company_form.country|add_class:"form-control"|attr:"placeholder:Deutschland" }}
+            {% if company_form.country.help_text %}
+            <div class="form-text">{{ company_form.country.help_text }}</div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="mb-3">
+            <label for="{{ company_form.tax_number.id_for_label }}" class="form-label">
+                Steuernummer
+            </label>
+            {{ company_form.tax_number|add_class:"form-control"|attr:"placeholder:123/456/78901" }}
+            {% if company_form.tax_number.help_text %}
+            <div class="form-text">{{ company_form.tax_number.help_text }}</div>
+            {% endif %}
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="mb-3">
+            <label for="{{ company_form.vat_id.id_for_label }}" class="form-label">
+                USt-IdNr. (VAT ID)
+            </label>
+            {{ company_form.vat_id|add_class:"form-control"|attr:"placeholder:DE123456789" }}
+            {% if company_form.vat_id.help_text %}
+            <div class="form-text">{{ company_form.vat_id.help_text }}</div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Form Actions -->
+<div class="row mt-4">
+    <div class="col-12">
+        <hr>
+        <div class="d-flex justify-content-between">
+            <a href="{% url 'customers:customer_list' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-times"></i> Abbrechen
+            </a>
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> Speichern
+            </button>
+        </div>
+    </div>
+</div>

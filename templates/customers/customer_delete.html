@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Kunde löschen: {{ customer.name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="h2 text-danger">
+                <i class="fas fa-trash text-danger me-2"></i>
+                Kunde löschen
+            </h1>
+            <p class="text-muted">Wollen Sie den folgenden Kunden wirklich löschen?</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{% url 'customer_detail' customer.id %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left"></i> Zurück zum Kunden
+            </a>
+        </div>
+    </div>
+
+    <!-- Deletion Warning -->
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Achtung: Unwiderrufliche Löschung
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-danger">
+                        <strong><i class="fas fa-warning me-2"></i>Wichtiger Hinweis:</strong>
+                        Diese Aktion kann nicht rückgängig gemacht werden. Der Kunde und alle zugehörigen Daten werden
+                        permanent gelöscht.
+                    </div>
+
+                    <!-- Customer Details -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6 class="text-danger">Zu löschende Kundendaten:</h6>
+                            <div class="bg-light p-3 rounded">
+                                <div class="row">
+                                    <div class="col-sm-3"><strong>Name:</strong></div>
+                                    <div class="col-sm-9">{{ customer.name }}</div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-3"><strong>E-Mail:</strong></div>
+                                    <div class="col-sm-9">{{ customer.email|default:"-" }}</div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-3"><strong>Telefon:</strong></div>
+                                    <div class="col-sm-9">{{ customer.phone|default:"-" }}</div>
+                                </div>
+                                {% if customer.company %}
+                                <div class="row">
+                                    <div class="col-sm-3"><strong>Unternehmen:</strong></div>
+                                    <div class="col-sm-9">{{ customer.company.name }}</div>
+                                </div>
+                                {% endif %}
+                                <div class="row">
+                                    <div class="col-sm-3"><strong>Erstellt:</strong></div>
+                                    <div class="col-sm-9">{{ customer.created_at|date:"d.m.Y H:i" }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Related Data Warning -->
+                    <div class="alert alert-warning">
+                        <h6><i class="fas fa-info-circle me-2"></i>Betroffene Daten:</h6>
+                        <ul class="mb-0">
+                            <li>Alle Rechnungen dieses Kunden</li>
+                            <li>Alle Rechnungspositionen</li>
+                            <li>Zugehörige Unternehmensdaten</li>
+                            <li>Historische Daten und Berichte</li>
+                        </ul>
+                    </div>
+
+                    <!-- Confirmation Form -->
+                    <form method="post" class="mt-4">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="confirmDelete" required>
+                                <label class="form-check-label" for="confirmDelete">
+                                    <strong>Ich bestätige, dass ich den Kunden "{{ customer.name }}" unwiderruflich
+                                        löschen möchte.</strong>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'customer_detail' customer.id %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times"></i> Abbrechen
+                            </a>
+                            <button type="submit" class="btn btn-danger" id="deleteButton" disabled>
+                                <i class="fas fa-trash"></i> Endgültig löschen
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Side Information -->
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">
+                        <i class="fas fa-lightbulb text-warning me-2"></i>
+                        Alternativen
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <p>Anstatt den Kunden zu löschen, können Sie:</p>
+                    <ul>
+                        <li>Den Kunden als <strong>inaktiv</strong> markieren</li>
+                        <li>Die Kundendaten <strong>archivieren</strong></li>
+                        <li>Einen <strong>Export</strong> der Daten durchführen</li>
+                    </ul>
+                    <div class="d-grid gap-2 mt-3">
+                        <a href="{% url 'customer_edit' customer.id %}" class="btn btn-outline-primary">
+                            <i class="fas fa-edit"></i> Stattdessen bearbeiten
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">
+                        <i class="fas fa-question-circle text-info me-2"></i>
+                        Hilfe benötigt?
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted small">
+                        Falls Sie sich unsicher sind, wenden Sie sich an den Administrator oder erstellen Sie zunächst
+                        ein Backup der Daten.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Enable/disable delete button based on checkbox
+    document.getElementById('confirmDelete').addEventListener('change', function () {
+        document.getElementById('deleteButton').disabled = !this.checked;
+    });
+</script>
+{% endblock %}

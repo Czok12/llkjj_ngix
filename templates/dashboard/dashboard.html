@@ -1,0 +1,238 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Faktura System{% endblock %}
+
+{% block content %}
+<div class="py-6">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Page header -->
+        <div class="md:flex md:items-center md:justify-between">
+            <div class="flex-1 min-w-0">
+                <h2 class="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
+                    Dashboard
+                </h2>
+                <p class="mt-1 text-sm text-gray-500">
+                    Übersicht über Ihre Geschäftsdaten
+                </p>
+            </div>
+            <div class="mt-4 flex md:mt-0 md:ml-4">
+                <a href="{% url 'invoices:invoice_create' %}"
+                    class="ml-3 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    <i class="fas fa-plus mr-2"></i>
+                    Neue Rechnung
+                </a>
+            </div>
+        </div>
+
+        <!-- Metrics -->
+        <div class="mt-8">
+            <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+                <!-- Total Revenue -->
+                <div class="bg-white overflow-hidden shadow rounded-lg">
+                    <div class="p-5">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-euro-sign text-2xl text-green-600"></i>
+                            </div>
+                            <div class="ml-5 w-0 flex-1">
+                                <dl>
+                                    <dt class="text-sm font-medium text-gray-500 truncate">
+                                        Gesamtumsatz
+                                    </dt>
+                                    <dd class="text-lg font-medium text-gray-900">
+                                        € {{ total_revenue|floatformat:2 }}
+                                    </dd>
+                                </dl>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- This Month Revenue -->
+                <div class="bg-white overflow-hidden shadow rounded-lg">
+                    <div class="p-5">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-chart-line text-2xl text-blue-600"></i>
+                            </div>
+                            <div class="ml-5 w-0 flex-1">
+                                <dl>
+                                    <dt class="text-sm font-medium text-gray-500 truncate">
+                                        Umsatz diesen Monat
+                                    </dt>
+                                    <dd class="text-lg font-medium text-gray-900">
+                                        € {{ this_month_revenue|floatformat:2 }}
+                                    </dd>
+                                    {% if revenue_change != 0 %}
+                                    <dd
+                                        class="text-sm {% if revenue_change > 0 %}text-green-600{% else %}text-red-600{% endif %}">
+                                        {% if revenue_change > 0 %}+{% endif %}€ {{ revenue_change|floatformat:2 }} vs.
+                                        letzter Monat
+                                    </dd>
+                                    {% endif %}
+                                </dl>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Outstanding Invoices -->
+                <div class="bg-white overflow-hidden shadow rounded-lg">
+                    <div class="p-5">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-file-invoice-dollar text-2xl text-yellow-600"></i>
+                            </div>
+                            <div class="ml-5 w-0 flex-1">
+                                <dl>
+                                    <dt class="text-sm font-medium text-gray-500 truncate">
+                                        Offene Rechnungen
+                                    </dt>
+                                    <dd class="text-lg font-medium text-gray-900">
+                                        {{ outstanding_invoices_count }}
+                                    </dd>
+                                    <dd class="text-sm text-gray-600">
+                                        € {{ outstanding_invoices_total|floatformat:2 }}
+                                    </dd>
+                                </dl>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Total Customers -->
+                <div class="bg-white overflow-hidden shadow rounded-lg">
+                    <div class="p-5">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-users text-2xl text-purple-600"></i>
+                            </div>
+                            <div class="ml-5 w-0 flex-1">
+                                <dl>
+                                    <dt class="text-sm font-medium text-gray-500 truncate">
+                                        Kunden gesamt
+                                    </dt>
+                                    <dd class="text-lg font-medium text-gray-900">
+                                        {{ total_customers }}
+                                    </dd>
+                                    <dd class="text-sm text-gray-600">
+                                        +{{ new_customers_this_month }} diesen Monat
+                                    </dd>
+                                </dl>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions & Recent Activity -->
+        <div class="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <!-- Recent Invoices -->
+            <div class="bg-white shadow rounded-lg">
+                <div class="px-4 py-5 sm:p-6">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900">
+                        Aktuelle Rechnungen
+                    </h3>
+                    <div class="mt-6 flow-root">
+                        {% if recent_invoices %}
+                        <ul class="-my-5 divide-y divide-gray-200">
+                            {% for invoice in recent_invoices %}
+                            <li class="py-4">
+                                <div class="flex items-center space-x-4">
+                                    <div class="flex-shrink-0">
+                                        <div
+                                            class="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center">
+                                            <i class="fas fa-file-invoice text-indigo-600 text-sm"></i>
+                                        </div>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-sm font-medium text-gray-900 truncate">
+                                            <a href="{% url 'invoices:invoice_detail' invoice.id %}"
+                                                class="hover:text-indigo-600">
+                                                {{ invoice.invoice_number }}
+                                            </a>
+                                        </p>
+                                        <p class="text-sm text-gray-500 truncate">
+                                            {{ invoice.customer.name }}
+                                        </p>
+                                    </div>
+                                    <div class="text-right">
+                                        <p class="text-sm font-medium text-gray-900">
+                                            € {{ invoice.total_amount|floatformat:2 }}
+                                        </p>
+                                        <p class="text-xs text-gray-500">
+                                            {{ invoice.invoice_date }}
+                                        </p>
+                                    </div>
+                                </div>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        <div class="mt-6">
+                            <a href="{% url 'invoices:invoice_list' %}"
+                                class="w-full flex justify-center items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                                Alle Rechnungen anzeigen
+                            </a>
+                        </div>
+                        {% else %}
+                        <p class="text-sm text-gray-500">Noch keine Rechnungen vorhanden.</p>
+                        <div class="mt-4">
+                            <a href="{% url 'invoices:invoice_create' %}"
+                                class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200">
+                                <i class="fas fa-plus mr-2"></i>
+                                Erste Rechnung erstellen
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="bg-white shadow rounded-lg">
+                <div class="px-4 py-5 sm:p-6">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900">
+                        Statistiken
+                    </h3>
+                    <div class="mt-6 space-y-4">
+                        <!-- Catalog Items -->
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <i class="fas fa-box text-gray-400 mr-3"></i>
+                                <span class="text-sm text-gray-700">Artikel im Katalog</span>
+                            </div>
+                            <span class="text-sm font-medium text-gray-900">{{ total_catalog_items }}</span>
+                        </div>
+
+                        <!-- Low Stock Items -->
+                        {% if low_stock_items > 0 %}
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <i class="fas fa-exclamation-triangle text-yellow-500 mr-3"></i>
+                                <span class="text-sm text-yellow-700">Niedriger Bestand</span>
+                            </div>
+                            <span class="text-sm font-medium text-yellow-900">{{ low_stock_items }}</span>
+                        </div>
+                        {% endif %}
+
+                        <!-- Action Buttons -->
+                        <div class="pt-4 border-t border-gray-200 space-y-2">
+                            <a href="{% url 'customers:customer_create' %}"
+                                class="w-full flex justify-center items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                                <i class="fas fa-user-plus mr-2"></i>
+                                Neuen Kunden erstellen
+                            </a>
+                            <a href="{% url 'catalog:catalog_create' %}"
+                                class="w-full flex justify-center items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                                <i class="fas fa-plus mr-2"></i>
+                                Neuen Artikel erstellen
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

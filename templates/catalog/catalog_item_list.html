@@ -1,0 +1,207 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Katalog - Artikel & Kategorien{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="h2">
+                <i class="fas fa-boxes text-info me-2"></i>
+                Katalog
+            </h1>
+            <p class="text-muted">Verwalten Sie Ihre Artikel und Kategorien</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <div class="btn-group" role="group">
+                <a href="{% url 'catalog_item_create' %}" class="btn btn-success">
+                    <i class="fas fa-plus"></i> Neuer Artikel
+                </a>
+                <a href="{% url 'catalog_category_create' %}" class="btn btn-outline-success">
+                    <i class="fas fa-folder-plus"></i> Neue Kategorie
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search and Filters -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <form method="get" hx-get="{% url 'catalog:catalog_list' %}" hx-target="#catalog-content">
+                        <div class="row align-items-end">
+                            <div class="col-md-4">
+                                <label for="search" class="form-label">Suche</label>
+                                <input type="text" class="form-control" id="search" name="search"
+                                    value="{{ search_query }}" placeholder="Artikel oder Beschreibung suchen..."
+                                    hx-trigger="input changed delay:300ms" hx-get="{% url 'catalog_item_list' %}"
+                                    hx-target="#catalog-content">
+                            </div>
+                            <div class="col-md-3">
+                                <label for="category" class="form-label">Kategorie</label>
+                                <select class="form-select" id="category" name="category" hx-trigger="change"
+                                    hx-get="{% url 'catalog_item_list' %}" hx-target="#catalog-content"
+                                    hx-include="[name='search']">
+                                    <option value="">Alle Kategorien</option>
+                                    {% for category in categories %}
+                                    <option value="{{ category.id }}" {% if
+                                        selected_category==category.id|stringformat:"s" %}selected{% endif %}>
+                                        {{ category.name }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label for="status" class="form-label">Status</label>
+                                <select class="form-select" id="status" name="status" hx-trigger="change"
+                                    hx-get="{% url 'catalog_item_list' %}" hx-target="#catalog-content"
+                                    hx-include="[name='search'], [name='category']">
+                                    <option value="">Alle</option>
+                                    <option value="active" {% if selected_status=='active' %}selected{% endif %}>Aktiv
+                                    </option>
+                                    <option value="inactive" {% if selected_status=='inactive' %}selected{% endif %}>
+                                        Inaktiv</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <button type="button" class="btn btn-outline-secondary me-2" onclick="clearFilters()">
+                                    <i class="fas fa-times"></i> Filter zurücksetzen
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Results Summary -->
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <div class="d-flex align-items-center">
+                <span class="text-muted">
+                    <i class="fas fa-info-circle me-2"></i>
+                    {{ total_items }} Artikel{% if search_query %} gefunden für "{{ search_query }}"{% endif %}
+                </span>
+            </div>
+        </div>
+        <div class="col-md-6 text-end">
+            <div class="btn-group btn-group-sm" role="group">
+                <input type="radio" class="btn-check" name="view-mode" id="grid-view" autocomplete="off" checked>
+                <label class="btn btn-outline-secondary" for="grid-view">
+                    <i class="fas fa-th"></i> Karten
+                </label>
+
+                <input type="radio" class="btn-check" name="view-mode" id="list-view" autocomplete="off">
+                <label class="btn btn-outline-secondary" for="list-view">
+                    <i class="fas fa-list"></i> Liste
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <!-- Catalog Content -->
+    <div id="catalog-content">
+        {% include 'catalog/catalog_items_partial.html' %}
+    </div>
+
+    <!-- Pagination -->
+    {% if catalog_items.has_other_pages %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <nav aria-label="Katalog Navigation">
+                <ul class="pagination justify-content-center">
+                    {% if catalog_items.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link"
+                            href="?page={{ catalog_items.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if selected_status %}&status={{ selected_status }}{% endif %}"
+                            hx-get="{% url 'catalog_item_list' %}?page={{ catalog_items.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if selected_status %}&status={{ selected_status }}{% endif %}"
+                            hx-target="#catalog-content">
+                            Vorherige
+                        </a>
+                    </li>
+                    {% endif %}
+
+                    {% for num in catalog_items.paginator.page_range %}
+                    {% if catalog_items.number == num %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ num }}</span>
+                    </li>
+                    {% elif num > catalog_items.number|add:'-3' and num < catalog_items.number|add:'3' %} <li
+                        class="page-item">
+                        <a class="page-link"
+                            href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if selected_status %}&status={{ selected_status }}{% endif %}"
+                            hx-get="{% url 'catalog_item_list' %}?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if selected_status %}&status={{ selected_status }}{% endif %}"
+                            hx-target="#catalog-content">
+                            {{ num }}
+                        </a>
+                        </li>
+                        {% endif %}
+                        {% endfor %}
+
+                        {% if catalog_items.has_next %}
+                        <li class="page-item">
+                            <a class="page-link"
+                                href="?page={{ catalog_items.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if selected_status %}&status={{ selected_status }}{% endif %}"
+                                hx-get="{% url 'catalog_item_list' %}?page={{ catalog_items.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if selected_status %}&status={{ selected_status }}{% endif %}"
+                                hx-target="#catalog-content">
+                                Nächste
+                            </a>
+                        </li>
+                        {% endif %}
+                </ul>
+            </nav>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+    function clearFilters() {
+        document.getElementById('search').value = '';
+        document.getElementById('category').value = '';
+        document.getElementById('status').value = '';
+
+        // Trigger HTMX request to reload content
+        htmx.trigger('#search', 'input');
+    }
+
+    // Toggle view modes
+    document.getElementById('grid-view').addEventListener('change', function () {
+        if (this.checked) {
+            document.getElementById('catalog-content').classList.remove('list-view');
+            document.getElementById('catalog-content').classList.add('grid-view');
+        }
+    });
+
+    document.getElementById('list-view').addEventListener('change', function () {
+        if (this.checked) {
+            document.getElementById('catalog-content').classList.remove('grid-view');
+            document.getElementById('catalog-content').classList.add('list-view');
+        }
+    });
+</script>
+
+<style>
+    .grid-view .card {
+        transition: transform 0.2s;
+    }
+
+    .grid-view .card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .list-view .row .col-md-4 {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+
+    .list-view .card {
+        margin-bottom: 0.5rem;
+    }
+</style>
+{% endblock %}

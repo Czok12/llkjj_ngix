@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ form_title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="h2">
+                <i class="fas fa-user-plus text-primary me-2"></i>
+                {{ form_title }}
+            </h1>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{% url 'customers:customer_list' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left"></i> Zurück zur Kundenliste
+            </a>
+        </div>
+    </div>
+
+    <!-- Form -->
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-body">
+                    <form method="post"
+                        hx-post="{% if customer %}{% url 'customer_edit' customer.id %}{% else %}{% url 'customer_create' %}{% endif %}"
+                        hx-target="#form-container">
+                        {% csrf_token %}
+                        <div id="form-container">
+                            {% include 'customers/customer_form_partial.html' %}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">
+                        <i class="fas fa-info-circle text-info me-2"></i>
+                        Hinweise
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-lightbulb me-2"></i>
+                        <strong>Tipp:</strong> Alle Felder mit einem * sind Pflichtfelder.
+                    </div>
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Hinweis:</strong> Die Unternehmensdaten werden automatisch mit dem Kunden verknüpft.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // HTMX success handler
+    document.body.addEventListener('htmx:responseError', function (event) {
+        console.error('HTMX error:', event.detail);
+    });
+
+    document.body.addEventListener('htmx:afterRequest', function (event) {
+        if (event.detail.xhr.responseJSON && event.detail.xhr.responseJSON.success) {
+            if (event.detail.xhr.responseJSON.redirect) {
+                window.location.href = event.detail.xhr.responseJSON.redirect;
+            }
+        }
+    });
+</script>
+{% endblock %}

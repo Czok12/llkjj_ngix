@@ -1,0 +1,116 @@
+<!-- Customer List Partial for HTMX -->
+<div class="bg-white shadow overflow-hidden sm:rounded-md">
+    {% if customers %}
+    <ul class="divide-y divide-gray-200">
+        {% for customer in customers %}
+        <li>
+            <a href="{% url 'customers:customer_detail' customer.id %}" class="block hover:bg-gray-50">
+                <div class="px-4 py-4 sm:px-6">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0">
+                                <div class="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center">
+                                    <span class="text-sm font-medium text-indigo-800">
+                                        {{ customer.name|slice:":1"|upper }}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="ml-4">
+                                <div class="text-sm font-medium text-gray-900">
+                                    {{ customer.name }}
+                                </div>
+                                {% if customer.customer_number %}
+                                <div class="text-sm text-gray-500">
+                                    Kundennummer: {{ customer.customer_number }}
+                                </div>
+                                {% endif %}
+                                {% if customer.contact_person %}
+                                <div class="text-sm text-gray-500">
+                                    Ansprechpartner: {{ customer.contact_person }}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            {% if customer.email %}
+                            <div class="text-sm text-gray-900">
+                                <i class="fas fa-envelope mr-1"></i>
+                                {{ customer.email }}
+                            </div>
+                            {% endif %}
+                            {% if customer.phone %}
+                            <div class="text-sm text-gray-500">
+                                <i class="fas fa-phone mr-1"></i>
+                                {{ customer.phone }}
+                            </div>
+                            {% endif %}
+                            <div class="text-sm text-gray-500">
+                                {% if customer.city %}{{ customer.city }}{% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </li>
+        {% endfor %}
+    </ul>
+
+    <!-- Pagination -->
+    {% if customers.has_other_pages %}
+    <nav class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+        <div class="hidden sm:block">
+            <p class="text-sm text-gray-700">
+                Zeige
+                <span class="font-medium">{{ customers.start_index }}</span>
+                bis
+                <span class="font-medium">{{ customers.end_index }}</span>
+                von
+                <span class="font-medium">{{ customers.paginator.count }}</span>
+                Kunden
+            </p>
+        </div>
+        <div class="flex-1 flex justify-between sm:justify-end">
+            {% if customers.has_previous %}
+            <a href="?{% if search_query %}search={{ search_query }}&{% endif %}page={{ customers.previous_page_number }}"
+                hx-get="?{% if search_query %}search={{ search_query }}&{% endif %}page={{ customers.previous_page_number }}"
+                hx-target="#customer-list"
+                class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                Zurück
+            </a>
+            {% endif %}
+            {% if customers.has_next %}
+            <a href="?{% if search_query %}search={{ search_query }}&{% endif %}page={{ customers.next_page_number }}"
+                hx-get="?{% if search_query %}search={{ search_query }}&{% endif %}page={{ customers.next_page_number }}"
+                hx-target="#customer-list"
+                class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                Weiter
+            </a>
+            {% endif %}
+        </div>
+    </nav>
+    {% endif %}
+
+    {% else %}
+    <!-- Empty state -->
+    <div class="text-center py-12">
+        <i class="fas fa-users text-gray-400 text-4xl mb-4"></i>
+        <h3 class="mt-2 text-sm font-medium text-gray-900">Keine Kunden gefunden</h3>
+        {% if search_query %}
+        <p class="mt-1 text-sm text-gray-500">
+            Keine Kunden entsprechen Ihrer Suche nach "{{ search_query }}".
+        </p>
+        {% else %}
+        <p class="mt-1 text-sm text-gray-500">
+            Erstellen Sie Ihren ersten Kunden.
+        </p>
+        <div class="mt-6">
+            <a href="{% url 'customers:customer_create' %}"
+                class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                <i class="fas fa-plus mr-2"></i>
+                Neuen Kunden erstellen
+            </a>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>

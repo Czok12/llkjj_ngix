@@ -1,0 +1,140 @@
+<div class="p-6">
+    <form hx-post="" hx-target="#catalog-form-container" hx-swap="outerHTML" class="space-y-6">
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+        <div class="bg-red-50 dark:bg-red-900/50 border border-red-200 dark:border-red-800 rounded-md p-4">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-exclamation-circle text-red-400"></i>
+                </div>
+                <div class="ml-3">
+                    <h3 class="text-sm font-medium text-red-800 dark:text-red-300">
+                        Fehler beim Speichern
+                    </h3>
+                    <div class="mt-2 text-sm text-red-700 dark:text-red-400">
+                        {{ form.non_field_errors }}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Artikel-Name -->
+            <div class="md:col-span-2">
+                <label for="{{ form.name.id_for_label }}"
+                    class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    {{ form.name.label }}
+                    {% if form.name.field.required %}<span class="text-red-500">*</span>{% endif %}
+                </label>
+                {{ form.name }}
+                {% if form.name.errors %}
+                <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ form.name.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Beschreibung -->
+            <div class="md:col-span-2">
+                <label for="{{ form.description.id_for_label }}"
+                    class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    {{ form.description.label }}
+                </label>
+                {{ form.description }}
+                {% if form.description.errors %}
+                <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ form.description.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Preis -->
+            <div>
+                <label for="{{ form.price.id_for_label }}"
+                    class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    {{ form.price.label }}
+                    {% if form.price.field.required %}<span class="text-red-500">*</span>{% endif %}
+                </label>
+                {{ form.price }}
+                {% if form.price.errors %}
+                <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ form.price.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Einheit -->
+            <div>
+                <label for="{{ form.unit.id_for_label }}"
+                    class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    {{ form.unit.label }}
+                </label>
+                {{ form.unit }}
+                {% if form.unit.errors %}
+                <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ form.unit.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Kategorie -->
+            <div>
+                <label for="{{ form.category.id_for_label }}"
+                    class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    {{ form.category.label }}
+                </label>
+                {{ form.category }}
+                {% if form.category.errors %}
+                <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ form.category.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <!-- MwSt-Satz -->
+            <div>
+                <label for="{{ form.tax_rate.id_for_label }}"
+                    class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    {{ form.tax_rate.label }}
+                    {% if form.tax_rate.field.required %}<span class="text-red-500">*</span>{% endif %}
+                </label>
+                {{ form.tax_rate }}
+                {% if form.tax_rate.errors %}
+                <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ form.tax_rate.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Artikel-Code -->
+            <div>
+                <label for="{{ form.item_code.id_for_label }}"
+                    class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    {{ form.item_code.label }}
+                </label>
+                {{ form.item_code }}
+                {% if form.item_code.errors %}
+                <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ form.item_code.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Aktiv -->
+            <div class="md:col-span-2">
+                <div class="flex items-center">
+                    {{ form.is_active }}
+                    <label for="{{ form.is_active.id_for_label }}"
+                        class="ml-2 block text-sm text-gray-900 dark:text-gray-300">
+                        {{ form.is_active.label }}
+                    </label>
+                </div>
+                {% if form.is_active.errors %}
+                <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ form.is_active.errors.0 }}</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex justify-end space-x-3 pt-6 border-t border-gray-200 dark:border-gray-700">
+            <a href="{% url 'catalog_item_list' %}"
+                class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                <i class="fas fa-times mr-2"></i>Abbrechen
+            </a>
+
+            <button type="submit"
+                class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                <i class="fas fa-save mr-2"></i>
+                {% if catalog_item %}Aktualisieren{% else %}Erstellen{% endif %}
+            </button>
+        </div>
+    </form>
+</div>

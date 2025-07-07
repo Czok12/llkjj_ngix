@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ form_title }} - Faktura System{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <!-- Breadcrumb -->
+    <nav class="flex mb-6" aria-label="Breadcrumb">
+        <ol class="inline-flex items-center space-x-1 md:space-x-3">
+            <li class="inline-flex items-center">
+                <a href="{% url 'dashboard:dashboard' %}" class="text-blue-600 hover:text-blue-800">
+                    <i class="fas fa-home mr-2"></i>Dashboard
+                </a>
+            </li>
+            <li>
+                <div class="flex items-center">
+                    <i class="fas fa-chevron-right text-gray-400 mx-2"></i>
+                    <a href="{% url 'invoices:invoice_list' %}" class="text-blue-600 hover:text-blue-800">Rechnungen</a>
+                </div>
+            </li>
+            <li aria-current="page">
+                <div class="flex items-center">
+                    <i class="fas fa-chevron-right text-gray-400 mx-2"></i>
+                    <span class="text-gray-500">{{ form_title }}</span>
+                </div>
+            </li>
+        </ol>
+    </nav>
+
+    <!-- Header -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 mb-6">
+        <div class="flex justify-between items-center">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ form_title }}</h1>
+                <p class="text-gray-600 dark:text-gray-400 mt-1">
+                    {% if invoice %}
+                    Bearbeiten Sie die Rechnungsdetails und Positionen
+                    {% else %}
+                    Erstellen Sie eine neue Rechnung mit Positionen
+                    {% endif %}
+                </p>
+            </div>
+            <div class="flex space-x-2">
+                <a href="{% url 'invoices:invoice_list' %}"
+                    class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    <i class="fas fa-arrow-left mr-2"></i>Zurück zur Liste
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form Container -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+        <div id="invoice-form-container">
+            {% include "invoices/invoice_form_partial.html" %}
+        </div>
+    </div>
+</div>
+
+<!-- HTMX Scripts -->
+<script>
+    document.body.addEventListener('htmx:responseError', function (evt) {
+        console.error('HTMX Error:', evt.detail);
+        alert('Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.');
+    });
+
+    document.body.addEventListener('htmx:afterRequest', function (evt) {
+        if (evt.detail.xhr.responseJSON && evt.detail.xhr.responseJSON.success && evt.detail.xhr.responseJSON.redirect) {
+            window.location.href = evt.detail.xhr.responseJSON.redirect;
+        }
+    });
+
+    // Add position functionality
+    function addPosition() {
+        const container = document.getElementById('positions-container');
+        const template = document.getElementById('position-template');
+        const newPosition = template.content.cloneNode(true);
+
+        // Update field names and IDs
+        const totalForms = document.querySelector('[name$="-TOTAL_FORMS"]');
+        const formIdx = parseInt(totalForms.value);
+
+        newPosition.querySelectorAll('input, select, textarea').forEach(field => {
+            if (field.name) {
+                field.name = field.name.replace('__prefix__', formIdx);
+            }
+            if (field.id) {
+                field.id = field.id.replace('__prefix__', formIdx);
+            }
+        });
+
+        container.appendChild(newPosition);
+        totalForms.value = formIdx + 1;
+    }
+
+    function removePosition(button) {
+        const positionDiv = button.closest('.position-item');
+        const deleteField = positionDiv.querySelector('input[name$="-DELETE"]');
+
+        if (deleteField) {
+            deleteField.checked = true;
+            positionDiv.style.display = 'none';
+        } else {
+            positionDiv.remove();
+        }
+    }
+</script>
+{% endblock %}

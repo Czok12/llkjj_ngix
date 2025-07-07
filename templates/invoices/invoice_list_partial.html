@@ -1,0 +1,209 @@
+<!-- Invoice List Partial for HTMX -->
+<div class="row">
+    <div class="col-12">
+        {% if invoices %}
+        <div class="card">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Rechnungsnummer</th>
+                                <th>Kunde</th>
+                                <th>Rechnungsdatum</th>
+                                <th>Fälligkeitsdatum</th>
+                                <th class="text-end">Betrag</th>
+                                <th>Status</th>
+                                <th class="text-end">Aktionen</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for invoice in invoices %}
+                            <tr
+                                class="{% if invoice.status == 'overdue' %}table-danger{% elif invoice.status == 'paid' %}table-success{% endif %}">
+                                <td>
+                                    <a href="{% url 'invoice_detail' invoice.id %}"
+                                        class="text-decoration-none fw-bold">
+                                        {{ invoice.invoice_number }}
+                                    </a>
+                                    {% if invoice.is_draft %}
+                                    <span class="badge bg-secondary ms-2">Entwurf</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div>
+                                            <div class="fw-semibold">{{ invoice.customer.name }}</div>
+                                            {% if invoice.customer.company %}
+                                            <small class="text-muted">{{ invoice.customer.company.name }}</small>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="text-nowrap">{{ invoice.invoice_date|date:"d.m.Y" }}</span>
+                                </td>
+                                <td>
+                                    <span class="text-nowrap{% if invoice.is_overdue %} text-danger fw-bold{% endif %}">
+                                        {{ invoice.due_date|date:"d.m.Y" }}
+                                    </span>
+                                    {% if invoice.is_overdue %}
+                                    <br><small class="text-danger">
+                                        <i class="fas fa-exclamation-triangle me-1"></i>
+                                        {{ invoice.days_overdue }} Tage überfällig
+                                    </small>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end">
+                                    <div class="fw-bold">{{ invoice.total_amount|floatformat:2 }} €</div>
+                                    <small class="text-muted">netto</small>
+                                </td>
+                                <td>
+                                    {% if invoice.status == 'draft' %}
+                                    <span class="badge bg-secondary">
+                                        <i class="fas fa-edit me-1"></i>Entwurf
+                                    </span>
+                                    {% elif invoice.status == 'sent' %}
+                                    <span class="badge bg-info">
+                                        <i class="fas fa-paper-plane me-1"></i>Versendet
+                                    </span>
+                                    {% elif invoice.status == 'paid' %}
+                                    <span class="badge bg-success">
+                                        <i class="fas fa-check-circle me-1"></i>Bezahlt
+                                    </span>
+                                    {% elif invoice.status == 'overdue' %}
+                                    <span class="badge bg-danger">
+                                        <i class="fas fa-exclamation-triangle me-1"></i>Überfällig
+                                    </span>
+                                    {% else %}
+                                    <span class="badge bg-light text-dark">
+                                        {{ invoice.get_status_display }}
+                                    </span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end">
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <a href="{% url 'invoice_detail' invoice.id %}" class="btn btn-outline-primary"
+                                            title="Anzeigen">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+
+                                        {% if invoice.status == 'draft' %}
+                                        <a href="{% url 'invoice_edit' invoice.id %}" class="btn btn-outline-secondary"
+                                            title="Bearbeiten">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        {% endif %}
+
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <button type="button"
+                                                class="btn btn-outline-secondary dropdown-toggle dropdown-toggle-split"
+                                                data-bs-toggle="dropdown" aria-expanded="false">
+                                                <span class="visually-hidden">Toggle Dropdown</span>
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-end">
+                                                <li>
+                                                    <a class="dropdown-item"
+                                                        href="{% url 'invoice_detail' invoice.id %}">
+                                                        <i class="fas fa-eye me-2"></i>Anzeigen
+                                                    </a>
+                                                </li>
+                                                {% if invoice.status == 'draft' %}
+                                                <li>
+                                                    <a class="dropdown-item" href="{% url 'invoice_edit' invoice.id %}">
+                                                        <i class="fas fa-edit me-2"></i>Bearbeiten
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <hr class="dropdown-divider">
+                                                </li>
+                                                <li>
+                                                    <a class="dropdown-item" href="#">
+                                                        <i class="fas fa-paper-plane me-2"></i>Versenden
+                                                    </a>
+                                                </li>
+                                                {% endif %}
+                                                <li>
+                                                    <a class="dropdown-item" href="#">
+                                                        <i class="fas fa-download me-2"></i>PDF herunterladen
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a class="dropdown-item" href="#">
+                                                        <i class="fas fa-copy me-2"></i>Duplizieren
+                                                    </a>
+                                                </li>
+                                                {% if invoice.status == 'sent' %}
+                                                <li>
+                                                    <hr class="dropdown-divider">
+                                                </li>
+                                                <li>
+                                                    <a class="dropdown-item text-success" href="#">
+                                                        <i class="fas fa-check me-2"></i>Als bezahlt markieren
+                                                    </a>
+                                                </li>
+                                                {% endif %}
+                                                {% if invoice.status == 'draft' %}
+                                                <li>
+                                                    <hr class="dropdown-divider">
+                                                </li>
+                                                <li>
+                                                    <a class="dropdown-item text-danger"
+                                                        href="{% url 'invoice_delete' invoice.id %}">
+                                                        <i class="fas fa-trash me-2"></i>Löschen
+                                                    </a>
+                                                </li>
+                                                {% endif %}
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="text-center text-muted py-5">
+            <i class="fas fa-file-invoice fa-4x mb-4 opacity-50"></i>
+            {% if search_query or selected_status or selected_customer or date_from or date_to %}
+            <h4>Keine Rechnungen gefunden</h4>
+            <p>Für Ihre Suchkriterien wurden keine Rechnungen gefunden.</p>
+            <button type="button" class="btn btn-outline-primary" onclick="clearFilters()">
+                <i class="fas fa-times"></i> Filter zurücksetzen
+            </button>
+            {% else %}
+            <h4>Noch keine Rechnungen vorhanden</h4>
+            <p>Erstellen Sie Ihre erste Rechnung, um loszulegen.</p>
+            <a href="{% url 'invoice_create' %}" class="btn btn-success">
+                <i class="fas fa-plus"></i> Erste Rechnung erstellen
+            </a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    .table-hover tbody tr:hover {
+        background-color: rgba(0, 0, 0, 0.02);
+    }
+
+    .table-danger {
+        --bs-table-bg: rgba(220, 53, 69, 0.05);
+    }
+
+    .table-success {
+        --bs-table-bg: rgba(25, 135, 84, 0.05);
+    }
+
+    .text-nowrap {
+        white-space: nowrap;
+    }
+
+    .dropdown-menu {
+        min-width: 200px;
+    }
+</style>

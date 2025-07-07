@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Neue Rechnung erstellen</title>
+    <!-- HTMX-Skript einbinden (wird von django-htmx bereitgestellt) -->
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <style>
+        body {
+            display: flex;
+            font-family: sans-serif;
+        }
+
+        #form-column {
+            width: 40%;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        #preview-column {
+            width: 60%;
+            border-left: 1px solid #ccc;
+            padding: 0;
+            height: 100vh;
+            overflow: auto;
+        }
+
+        form label {
+            display: block;
+            margin-top: 10px;
+        }
+
+        form input,
+        form select,
+        form textarea {
+            width: 90%;
+            padding: 8px;
+            margin-top: 5px;
+        }
+
+        /* Stil für die Vorschau, um wie ein A4-Blatt auszusehen */
+        #invoice-preview-content {
+            background: white;
+            width: 210mm;
+            min-height: 297mm;
+            margin: 20px auto;
+            padding: 20mm 15mm;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="form-column">
+        <h1>Rechnungsdaten</h1>
+
+        <!-- Das ist der HTMX-Container. Alle Änderungen hier drin lösen die Vorschau aus -->
+        <form hx-post="{% url 'update_preview' %}" hx-target="#invoice-preview-content"
+            hx-trigger="change, keyup delay:500ms from:input, change from:select">
+
+            {% csrf_token %} <!-- Wichtiger Django-Sicherheitstoken -->
+
+            <label for="customer">Kunde:</label>
+            <select name="customer" id="customer">
+                <option value="">--- Kunde auswählen ---</option>
+                {% for c in customers %}
+                <option value="{{ c.id }}">{{ c.name }}</option>
+                {% endfor %}
+            </select>
+
+            <label for="invoice_number">Rechnungsnummer (optional):</label>
+            <input type="text" name="invoice_number" id="invoice_number" placeholder="Wird automatisch generiert">
+
+            <label for="baustellenadresse">Baustellenadresse:</label>
+            <input type="text" name="baustellenadresse" id="baustellenadresse">
+
+            <label for="notes">Einleitungstext:</label>
+            <textarea name="notes" id="notes" rows="4"></textarea>
+
+            <!-- ... Hier kommt die Tabelle für die Positionen hin ... -->
+
+        </form>
+    </div>
+
+    <div id="preview-column">
+        <!-- Das ist das Ziel für HTMX. Der Inhalt wird ausgetauscht. -->
+        <div id="invoice-preview-content">
+            {% include 'invoices/invoice_preview_partial.html' %}
+        </div>
+    </div>
+</body>
+
+</html>
